@@ -1,0 +1,167 @@
+import { NextRequest, NextResponse } from "next/server";
+import { AnnouncementType } from "@prisma/client";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
+import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+
+export const dynamic = "force-dynamic";
+
+const announcementSchema = z.object({
+  title: z.string().min(3).max(160),
+  content: z.string().min(10).max(5000),
+  type: z.nativeEnum(AnnouncementType),
+  batchId: z.string().optional().nullable(),
+});
+
+const announcementUpdateSchema = announcementSchema.extend({
+  id: z.string(),
+});
+
+export async function GET() {
+  const { response } = await requirePermission("announcements.view");
+  if (response) {
+    return response;
+  }
+
+  const announcements = await prisma.announcement.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+
+  return NextResponse.json({ announcements });
+}
+
+export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) {
+    return sameOriginResponse;
+  }
+
+  const { user, response } = await requirePermission("announcements.create");
+  if (!user || response) {
+    return response;
+  }
+
+  try {
+    const data = announcementSchema.parse(await request.json());
+    const announcement = await prisma.announcement.create({
+      data: {
+        title: data.title,
+        content: data.content,
+        type: data.type,
+        batchId: data.batchId || null,
+        authorId: user.id,
+        publishedAt: new Date(),
+      },
+    });
+
+    await writeAuditLog({
+      actorUserId: user.id,
+      action: "announcement.created",
+      entity: "announcement",
+      entityId: announcement.id,
+      newValue: announcement,
+      request,
+    });
+
+    return NextResponse.json({ success: true, announcement });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
+    console.error("POST admin announcement error:", error);
+    return NextResponse.json({ error: "Failed to create announcement" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) {
+    return sameOriginResponse;
+  }
+
+  const { user, response } = await requirePermission("announcements.edit");
+  if (!user || response) {
+    return response;
+  }
+
+  try {
+    const data = announcementUpdateSchema.parse(await request.json());
+    const existing = await prisma.announcement.findUnique({
+      where: { id: data.id },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
+    }
+
+    const announcement = await prisma.announcement.update({
+      where: { id: data.id },
+      data: {
+        title: data.title,
+        content: data.content,
+        type: data.type,
+        batchId: data.batchId || null,
+        publishedAt: existing.publishedAt || new Date(),
+      },
+    });
+
+    await writeAuditLog({
+      actorUserId: user.id,
+      action: "announcement.updated",
+      entity: "announcement",
+      entityId: announcement.id,
+      oldValue: existing,
+      newValue: announcement,
+      request,
+    });
+
+    return NextResponse.json({ success: true, announcement });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
+    console.error("PATCH admin announcement error:", error);
+    return NextResponse.json({ error: "Failed to update announcement" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) {
+    return sameOriginResponse;
+  }
+
+  const { user, response } = await requirePermission("announcements.edit");
+  if (!user || response) {
+    return response;
+  }
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "Announcement id is required" }, { status: 400 });
+  }
+
+  const existing = await prisma.announcement.findUnique({
+    where: { id },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
+  }
+
+  await prisma.announcement.delete({ where: { id } });
+
+  await writeAuditLog({
+    actorUserId: user.id,
+    action: "announcement.deleted",
+    entity: "announcement",
+    entityId: id,
+    oldValue: existing,
+    request,
+  });
+
+  return NextResponse.json({ success: true });
+}

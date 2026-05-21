@@ -1,0 +1,234 @@
+{
+  "Navigation": {
+    "home": "首页",
+    "courses": "课程",
+    "about": "关于我们",
+    "teachers": "导师",
+    "gallery": "图库",
+    "contact": "联系我们",
+    "applyNow": "立即报名",
+    "course100": "100小时YTT",
+    "course200": "200小时YTT",
+    "course300": "300小时YTT",
+    "trainings": "培训",
+    "allTrainings": "全部培训",
+    "experience": "体验",
+    "activities": "活动",
+    "studentStories": "学员故事",
+    "videos": "视频",
+    "blog": "博客",
+    "whyUbud": "为什么选择乌布",
+    "planYourTrip": "旅行准备",
+    "pricing": "价格与费用",
+    "visa": "签证信息",
+    "faq": "常见问题",
+    "school": "学校",
+    "aboutUs": "关于Bali YTTC",
+    "yogaAlliance": "Yoga Alliance",
+    "reviews": "学员评价",
+    "terms": "条款与政策",
+    "retreats": "静修",
+    "workshops": "工作坊",
+    "programs": "项目",
+    "testimonials": "见证",
+    "login": "登录",
+    "scarcity": "2026年3月课程仅剩4个名额！",
+    "needHelp": "需要帮助吗？",
+    "applyBatch": "申请2026年课程",
+    "onlySeatsLeft": "仅剩4个名额",
+    "marchBatch": "2026年3月200小时YTT课程。",
+    "reserveSpot": "预留名额"
+  },
+  "Hero": {
+    "title": "巴厘岛瑜伽导师培训",
+    "titleLine1": "瑜伽导师培训",
+    "titleLine2": "巴厘岛乌布",
+    "description": "乌布 Yoga Alliance 认证100小时、200小时和300小时课程。小班授课、经验导师、真实练习。",
+    "subtitle": "巴厘岛乌布的Yoga Alliance认证瑜伽导师培训",
+    "cta": "开始旅程",
+    "watchVideo": "观看视频",
+    "days": "天",
+    "hrs": "小时",
+    "min": "分",
+    "sec": "秒",
+    "nextBatch": "下一期",
+    "graduates": "毕业生",
+    "rating": "评分",
+    "certified": "认证",
+    "nextBatchStarts": "下一期即将开始！",
+    "location": "乌布，巴厘岛",
+    "applyBatch": "申请2026年课程",
+    "explorePrograms": "查看项目"
+  },
+  "TrustStrip": {
+    "recognisedBy": "认可与认证",
+    "yogaAlliance": "Yoga Alliance认证",
+    "students": "2,500+毕业生",
+    "rating": "4.9/5评分",
+    "certified": "200小时和300小时认证",
+    "established": "成立于2018年"
+  },
+  "Courses": {
+    "title": "瑜伽导师培训项目",
+    "subtitle": "选择适合您的瑜伽道路",
+    "viewDetails": "查看详情",
+    "applyNow": "立即报名",
+    "seatsLeft": "剩余名额",
+    "enrolmentOpen": "开放报名",
+    "popular": "热门"
+  },
+  "Course100": {
+    "title": "100小时瑜伽导师培训",
+    "duration": "100小时 | 11天",
+    "summary": "面向初学者的11天多风格瑜伽导师培训课程，获得Yoga Alliance认证。",
+    "price": "$999起",
+    "nextBatch": "下一期",
+    "highlights": "课程亮点"
+  },
+  "Course200": {
+    "title": "200小时瑜伽导师培训",
+    "duration": "200小时 | 21天",
+    "summary": "面向初级和中级练习者的21天旗舰沉浸式课程。成为Yoga Alliance认证导师，在世界各地教学。",
+    "price": "$1,499起",
+    "nextBatch": "下一期",
+    "highlights": "课程亮点",
+    "featured": "旗舰项目"
+  },
+  "Course300": {
+    "title": "300小时高级瑜伽导师培训",
+    "duration": "300小时 | 28天",
+    "summary": "为已完成200小时认证的导师设计，通过高级体式、哲学和导师指导深化练习与教学。",
+    "price": "$1,899起",
+    "nextBatch": "下一期",
+    "highlights": "课程亮点"
+  },
+  "FeaturedCourses": {
+    "title": "瑜伽导师培训项目",
+    "subtitle": "选择适合您的瑜伽道路",
+    "viewDetails": "查看详情",
+    "applyNow": "立即报名",
+    "seatsLeft": "剩余名额",
+    "enrollmentOpen": "开放报名",
+    "popular": "热门",
+    "ctaText": "Yoga Alliance认证100小时、200小时和300小时项目",
+    "viewAllCourses": "查看全部课程"
+  },
+  "Manifesto": {
+    "title": "我们的理念",
+    "quote": "瑜伽适合每一个人。它是传统智慧与现代科学的和谐结合。",
+    "eyebrow": "关于Bali YTTC",
+    "titleLine1": "严谨的瑜伽训练，",
+    "titleLine2": "在宁静的巴厘岛。",
+    "description1": "Bali YTTC是位于乌布的Yoga Alliance注册学校。课程将体式、呼吸法、冥想、解剖学、哲学和教学法融合在结构化的住宿式体验中。",
+    "description2": "目标不只是证书。学生毕业时会拥有更扎实的个人练习、更清晰的教学语言，以及带领真实课程的信心。",
+    "point1": "小班教学与个人反馈",
+    "point2": "传统练习结合实用解剖学",
+    "point3": "毕业前每天进行教学实践",
+    "yearsExperience": "年经验",
+    "learnMore": "了解更多"
+  },
+  "Pillars": {
+    "title": "六大支柱",
+    "subtitle": "培养自信瑜伽导师的精神与实践框架"
+  },
+  "Teachers": {
+    "title": "我们的导师",
+    "subtitle": "经验丰富的导师将指导您"
+  },
+  "Schedule": {
+    "title": "每日安排",
+    "subtitle": "培训期间的一天"
+  },
+  "Experiences": {
+    "title": "独特体验",
+    "subtitle": "超越瑜伽培训的巴厘岛体验"
+  },
+  "Gallery": {
+    "title": "图库",
+    "viewAll": "查看全部"
+  },
+  "Testimonials": {
+    "title": "毕业生评价",
+    "subtitle": "来自校友的故事"
+  },
+  "FAQ": {
+    "title": "您需要知道的一切",
+    "subtitle": "报名前有问题吗？我们的团队会帮助您选择合适的课程。",
+    "eyebrow": "常见问题",
+    "searchPlaceholder": "搜索问题...",
+    "noResults": "未找到问题",
+    "contactTitle": "还有疑问？",
+    "contactDesc": "如果没有找到答案，请直接联系我们。",
+    "emailButton": "发送邮件",
+    "whatsappButton": "WhatsApp"
+  },
+  "FinalCTA": {
+    "title": "准备开始您的瑜伽之旅了吗？",
+    "subtitle": "加入来自世界各地的2,500多名毕业生",
+    "cta": "立即报名"
+  },
+  "Apply": {
+    "title": "开始您的瑜伽之旅",
+    "step": "第 {current} 步，共 {total} 步",
+    "yourInfo": "您的信息",
+    "selectProgram": "选择项目",
+    "finalDetails": "最终信息",
+    "fullName": "姓名",
+    "email": "邮箱",
+    "phone": "电话（含国家代码）",
+    "preferredDate": "首选开始日期",
+    "message": "告诉我们更多",
+    "messagePlaceholder": "瑜伽经验、健康目标、饮食需求等...",
+    "continue": "继续",
+    "back": "返回",
+    "submit": "完成申请",
+    "submitting": "提交中...",
+    "success": "申请已收到！",
+    "successDesc": "您的申请已成功提交。我们的团队将在24小时内联系您。",
+    "noPayment": "现在无需付款。审核后您会收到专属注册链接。",
+    "reply24h": "招生团队将在24小时内回复",
+    "freeCancel": "课程开始30天前可免费取消",
+    "yogaAlliance": "国际认可的Yoga Alliance认证项目"
+  },
+  "Contact": {
+    "title": "联系我们",
+    "subtitle": "我们随时为您提供帮助",
+    "name": "姓名",
+    "email": "邮箱",
+    "subject": "主题",
+    "message": "留言",
+    "send": "发送消息",
+    "sending": "发送中...",
+    "success": "消息已发送！",
+    "phone": "电话",
+    "whatsapp": "WhatsApp",
+    "address": "地址"
+  },
+  "Footer": {
+    "tagline": "在巴厘岛中心通过瑜伽实现转变",
+    "description": "加入数千名通过乌布Yoga Alliance认证导师培训改变人生的学生。",
+    "quickLinks": "快速链接",
+    "programs": "项目",
+    "legal": "法律信息",
+    "privacy": "隐私政策",
+    "terms": "条款与条件",
+    "contact": "联系我们",
+    "followUs": "关注我们",
+    "copyright": "© 2024 Bali YTTC. 版权所有。",
+    "newsletter": "新闻通讯",
+    "newsletterDesc": "获取瑜伽建议和专属优惠",
+    "emailPlaceholder": "您的邮箱地址",
+    "subscribe": "订阅",
+    "newsletterSuccess": "感谢订阅！",
+    "rights": "版权所有。"
+  },
+  "WhatsApp": {
+    "chatWithUs": "通过WhatsApp咨询",
+    "hi": "您好！我想了解更多关于Bali YTTC的信息"
+  },
+  "Error": {
+    "required": "此项为必填",
+    "invalidEmail": "邮箱地址无效",
+    "generic": "发生错误，请重试。"
+  }
+}

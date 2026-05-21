@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bali YTTC - Pillars Section</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#F04E23', dark: '#E03B15', light: '#F75A2C', muted: '#F5C4B0' },
+            cream: '#FAF8F5',
+            sand: { DEFAULT: '#EAE4DC', deep: '#D9CFC2' },
+            sage: { DEFAULT: '#5A7340', light: '#749954', pale: '#AAC482', mist: '#D8E6C4' },
+            gold: '#C9A84C',
+            ink: { DEFAULT: '#1C1D1F', soft: '#333438', muted: '#6C6E75', faint: '#A1A3A8' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', system-ui, sans-serif; }
+    .font-serif { font-family: 'Playfair Display', Georgia, serif; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- OPTION 1: LIGHT BACKGROUND (Recommended for Yoga) -->
+  <section class="py-20 lg:py-28 bg-gradient-to-b from-cream to-sand/30">
+
+    <div class="max-w-6xl mx-auto px-6">
+
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <p class="text-xs uppercase tracking-[0.25em] text-brand font-semibold mb-3">Why Choose Us</p>
+        <h2 class="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-charcoal">
+          The Bali YTTC <span class="text-brand">Difference</span>
+        </h2>
+      </div>
+
+      <!-- 3 Pillars - Clean Cards -->
+      <div class="grid md:grid-cols-3 gap-6">
+
+        <!-- Pillar 1 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-xl bg-brand/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-charcoal mb-2">Authentic Curriculum</h3>
+          <p class="text-sm text-ink-muted leading-relaxed">
+            Traditional yoga philosophy meets modern teaching methods from certified instructors with years of experience.
+          </p>
+        </div>
+
+        <!-- Pillar 2 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-xl bg-sage/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-charcoal mb-2">Sacred Location</h3>
+          <p class="text-sm text-ink-muted leading-relaxed">
+            Train in Ubud's heart, surrounded by temples, rice terraces, and Bali's healing energy.
+          </p>
+        </div>
+
+        <!-- Pillar 3 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-charcoal mb-2">Small Batches</h3>
+          <p class="text-sm text-ink-muted leading-relaxed">
+            Limited to 12 students for personalized attention. Get individual feedback every day.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- OPTION 2: SAGE GREEN ACCENT -->
+  <section class="hidden py-20 lg:py-28 bg-sage-mist">
+
+    <div class="max-w-6xl mx-auto px-6">
+
+      <div class="text-center mb-12">
+        <p class="text-xs uppercase tracking-[0.25em] text-sage font-semibold mb-3">Our Pillars</p>
+        <h2 class="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-charcoal">
+          What Makes Us <span class="text-sage">Special</span>
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+
+        <div class="bg-white rounded-2xl p-8 text-center shadow-sm border border-sage-pale/50">
+          <div class="w-16 h-16 rounded-full bg-sage flex items-center justify-center mx-auto mb-5">
+            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-charcoal mb-2">Proven Curriculum</h3>
+          <p class="text-sm text-ink-muted">Yoga Alliance certified training that transforms lives</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-8 text-center shadow-sm border border-sage-pale/50">
+          <div class="w-16 h-16 rounded-full bg-brand flex items-center justify-center mx-auto mb-5">
+            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-charcoal mb-2">Bali Location</h3>
+          <p class="text-sm text-ink-muted">Ubud's spiritual energy enhances your practice</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-8 text-center shadow-sm border border-sage-pale/50">
+          <div class="w-16 h-16 rounded-full bg-gold flex items-center justify-center mx-auto mb-5">
+            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-charcoal mb-2">Personal Touch</h3>
+          <p class="text-sm text-ink-muted">Small groups mean real transformation</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- OPTION 3: MINIMAL DARK (Softer than before) -->
+  <section class="hidden py-20 lg:py-28 bg-charcoal">
+
+    <div class="max-w-6xl mx-auto px-6">
+
+      <div class="text-center mb-12">
+        <p class="text-xs uppercase tracking-[0.25em] text-brand font-semibold mb-3">Our Values</p>
+        <h2 class="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+          Why Choose <span class="text-brand">Bali YTTC</span>
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+
+        <div class="bg-white/5 rounded-2xl p-8 border border-white/10 text-center">
+          <div class="w-14 h-14 rounded-full bg-brand flex items-center justify-center mx-auto mb-5">
+            <span class="font-serif text-2xl font-bold text-white">1</span>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-white mb-2">Authentic Training</h3>
+          <p class="text-white/60 text-sm">Traditional yoga wisdom meets modern teaching</p>
+        </div>
+
+        <div class="bg-white/5 rounded-2xl p-8 border border-white/10 text-center">
+          <div class="w-14 h-14 rounded-full bg-sage flex items-center justify-center mx-auto mb-5">
+            <span class="font-serif text-2xl font-bold text-white">2</span>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-white mb-2">Sacred Setting</h3>
+          <p class="text-white/60 text-sm">Bali's temples and nature heal your soul</p>
+        </div>
+
+        <div class="bg-white/5 rounded-2xl p-8 border border-white/10 text-center">
+          <div class="w-14 h-14 rounded-full bg-gold flex items-center justify-center mx-auto mb-5">
+            <span class="font-serif text-2xl font-bold text-white">3</span>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-white mb-2">Real Connection</h3>
+          <p class="text-white/60 text-sm">Small groups create lifelong bonds</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Design Info -->
+  <div class="fixed bottom-4 right-4 z-50">
+    <div class="bg-white rounded-xl p-4 shadow-lg border border-gray-100 text-sm">
+      <p class="font-semibold text-charcoal mb-2">Design Options:</p>
+      <p class="text-ink-muted text-xs">Option 1: Light background (Recommended)</p>
+      <p class="text-ink-muted text-xs">Option 2: Sage green accent</p>
+      <p class="text-ink-muted text-xs">Option 3: Soft dark background</p>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+{
+  "Navigation": {
+    "home": "Inicio",
+    "courses": "Cursos",
+    "about": "Sobre Nosotros",
+    "teachers": "Profesores",
+    "gallery": "Galería",
+    "contact": "Contacto",
+    "applyNow": "Aplicar Ahora",
+    "course100": "YTT de 100 Horas",
+    "course200": "YTT de 200 Horas",
+    "course300": "YTT de 300 Horas",
+    "trainings": "FormaciÃ³n",
+    "experience": "Experiencia",
+    "activities": "Actividades",
+    "testimonials": "Testimonios",
+    "videos": "Videos",
+    "login": "Iniciar sesi?n",
+    "scarcity": "?Solo quedan 4 plazas para marzo de 2026!",
+    "needHelp": "?Necesitas ayuda?",
+    "applyBatch": "Post?late para 2026",
+    "onlySeatsLeft": "Solo quedan 4 plazas",
+    "marchBatch": "para el YTT de 200 horas de marzo de 2026.",
+    "reserveSpot": "Reserva tu plaza"
+  },
+  "Hero": {
+    "title": "Formación de Yoga en Bali",
+    "subtitle": "Formación de profesor de yoga certificada por Yoga Alliance en Ubud, Bali",
+    "cta": "Comienza Tu Viaje",
+    "watchVideo": "Ver Video",
+    "titleLine1": "Formación de yoga",
+    "titleLine2": "en Bali",
+    "description": "Cursos de 100h, 200h y 300h certificados por Yoga Alliance en Ubud. Grupos pequeños, profesores expertos y práctica real.",
+    "days": "DÍAS",
+    "hrs": "HRS",
+    "min": "MIN",
+    "sec": "SEG",
+    "nextBatchStarts": "El próximo grupo comienza pronto",
+    "location": "Ubud, Bali",
+    "applyBatch": "Postúlate para 2026",
+    "explorePrograms": "Explorar programas"
+  },
+  "TrustStrip": {
+    "recognisedBy": "Reconocido y certificado por",
+    "yogaAlliance": "Certificado por Yoga Alliance",
+    "students": "2,500+ Graduados",
+    "rating": "Calificación 4.9/5",
+    "certified": "200hr & 300hr certificado",
+    "established": "Desde 2018"
+  },
+  "Courses": {
+    "title": "Programas de Formación de Profesor de Yoga",
+    "subtitle": "Elige tu camino de yoga",
+    "viewDetails": "Ver Detalles",
+    "applyNow": "Aplicar Ahora",
+    "seatsLeft": "asientos disponibles",
+    "enrolmentOpen": "Inscripción Abierta",
+    "popular": "Popular"
+  },
+  "Course100": {
+    "title": "Formación de Profesor de Yoga de 100 Horas",
+    "duration": "100 Horas | 11 Días",
+    "summary": "Un curso de 11 días de formación de profesor de yoga multi-estilo para principiantes, acreditado por Yoga Alliance.",
+    "price": "Desde €999",
+    "nextBatch": "Próxima Edición",
+    "highlights": "Destacados"
+  },
+  "Course200": {
+    "title": "Formación de Profesor de Yoga de 200 Horas",
+    "duration": "200 Horas | 21 Días",
+    "summary": "Nuestra inmersión insignia de 21 días para principiantes e intermedios. Conviértete en profesor certificado por Yoga Alliance y enseña en todo el mundo.",
+    "price": "Desde €1,499",
+    "nextBatch": "Próxima Edición",
+    "highlights": "Destacados",
+    "featured": "Programa Principal"
+  },
+  "Course300": {
+    "title": "Formación Avanzada de Profesor de Yoga de 300 Horas",
+    "duration": "300 Horas | 28 Días",
+    "summary": "Para profesores certificados de 200 horas que desean profundizar su práctica y enseñanza a través de asana avanzada, filosofía y mentoría.",
+    "price": "Desde €1,899",
+    "nextBatch": "Próxima Edición",
+    "highlights": "Destacados"
+  },
+  "Manifesto": {
+    "title": "Nuestra Filosofía",
+    "quote": "El yoga es para todos. Es una combinación armoniosa de Sabiduría Tradicional y Ciencia Moderna."
+  },
+  "Pillars": {
+    "title": "Los Seis Pilares",
+    "subtitle": "El marco espiritual y práctico para profesores de yoga seguros"
+  },
+  "Teachers": {
+    "title": "Nuestros Profesores",
+    "subtitle": "Guías experimentados listos para mentorearte"
+  },
+  "Schedule": {
+    "title": "Horario Diario",
+    "subtitle": "Un día típico durante la formación"
+  },
+  "Experiences": {
+    "title": "Experiencias Exclusivas",
+    "subtitle": "Más que solo formación de yoga"
+  },
+  "Gallery": {
+    "title": "Galería",
+    "viewAll": "Ver Todo"
+  },
+  "Testimonials": {
+    "title": "Lo Que Dicen Nuestros Graduados",
+    "subtitle": "Historias de nuestros exalumnos"
+  },
+  "FAQ": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Encuentra respuestas a tus preguntas"
+  },
+  "FinalCTA": {
+    "title": "¿Listo para Comenzar Tu Viaje de Yoga?",
+    "subtitle": "Únete a más de 2,500 graduados de todo el mundo",
+    "cta": "Aplicar Ahora"
+  },
+  "Apply": {
+    "title": "Comienza Tu Viaje de Yoga",
+    "step": "Paso {current} de {total}",
+    "yourInfo": "Tu Información",
+    "selectProgram": "Selecciona Tu Programa",
+    "finalDetails": "Detalles Finales",
+    "fullName": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono (con código de país)",
+    "preferredDate": "Fecha de Inicio Preferida",
+    "message": "Cuéntanos Sobre Ti",
+    "messagePlaceholder": "Experiencia en yoga, objetivos de bienestar, necesidades dietéticas...",
+    "continue": "Continuar",
+    "back": "Atrás",
+    "submit": "Completar Solicitud",
+    "submitting": "Enviando...",
+    "success": "¡Solicitud Recibida!",
+    "successDesc": "Tu solicitud ha sido enviada exitosamente. Nuestro equipo se pondrá en contacto en 24 horas.",
+    "noPayment": "No se requiere pago ahora — recibe un enlace de inscripción personalizado después de la revisión",
+    "reply24h": "Respuesta personal en 24 horas de nuestro equipo de admisiones",
+    "freeCancel": "Cancelación gratuita hasta 30 días antes del inicio del programa",
+    "yogaAlliance": "Programa certificado por Yoga Alliance con reconocimiento internacional"
+  },
+  "Contact": {
+    "title": "Contáctanos",
+    "subtitle": "Estamos aquí para ayudarte",
+    "name": "Nombre",
+    "email": "Correo Electrónico",
+    "subject": "Asunto",
+    "message": "Mensaje",
+    "send": "Enviar Mensaje",
+    "sending": "Enviando...",
+    "success": "¡Mensaje Enviado!",
+    "phone": "Teléfono",
+    "whatsapp": "WhatsApp",
+    "address": "Dirección"
+  },
+  "Footer": {
+    "tagline": "Transformación a través del yoga en el corazón de Bali",
+    "quickLinks": "Enlaces Rápidos",
+    "programs": "Programas",
+    "legal": "Legal",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos y Condiciones",
+    "contact": "Contacto",
+    "followUs": "Síguenos",
+    "copyright": "© 2024 Bali YTTC. Todos los derechos reservados."
+  },
+  "WhatsApp": {
+    "chatWithUs": "Chatea con nosotros en WhatsApp",
+    "hi": "¡Hola! Me gustaría saber más sobre Bali YTTC"
+  },
+  "Error": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Dirección de correo electrónico inválida",
+    "generic": "Ha ocurrido un error. Por favor, inténtalo de nuevo."
+  },
+  "Retreats": {
+    "title": "Retiros de Yoga en Bali",
+    "subtitle": "Escapa, Restaura, Revitaliza",
+    "bookRetreat": "Reservar Tu Retiro",
+    "viewAll": "Ver Todos los Retiros",
+    "days3": "3 Días",
+    "days7": "7 Días",
+    "ubud": "Ubud",
+    "canggu": "Canggu",
+    "included": "Incluido",
+    "notIncluded": "No Incluido",
+    "sampleSchedule": "Horario de Ejemplo"
+  },
+  "Workshops": {
+    "title": "Talleres de Yoga en Bali",
+    "subtitle": "Profundiza Más. Juega Más Amplio.",
+    "bookWorkshop": "Reservar un Taller",
+    "soundHealing": "Taller de Sanación Sonora",
+    "acroYoga": "Taller de Acro Yoga",
+    "armBalancing": "Taller de Equilibrio en Brazos",
+    "mandala": "Taller de Pintura de Mandala"
+  },
+  "Visa": {
+    "title": "Guía de Visa y Viaje",
+    "subtitle": "Todo lo que necesitas saber para entrar a Bali",
+    "voa": "Visa a la Llegada",
+    "b211a": "Visa Social/Cultural B211A",
+    "digitalNomad": "Visa de Nomada Digital"
+  },
+  "Pricing": {
+    "title": "Precios Transparentes",
+    "subtitle": "Precios todo incluido — alojamiento, comidas, formación y certificación",
+    "courseInvestment": "Inversión en Cursos",
+    "deposit": "Depósito",
+    "fullPayment": "Pago Completo",
+    "installment": "Plan de Cuotas",
+    "accommodation": "Alojamiento",
+    "earlyBird": "Precio de Reserva Temprana"
+  }
+}

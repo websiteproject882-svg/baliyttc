@@ -1,0 +1,152 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
+import { requireSameOrigin, requireStudentUser, writeAuditLog } from "@/lib/authz";
+
+export const dynamic = "force-dynamic";
+
+const moduleProgressSchema = z.object({
+  completed: z.boolean().optional(),
+  notes: z.string().max(5000).optional(),
+});
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { moduleId: string } },
+) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) {
+    return sameOriginResponse;
+  }
+
+  const { user, student, response } = await requireStudentUser({ minimumAccess: "FULL" });
+  if (!user || !student || response) {
+    return response;
+  }
+
+  try {
+    const payload = moduleProgressSchema.parse(await request.json());
+
+    const currentStudent = await prisma.student.findUnique({
+      where: { id: student.id },
+      select: { batch: { select: { courseId: true } } },
+    });
+
+    if (!currentStudent?.batch?.courseId) {
+      return NextResponse.json({ error: "Student batch is not assigned" }, { status: 400 });
+    }
+
+    const module = await prisma.module.findFirst({
+      where: {
+        id: params.moduleId,
+        courseId: currentStudent.batch.courseId,
+      },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+
+    if (!module) {
+      return NextResponse.json({ error: "Module not found" }, { status: 404 });
+    }
+
+    const existing = await prisma.moduleProgress.findUnique({
+      where: {
+        studentId_moduleId: {
+          studentId: student.id,
+          moduleId: module.id,
+        },
+      },
+      select: {
+        id: true,
+        completed: true,
+        completedAt: true,
+        notes: true,
+      },
+    });
+
+    const updated = await prisma.moduleProgress.upsert({
+      where: {
+        studentId_moduleId: {
+          studentId: student.id,
+          moduleId: module.id,
+        },
+      },
+      update: {
+        moduleTitle: module.title,
+        completed: payload.completed ?? existing?.completed ?? false,
+        completedAt:
+          payload.completed === undefined
+            ? existing?.completedAt ?? null
+            : payload.completed
+              ? new Date()
+              : null,
+        notes: payload.notes ?? existing?.notes ?? null,
+      },
+      create: {
+        studentId: student.id,
+        moduleId: module.id,
+        moduleTitle: module.title,
+        completed: payload.completed ?? false,
+        completedAt: payload.completed ? new Date() : null,
+        notes: payload.notes ?? null,
+      },
+      select: {
+        id: true,
+        moduleId: true,
+        moduleTitle: true,
+        completed: true,
+        completedAt: true,
+        notes: true,
+      },
+    });
+
+    const modules = await prisma.module.findMany({
+      where: { courseId: currentStudent.batch.courseId },
+      select: {
+        id: true,
+        hours: true,
+      },
+    });
+
+    const progressRows = await prisma.moduleProgress.findMany({
+      where: { studentId: student.id, completed: true },
+      select: { moduleId: true },
+    });
+
+    const completedSet = new Set(progressRows.map((row) => row.moduleId));
+    const completedHours = modules.reduce((sum, item) => {
+      if (!completedSet.has(item.id)) {
+        return sum;
+      }
+      return sum + (item.hours ?? 0);
+    }, 0);
+
+    await prisma.student.update({
+      where: { id: student.id },
+      data: {
+        completedHours,
+        modulesCompleted: Array.from(completedSet),
+      },
+    });
+
+    await writeAuditLog({
+      actorUserId: user.id,
+      action: "student.module_progress_updated",
+      entity: "module_progress",
+      entityId: updated.id,
+      oldValue: existing || {},
+      newValue: updated,
+      request,
+    });
+
+    return NextResponse.json({ success: true, progress: updated, completedHours });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
+    console.error("PATCH app module progress error:", error);
+    return NextResponse.json({ error: "Failed to update module progress" }, { status: 500 });
+  }
+}

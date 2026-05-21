@@ -1,0 +1,15 @@
+.git
+.next
+.vercel
+node_modules
+dist
+logs
+*.log
+*.local
+.env
+.env.*
+!.env.example
+!.env.production.example
+tsconfig.tsbuildinfo
+tsconfig.typecheck.tsbuildinfo
+*.mp4

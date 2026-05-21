@@ -1,0 +1,163 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Bell, CheckCircle2, Loader2, Mail, Smartphone } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+type NotificationItem = {
+  id: string;
+  title: string;
+  message: string;
+  type: "INFO" | "SUCCESS" | "WARNING" | "ACTION";
+  actionUrl: string | null;
+  publishedAt: string | null;
+  readAt: string | null;
+};
+
+export default function NotificationsPage() {
+  const [items, setItems] = useState<NotificationItem[]>([]);
+  const [preferences, setPreferences] = useState({
+    emailNotificationsEnabled: true,
+    browserPushEnabled: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    void loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/app/notifications");
+      const result = await response.json();
+      if (response.ok) {
+        setItems(result.notifications || []);
+        setPreferences(result.preferences || preferences);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePreference = async (key: "emailNotificationsEnabled" | "browserPushEnabled", value: boolean) => {
+    setPreferences((current) => ({ ...current, [key]: value }));
+    try {
+      await fetch("/api/app/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: value }),
+      });
+    } catch (error) {
+      console.error(error);
+      setPreferences((current) => ({ ...current, [key]: !value }));
+    }
+  };
+
+  const markRead = async (notificationId: string) => {
+    setSavingId(notificationId);
+    try {
+      const response = await fetch("/api/app/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId }),
+      });
+      if (response.ok) {
+        setItems((current) =>
+          current.map((item) => (item.id === notificationId ? { ...item, readAt: new Date().toISOString() } : item)),
+        );
+      }
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+        <p className="mt-1 text-sm text-gray-500">Important updates, actions, and arrival guidance.</p>
+      </div>
+
+      <Card className="border-0 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg">Preferences</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          <label className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-100 p-4">
+            <span className="flex items-center gap-3 text-sm font-medium text-gray-800">
+              <Mail className="h-4 w-4 text-orange-500" />
+              Email notifications
+            </span>
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-orange-500"
+              checked={preferences.emailNotificationsEnabled}
+              onChange={(event) => updatePreference("emailNotificationsEnabled", event.target.checked)}
+            />
+          </label>
+          <label className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-100 p-4">
+            <span className="flex items-center gap-3 text-sm font-medium text-gray-800">
+              <Smartphone className="h-4 w-4 text-orange-500" />
+              Browser push
+            </span>
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-orange-500"
+              checked={preferences.browserPushEnabled}
+              onChange={(event) => updatePreference("browserPushEnabled", event.target.checked)}
+            />
+          </label>
+        </CardContent>
+      </Card>
+
+      {loading ? (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-6 text-gray-500">Loading notifications...</CardContent>
+        </Card>
+      ) : items.length === 0 ? (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-6 text-gray-500">No notifications yet.</CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="border-0 shadow-sm">
+              <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+                <div>
+                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                  <p className="mt-1 text-xs text-gray-500">{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Draft"}</p>
+                </div>
+                <Badge className={item.readAt ? "bg-gray-100 text-gray-700" : "bg-orange-100 text-orange-800"}>
+                  {item.readAt ? "read" : "unread"}
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm leading-6 text-gray-700">{item.message}</p>
+                <div className="flex gap-2">
+                  {!item.readAt ? (
+                    <Button variant="outline" onClick={() => markRead(item.id)} disabled={savingId === item.id}>
+                      {savingId === item.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                      Mark as read
+                    </Button>
+                  ) : null}
+                  {item.actionUrl ? (
+                    <a href={item.actionUrl}>
+                      <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                        <Bell className="mr-2 h-4 w-4" />
+                        Open
+                      </Button>
+                    </a>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

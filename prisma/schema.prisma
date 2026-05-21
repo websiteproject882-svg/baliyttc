@@ -1,0 +1,844 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// AUTH & USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  displayName String?
+  photoURL    String?
+  uid         String   @unique // Firebase UID
+  role        UserRole @default(STUDENT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  student     Student?
+  staff       Staff?
+  enrollments Enrollment[]
+  activities  AuditLog[]
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  STAFF
+  ADMIN
+  SUPER_ADMIN
+}
+
+// ─────────────────────────────────────────────
+// STAFF & RBAC
+// ─────────────────────────────────────────────
+
+model Staff {
+  id          String      @id @default(cuid())
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id])
+  role        StaffRole   @default(STUDENT_MANAGER)
+  status      StaffStatus @default(PENDING)
+  permissions Json? // Stored permissions array
+  totpSecret  String?     @db.Text
+  totpEnabled Boolean     @default(false)
+  lastLogin   DateTime?
+  invitedAt   DateTime    @default(now())
+  createdAt   DateTime    @default(now())
+}
+
+enum StaffRole {
+  SUPER_ADMIN
+  STUDENT_MANAGER
+  SEO_EDITOR
+  FINANCE_MANAGER
+  COURSE_MANAGER
+  TEACHER
+}
+
+enum StaffStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+// ─────────────────────────────────────────────
+// STUDENTS
+// ─────────────────────────────────────────────
+
+model Student {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Enrollment info
+  enrolledCourse String?
+  batchId        String?
+  batch          Batch?    @relation(fields: [batchId], references: [id])
+  enrollmentDate DateTime?
+
+  // Payment & Access
+  paymentStatus PaymentStatus @default(PENDING)
+  accessLevel   AccessLevel   @default(NONE)
+
+  // Profile
+  phone               String?
+  nationality         String?
+  dietaryRequirements String?
+  yogaExperience      String?
+  emergencyContact    String?
+  personalNotes       String?  @db.Text
+  emailNotificationsEnabled Boolean @default(true)
+  browserPushEnabled        Boolean @default(false)
+
+  // Progress
+  completedHours    Int      @default(0)
+  totalHours        Int      @default(200)
+  modulesCompleted  String[] @default([])
+  certificateIssued Boolean  @default(false)
+  certificateId     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments  Enrollment[]
+  progress     ModuleProgress[]
+  certificates Certificate[]
+  taskProgress TaskProgress[]
+  testimonials Testimonial[]
+  notificationReceipts NotificationReceipt[]
+  announcementReactions AnnouncementReaction[]
+  announcementReplies   AnnouncementReply[]
+}
+
+// ─────────────────────────────────────────────
+// COURSES & BATCHES
+// ─────────────────────────────────────────────
+
+model Course {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  duration    String // "100 Hours | 11 Days"
+  summary     String  @db.Text
+  description String  @db.Text
+  priceFrom   Int
+  priceFull   Int?
+  image       String?
+  translations Json?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  modules Module[]
+  batches Batch[]
+}
+
+model Batch {
+  id              String      @id @default(cuid())
+  courseId        String
+  course          Course      @relation(fields: [courseId], references: [id])
+  name            String
+  startDate       DateTime
+  endDate         DateTime
+  capacity        Int
+  enrolled        Int         @default(0)
+  status          BatchStatus @default(DRAFT)
+  waitlistEnabled Boolean     @default(false)
+
+  // Pricing
+  priceRegular      Int
+  priceEarlyBird    Int?
+  earlyBirdDeadline DateTime?
+
+  // Relations
+  accommodation   Accommodation[]
+  students        Student[]
+  scheduleEntries ScheduleEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum BatchStatus {
+  DRAFT
+  OPEN
+  FULL
+  CLOSED
+}
+
+model Accommodation {
+  id        String   @id @default(cuid())
+  batchId   String
+  batch     Batch    @relation(fields: [batchId], references: [id])
+  type      RoomType
+  price     Int
+  mandatory Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+enum RoomType {
+  SHARED
+  PRIVATE
+}
+
+model Module {
+  id          String @id @default(cuid())
+  courseId    String
+  course      Course @relation(fields: [courseId], references: [id])
+  title       String
+  description String @db.Text
+  order       Int    @default(0)
+  hours       Int?
+}
+
+// ─────────────────────────────────────────────
+// ENROLLMENTS & PAYMENTS
+// ─────────────────────────────────────────────
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id])
+
+  courseSlug    String
+  batchId       String?
+  accommodation RoomType @default(SHARED)
+
+  // Contact
+  name          String
+  email         String
+  phone         String
+  preferredDate String?
+  message       String? @db.Text
+
+  // Payment
+  paymentType   PaymentType
+  paymentStatus PaymentStatus @default(PENDING)
+  amount        Int
+  currency      String        @default("EUR")
+  couponCode    String?
+  discount      Int           @default(0)
+
+  // Meta
+  accessLevel    AccessLevel @default(NONE)
+  referralSource String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments    Payment[]
+  paymentPlan PaymentPlan?
+}
+
+enum PaymentType {
+  DEPOSIT
+  FULL
+  EMI
+}
+
+enum PaymentStatus {
+  PENDING
+  DEPOSIT_PAID
+  FULL_PAID
+  FAILED
+  REFUNDED
+}
+
+enum AccessLevel {
+  NONE
+  PRE_ARRIVAL
+  FULL
+  ALUMNI
+}
+
+model Payment {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  amount   Int
+  currency String        @default("EUR")
+  method   PaymentMethod
+
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  paypalOrderId     String?
+  paypalCaptureId   String?
+  providerEventId   String?
+  providerPayload   Json?
+
+  status       PaymentStatus @default(PENDING)
+  refundAmount Int?
+  refundReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  PAYPAL
+  BANK_TRANSFER
+}
+
+model PaymentPlan {
+  id               String     @id @default(cuid())
+  enrollmentId     String     @unique
+  enrollment       Enrollment @relation(fields: [enrollmentId], references: [id])
+  totalAmount      Int
+  currency         String     @default("USD")
+  installments     Int
+  status           PlanStatus @default(ACTIVE)
+  firstPayment     Int
+  subsequentAmount Int
+  intervalDays     Int
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  installmentRows PaymentPlanInstallment[]
+}
+
+model PaymentPlanInstallment {
+  id                String            @id @default(cuid())
+  paymentPlanId     String
+  paymentPlan       PaymentPlan       @relation(fields: [paymentPlanId], references: [id])
+  installmentNumber Int
+  amount            Int
+  dueDate           DateTime
+  paidDate          DateTime?
+  status            InstallmentStatus @default(PENDING)
+  providerPaymentId String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum PlanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  DEFAULTED
+}
+
+enum InstallmentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// COUPONS
+// ─────────────────────────────────────────────
+
+model Coupon {
+  id           String       @id @default(cuid())
+  code         String       @unique
+  discountType DiscountType
+  discount     Int // percentage or fixed amount
+  minAmount    Int?
+  maxDiscount  Int?
+
+  usageLimit Int?
+  usedCount  Int  @default(0)
+
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+  appliesToAlumni Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+// ─────────────────────────────────────────────
+// TEACHERS & CONTENT
+// ─────────────────────────────────────────────
+
+model Teacher {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  role        String
+  credentials String?
+  bio         String   @db.Text
+  image       String?
+  styles      String[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schedule ScheduleEntry[]
+}
+
+model ScheduleEntry {
+  id        String   @id @default(cuid())
+  batchId   String
+  batch     Batch    @relation(fields: [batchId], references: [id])
+  teacherId String?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  date      DateTime
+  dayNumber Int
+
+  activities Json // Array of activity objects
+
+  ceremonyBlocked Boolean @default(false)
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Announcement {
+  id      String           @id @default(cuid())
+  title   String
+  content String           @db.Text
+  type    AnnouncementType @default(GENERAL)
+
+  batchId   String? // Optional: for batch-specific announcements
+  authorId  String
+  reactions Json? // { emoji: count }
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  reactionRows AnnouncementReaction[]
+  replies      AnnouncementReply[]
+}
+
+model AnnouncementReaction {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  emoji          String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([announcementId, studentId])
+}
+
+model AnnouncementReply {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  content        String       @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+enum AnnouncementType {
+  GENERAL
+  BATCH
+  URGENT
+}
+
+model Notification {
+  id          String               @id @default(cuid())
+  title       String
+  message     String               @db.Text
+  type        NotificationType     @default(INFO)
+  audience    NotificationAudience @default(ALL_ACTIVE)
+  batchId     String?
+  studentId   String?
+  actionUrl   String?
+  publishedAt DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  receipts NotificationReceipt[]
+}
+
+model NotificationReceipt {
+  id             String       @id @default(cuid())
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id])
+  studentId      String
+  student        Student      @relation(fields: [studentId], references: [id])
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@unique([notificationId, studentId])
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ACTION
+}
+
+enum NotificationAudience {
+  PRE_ARRIVAL
+  FULL
+  ALUMNI
+  ALL_ACTIVE
+  INDIVIDUAL
+}
+
+model PreArrivalResource {
+  id          String           @id @default(cuid())
+  title       String
+  description String?         @db.Text
+  url         String
+  type        ResourceType     @default(LINK)
+  audience    ResourceAudience @default(PRE_ARRIVAL)
+  taskKey      String?
+  order       Int              @default(0)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+enum ResourceType {
+  LINK
+  DOCUMENT
+  VIDEO
+  COMMUNITY
+}
+
+enum ResourceAudience {
+  PRE_ARRIVAL
+  FULL
+  ALUMNI
+  ALL_ACTIVE
+}
+
+// ─────────────────────────────────────────────
+// MODULES & PROGRESS
+// ─────────────────────────────────────────────
+
+model ModuleProgress {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id])
+  moduleId    String
+  moduleTitle String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, moduleId])
+}
+
+// ─────────────────────────────────────────────
+// CERTIFICATES
+// ─────────────────────────────────────────────
+
+model Certificate {
+  id        String  @id @default(cuid())
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+
+  certificateId String            @unique // e.g., "BALI-2026-001"
+  course        String
+  issuedAt      DateTime          @default(now())
+  status        CertificateStatus @default(PENDING)
+
+  pdfUrl     String?
+  verifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+enum CertificateStatus {
+  PENDING
+  ISSUED
+  REVOKED
+}
+
+model Testimonial {
+  id             String            @id @default(cuid())
+  studentId      String
+  student        Student           @relation(fields: [studentId], references: [id])
+  rating         Int
+  quote          String            @db.Text
+  location       String?
+  courseName     String?
+  graduationYear Int?
+  status         TestimonialStatus @default(PENDING)
+  approvedAt     DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+enum TestimonialStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─────────────────────────────────────────────
+// BLOG
+// ─────────────────────────────────────────────
+
+model CommunicationLog {
+  id                String                  @id @default(cuid())
+  campaign          CommunicationCampaign
+  channel           CommunicationChannel
+  targetType        CommunicationTargetType
+  targetId          String
+  recipientEmail    String?
+  recipientPhone    String?
+  status            CommunicationStatus     @default(SENT)
+  providerMessageId String?
+  error             String?                 @db.Text
+  metadata          Json?
+  createdAt         DateTime                @default(now())
+}
+
+enum CommunicationCampaign {
+  ABANDONED_ENROLLMENT
+  PAYMENT_REMINDER
+  PREPARATION_REMINDER
+  VISA_GUIDANCE
+  REVIEW_REQUEST
+}
+
+enum CommunicationChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum CommunicationTargetType {
+  ENROLLMENT
+  STUDENT
+}
+
+enum CommunicationStatus {
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model BlogPost {
+  id String @id @default(cuid())
+
+  title         String
+  slug          String
+  excerpt       String  @db.Text
+  content       String  @db.Text
+  featuredImage String?
+
+  category String
+  tags     String[]
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  focusKeyword    String?
+
+  // Status
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  scheduledAt DateTime?
+
+  // Meta
+  author   String
+  locale   String @default("en")
+  readTime Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, locale])
+  @@index([locale, status])
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+// ─────────────────────────────────────────────
+// LEADS & INQUIRIES
+// ─────────────────────────────────────────────
+
+model Lead {
+  id      String     @id @default(cuid())
+  name    String
+  email   String
+  phone   String?
+  source  String     @default("website")
+  course  String?
+  message String?    @db.Text
+  status  LeadStatus @default(NEW)
+  notes   String?    @db.Text
+
+  // WhatsApp integration
+  whatsappSent Boolean @default(false)
+
+  assignedTo String?
+  followUpAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  ENROLLED
+  NOT_INTERESTED
+  SPAM
+}
+
+// ─────────────────────────────────────────────
+// TASKS & CHECKLISTS
+// ─────────────────────────────────────────────
+
+model TaskProgress {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id])
+  taskKey     String // e.g., "read_manual", "watch_video", "join_whatsapp"
+  taskTitle   String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, taskKey])
+}
+
+// ─────────────────────────────────────────────
+// GALLERY
+// ─────────────────────────────────────────────
+
+model GalleryImage {
+  id      String  @id @default(cuid())
+  url     String
+  caption String?
+  alt     String?
+
+  type   GalleryType @default(PROFESSIONAL)
+  status ImageStatus @default(ACTIVE)
+
+  studentId   String? // If submitted by student
+  submittedAt DateTime?
+  approvedAt  DateTime?
+
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+enum GalleryType {
+  PROFESSIONAL
+  STUDENT
+}
+
+enum ImageStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+}
+
+// ─────────────────────────────────────────────
+// FAQ & SUPPORT BOT
+// ─────────────────────────────────────────────
+
+model FAQ {
+  id       String   @id @default(cuid())
+  question String
+  answer   String   @db.Text
+  category String
+  keywords String[]
+  locale   String   @default("en")
+
+  isActive Boolean @default(true)
+  order    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// WAITLIST
+// ─────────────────────────────────────────────
+
+model Waitlist {
+  id    String  @id @default(cuid())
+  name  String
+  email String
+  phone String?
+
+  courseSlug String
+  batchId    String?
+
+  priority Int            @default(0)
+  status   WaitlistStatus @default(WAITING)
+
+  notes      String?   @db.Text
+  notifiedAt DateTime?
+
+  convertedAt           DateTime?
+  convertedEnrollmentId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum WaitlistStatus {
+  WAITING
+  NOTIFIED
+  CONVERTED
+  EXPIRED
+  DECLINED
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG
+// ─────────────────────────────────────────────
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  action   String // e.g., "enrollment.approved", "student.access_revoked"
+  entity   String // e.g., "enrollment", "student"
+  entityId String
+  oldValue Json?
+  newValue Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+}

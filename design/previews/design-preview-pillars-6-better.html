@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bali YTTC - 6 Pillars</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#F04E23', dark: '#E03B15', light: '#F75A2C', muted: '#F5C4B0' },
+            cream: { DEFAULT: '#FAF8F5', dark: '#F3EDE6' },
+            sand: { DEFAULT: '#EAE4DC', deep: '#D9CFC2' },
+            sage: { DEFAULT: '#5A7340', light: '#749954', pale: '#AAC482', mist: '#D8E6C4' },
+            gold: { DEFAULT: '#C9A84C', light: '#DFC77E', muted: '#F0E5C0' },
+            ink: { DEFAULT: '#1C1D1F', soft: '#333438', muted: '#6C6E75', faint: '#A1A3A8' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', system-ui, sans-serif; }
+    .font-serif { font-family: 'Playfair Display', Georgia, serif; }
+
+    .pillar-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      border: 1px solid #eae4dc;
+      transition: all 0.3s ease;
+    }
+    .pillar-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+      border-color: #d9cfc2;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-cream">
+
+  <!-- HEADER -->
+  <div class="pt-16 pb-8 text-center">
+    <p class="text-xs uppercase tracking-[0.25em] text-brand font-semibold mb-3">Why Choose Us</p>
+    <h2 class="font-serif text-3xl md:text-4xl font-bold text-ink">
+      The <span class="text-brand">6 Pillars</span> of Excellence
+    </h2>
+    <p class="mt-3 text-ink-muted text-sm max-w-md mx-auto">What makes Bali YTTC the best choice for your yoga teacher training</p>
+  </div>
+
+  <!-- OPTION 1: CLEAN 2x3 GRID -->
+  <section class="hidden pb-20">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <!-- 1. Certified -->
+        <div class="pillar-card text-center">
+          <div class="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-lg font-bold text-ink mb-2">Certified</h3>
+          <p class="text-xs text-ink-muted leading-relaxed">Yoga Alliance RYS 200 & 300 approved curriculum worldwide recognized</p>
+        </div>
+
+        <!-- 2. Location -->
+        <div class="pillar-card text-center">
+          <div class="w-14 h-14 rounded-2xl bg-sage/10 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-lg font-bold text-ink mb-2">Location</h3>
+          <p class="text-xs text-ink-muted leading-relaxed">Train in the heart of Ubud, Bali surrounded by temples & nature</p>
+        </div>
+
+        <!-- 3. Small Groups -->
+        <div class="pillar-card text-center">
+          <div class="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-lg font-bold text-ink mb-2">Small Groups</h3>
+          <p class="text-xs text-ink-muted leading-relaxed">Max 12 students per batch for personal attention & guidance</p>
+        </div>
+
+        <!-- 4. Teachers -->
+        <div class="pillar-card text-center">
+          <div class="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-lg font-bold text-ink mb-2">Expert Teachers</h3>
+          <p class="text-xs text-ink-muted leading-relaxed">Learn from certified instructors with 15+ years combined experience</p>
+        </div>
+
+        <!-- 5. All-Inclusive -->
+        <div class="pillar-card text-center">
+          <div class="w-14 h-14 rounded-2xl bg-sage/10 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-lg font-bold text-ink mb-2">All-Inclusive</h3>
+          <p class="text-xs text-ink-muted leading-relaxed">Accommodation, meals & excursions all included in the price</p>
+        </div>
+
+        <!-- 6. Transform -->
+        <div class="pillar-card text-center">
+          <div class="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif text-lg font-bold text-ink mb-2">Transform</h3>
+          <p class="text-xs text-ink-muted leading-relaxed">2,500+ graduates now teaching yoga worldwide with confidence</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- OPTION 2: 2x3 with left icons -->
+  <section class="pb-20">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="space-y-4">
+
+        <!-- Row 1 -->
+        <div class="grid sm:grid-cols-3 gap-4">
+
+          <div class="pillar-card flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-brand flex items-center justify-center flex-shrink-0">
+              <span class="font-serif text-xl font-bold text-white">1</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-bold text-ink mb-1">Yoga Alliance Certified</h3>
+              <p class="text-xs text-ink-muted">RYS 200 & 300 approved</p>
+            </div>
+          </div>
+
+          <div class="pillar-card flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-sage flex items-center justify-center flex-shrink-0">
+              <span class="font-serif text-xl font-bold text-white">2</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-bold text-ink mb-1">Sacred Location</h3>
+              <p class="text-xs text-ink-muted">Ubud, Bali - Temples & Nature</p>
+            </div>
+          </div>
+
+          <div class="pillar-card flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gold flex items-center justify-center flex-shrink-0">
+              <span class="font-serif text-xl font-bold text-white">3</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-bold text-ink mb-1">Small Groups</h3>
+              <p class="text-xs text-ink-muted">Max 12 students per batch</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2 -->
+        <div class="grid sm:grid-cols-3 gap-4">
+
+          <div class="pillar-card flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-brand flex items-center justify-center flex-shrink-0">
+              <span class="font-serif text-xl font-bold text-white">4</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-bold text-ink mb-1">Expert Teachers</h3>
+              <p class="text-xs text-ink-muted">15+ years combined experience</p>
+            </div>
+          </div>
+
+          <div class="pillar-card flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-sage flex items-center justify-center flex-shrink-0">
+              <span class="font-serif text-xl font-bold text-white">5</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-bold text-ink mb-1">All-Inclusive</h3>
+              <p class="text-xs text-ink-muted">Stay, meals & trips included</p>
+            </div>
+          </div>
+
+          <div class="pillar-card flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gold flex items-center justify-center flex-shrink-0">
+              <span class="font-serif text-xl font-bold text-white">6</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-bold text-ink mb-1">Proven Results</h3>
+              <p class="text-xs text-ink-muted">2,500+ graduates worldwide</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPTION 3: Horizontal list -->
+  <section class="hidden pb-20">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="bg-white rounded-2xl p-8 border border-sand">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-ink">Yoga Alliance Certified</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-ink">Ubud, Bali Location</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-ink">Small Groups (12 max)</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-ink">Expert Teachers</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-ink">All-Inclusive Package</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-ink">2,500+ Graduates</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

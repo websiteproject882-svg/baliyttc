@@ -1,0 +1,234 @@
+{
+  "Navigation": {
+    "home": "홈",
+    "courses": "과정",
+    "about": "소개",
+    "teachers": "강사진",
+    "gallery": "갤러리",
+    "contact": "문의",
+    "applyNow": "지금 신청",
+    "course100": "100시간 YTT",
+    "course200": "200시간 YTT",
+    "course300": "300시간 YTT",
+    "trainings": "트레이닝",
+    "allTrainings": "전체 트레이닝",
+    "experience": "경험",
+    "activities": "액티비티",
+    "studentStories": "수강생 이야기",
+    "videos": "영상",
+    "blog": "블로그",
+    "whyUbud": "왜 우붓인가",
+    "planYourTrip": "여행 준비",
+    "pricing": "가격 및 비용",
+    "visa": "비자 정보",
+    "faq": "자주 묻는 질문",
+    "school": "학교",
+    "aboutUs": "Bali YTTC 소개",
+    "yogaAlliance": "Yoga Alliance",
+    "reviews": "수강생 후기",
+    "terms": "약관 및 정책",
+    "retreats": "리트릿",
+    "workshops": "워크숍",
+    "programs": "프로그램",
+    "testimonials": "후기",
+    "login": "로그인",
+    "scarcity": "2026년 3월 과정, 남은 자리 4석!",
+    "needHelp": "도움이 필요하신가요?",
+    "applyBatch": "2026년 과정 신청",
+    "onlySeatsLeft": "남은 자리 4석",
+    "marchBatch": "2026년 3월 200시간 YTT 과정.",
+    "reserveSpot": "자리 예약하기"
+  },
+  "Hero": {
+    "title": "발리 요가 지도자 과정",
+    "titleLine1": "요가 지도자 과정",
+    "titleLine2": "발리 우붓",
+    "description": "우붓에서 진행되는 Yoga Alliance 인증 100시간, 200시간, 300시간 과정. 소규모 수업, 경험 많은 강사진, 깊이 있는 실습.",
+    "subtitle": "발리 우붓의 Yoga Alliance 인증 요가 지도자 과정",
+    "cta": "여정 시작하기",
+    "watchVideo": "영상 보기",
+    "days": "일",
+    "hrs": "시간",
+    "min": "분",
+    "sec": "초",
+    "nextBatch": "다음 과정",
+    "graduates": "수료생",
+    "rating": "평점",
+    "certified": "인증",
+    "nextBatchStarts": "다음 과정이 곧 시작됩니다!",
+    "location": "우붓, 발리",
+    "applyBatch": "2026년 과정 신청",
+    "explorePrograms": "프로그램 보기"
+  },
+  "TrustStrip": {
+    "recognisedBy": "공인 및 인증",
+    "yogaAlliance": "Yoga Alliance 인증",
+    "students": "2,500명 이상 수료",
+    "rating": "4.9/5 평점",
+    "certified": "200시간 및 300시간 인증",
+    "established": "2018년 설립"
+  },
+  "Courses": {
+    "title": "요가 지도자 양성 프로그램",
+    "subtitle": "나에게 맞는 요가 여정을 선택하세요",
+    "viewDetails": "자세히 보기",
+    "applyNow": "지금 신청",
+    "seatsLeft": "자리 남음",
+    "enrolmentOpen": "등록 가능",
+    "popular": "인기"
+  },
+  "Course100": {
+    "title": "100시간 요가 지도자 과정",
+    "duration": "100시간 | 11일",
+    "summary": "초보 요가 수련자를 위한 11일 멀티 스타일 요가 지도자 과정이며 Yoga Alliance 인증 과정입니다.",
+    "price": "999달러부터",
+    "nextBatch": "다음 일정",
+    "highlights": "주요 내용"
+  },
+  "Course200": {
+    "title": "200시간 요가 지도자 과정",
+    "duration": "200시간 | 21일",
+    "summary": "초급 및 중급 수련자를 위한 대표 21일 집중 과정입니다. Yoga Alliance 인증 지도자가 되어 전 세계에서 가르칠 수 있습니다.",
+    "price": "1,499달러부터",
+    "nextBatch": "다음 일정",
+    "highlights": "주요 내용",
+    "featured": "대표 프로그램"
+  },
+  "Course300": {
+    "title": "300시간 고급 요가 지도자 과정",
+    "duration": "300시간 | 28일",
+    "summary": "200시간 인증 지도자가 아사나, 철학, 멘토링을 더 깊게 배우기 위한 고급 과정입니다.",
+    "price": "1,899달러부터",
+    "nextBatch": "다음 일정",
+    "highlights": "주요 내용"
+  },
+  "FeaturedCourses": {
+    "title": "요가 지도자 양성 프로그램",
+    "subtitle": "나에게 맞는 요가 여정을 선택하세요",
+    "viewDetails": "자세히 보기",
+    "applyNow": "지금 신청",
+    "seatsLeft": "자리 남음",
+    "enrollmentOpen": "등록 가능",
+    "popular": "인기",
+    "ctaText": "Yoga Alliance 인증 100시간, 200시간, 300시간 프로그램",
+    "viewAllCourses": "모든 과정 보기"
+  },
+  "Manifesto": {
+    "title": "우리의 철학",
+    "quote": "요가는 모두를 위한 것입니다. 전통 지혜와 현대 과학이 조화롭게 만나는 길입니다.",
+    "eyebrow": "Bali YTTC 소개",
+    "titleLine1": "진지한 요가 수련,",
+    "titleLine2": "고요한 발리에서.",
+    "description1": "Bali YTTC는 우붓에 위치한 Yoga Alliance 등록 학교입니다. 아사나, 프라나야마, 명상, 해부학, 철학, 지도법을 하나의 체계적인 기숙형 과정으로 배웁니다.",
+    "description2": "목표는 단순한 자격증이 아닙니다. 학생들은 더 깊어진 개인 수련, 명확한 수업 언어, 실제 수업을 이끌 수 있는 충분한 실습 경험을 가지고 졸업합니다.",
+    "point1": "개별 피드백이 있는 소규모 반",
+    "point2": "전통 수련과 실용 해부학의 결합",
+    "point3": "졸업 전 매일 진행되는 티칭 실습",
+    "yearsExperience": "년 경력",
+    "learnMore": "학교 더 알아보기"
+  },
+  "Pillars": {
+    "title": "여섯 가지 기둥",
+    "subtitle": "자신감 있는 요가 지도자를 위한 영적·실용적 프레임워크"
+  },
+  "Teachers": {
+    "title": "강사진",
+    "subtitle": "당신을 지도할 경험 많은 선생님들"
+  },
+  "Schedule": {
+    "title": "일일 일정",
+    "subtitle": "트레이닝 기간의 하루"
+  },
+  "Experiences": {
+    "title": "특별한 경험",
+    "subtitle": "요가 수련을 넘어서는 발리 경험"
+  },
+  "Gallery": {
+    "title": "갤러리",
+    "viewAll": "전체 보기"
+  },
+  "Testimonials": {
+    "title": "수료생 후기",
+    "subtitle": "동문들의 이야기"
+  },
+  "FAQ": {
+    "title": "필요한 모든 정보",
+    "subtitle": "신청 전 궁금한 점이 있으신가요? 저희 팀이 적합한 과정을 선택할 수 있도록 도와드립니다.",
+    "eyebrow": "자주 묻는 질문",
+    "searchPlaceholder": "질문 검색...",
+    "noResults": "질문을 찾을 수 없습니다",
+    "contactTitle": "아직 궁금한 점이 있나요?",
+    "contactDesc": "원하는 답을 찾지 못했다면 직접 문의해 주세요.",
+    "emailButton": "이메일 보내기",
+    "whatsappButton": "WhatsApp"
+  },
+  "FinalCTA": {
+    "title": "요가 여정을 시작할 준비가 되셨나요?",
+    "subtitle": "전 세계 2,500명 이상의 수료생과 함께하세요",
+    "cta": "지금 신청"
+  },
+  "Apply": {
+    "title": "요가 여정을 시작하세요",
+    "step": "{total}단계 중 {current}단계",
+    "yourInfo": "내 정보",
+    "selectProgram": "프로그램 선택",
+    "finalDetails": "최종 정보",
+    "fullName": "성명",
+    "email": "이메일",
+    "phone": "전화번호 (국가 코드 포함)",
+    "preferredDate": "희망 시작일",
+    "message": "자기소개",
+    "messagePlaceholder": "요가 경험, 웰니스 목표, 식이 요청 등...",
+    "continue": "계속",
+    "back": "뒤로",
+    "submit": "신청 완료",
+    "submitting": "제출 중...",
+    "success": "신청이 접수되었습니다!",
+    "successDesc": "신청이 성공적으로 제출되었습니다. 24시간 이내에 팀에서 연락드리겠습니다.",
+    "noPayment": "지금 결제는 필요하지 않습니다. 검토 후 개인 등록 링크를 보내드립니다.",
+    "reply24h": "입학팀이 24시간 이내에 직접 답변",
+    "freeCancel": "프로그램 시작 30일 전까지 무료 취소 가능",
+    "yogaAlliance": "국제적으로 인정받는 Yoga Alliance 인증 프로그램"
+  },
+  "Contact": {
+    "title": "문의하기",
+    "subtitle": "도움이 필요하시면 언제든지 연락해 주세요",
+    "name": "이름",
+    "email": "이메일",
+    "subject": "제목",
+    "message": "메시지",
+    "send": "메시지 보내기",
+    "sending": "전송 중...",
+    "success": "메시지가 전송되었습니다!",
+    "phone": "전화",
+    "whatsapp": "WhatsApp",
+    "address": "주소"
+  },
+  "Footer": {
+    "tagline": "발리 한가운데에서 요가를 통한 변화",
+    "description": "우붓, 발리의 Yoga Alliance 인증 지도자 과정으로 삶을 변화시킨 수천 명의 학생들과 함께하세요.",
+    "quickLinks": "빠른 링크",
+    "programs": "프로그램",
+    "legal": "법적 고지",
+    "privacy": "개인정보 처리방침",
+    "terms": "이용약관",
+    "contact": "문의",
+    "followUs": "팔로우",
+    "copyright": "© 2024 Bali YTTC. 모든 권리 보유.",
+    "newsletter": "뉴스레터",
+    "newsletterDesc": "요가 팁과 특별 혜택을 받아보세요",
+    "emailPlaceholder": "이메일 주소",
+    "subscribe": "구독",
+    "newsletterSuccess": "구독해 주셔서 감사합니다!",
+    "rights": "모든 권리 보유."
+  },
+  "WhatsApp": {
+    "chatWithUs": "WhatsApp으로 상담하기",
+    "hi": "안녕하세요! Bali YTTC에 대해 더 알고 싶습니다"
+  },
+  "Error": {
+    "required": "필수 입력 항목입니다",
+    "invalidEmail": "유효하지 않은 이메일 주소입니다",
+    "generic": "오류가 발생했습니다. 다시 시도해 주세요."
+  }
+}

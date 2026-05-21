@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+.next
+node_modules
+tsconfig.tsbuildinfo
+.next-dev-*.log
+.next-dev-*.err.log

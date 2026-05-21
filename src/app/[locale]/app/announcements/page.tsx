@@ -1,0 +1,183 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Bell, Loader2, Send } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+type AnnouncementItem = {
+  id: string;
+  title: string;
+  content: string;
+  type: "GENERAL" | "BATCH" | "URGENT";
+  createdAt: string;
+  reactionCounts: Record<string, number>;
+  ownReaction: string | null;
+  replies: Array<{
+    id: string;
+    content: string;
+    createdAt: string;
+    authorName: string;
+    authorPhotoURL: string | null;
+    mine: boolean;
+  }>;
+};
+
+const reactions = [
+  { label: "🙏", value: "PRAY" },
+  { label: "❤️", value: "LOVE" },
+  { label: "👍", value: "LIKE" },
+  { label: "🎉", value: "CELEBRATE" },
+  { label: "🔥", value: "FIRE" },
+];
+
+export default function AnnouncementsPage() {
+  const [items, setItems] = useState<AnnouncementItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const loadAnnouncements = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/app/announcements");
+      const result = await response.json();
+      if (response.ok) setItems(result.announcements || []);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadAnnouncements();
+  }, []);
+
+  const react = async (announcementId: string, reaction: string) => {
+    setSavingId(`${announcementId}:${reaction}`);
+    try {
+      const response = await fetch("/api/app/announcements", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ announcementId, emoji: reaction }),
+      });
+      if (response.ok) await loadAnnouncements();
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const reply = async (announcementId: string) => {
+    const content = replyDrafts[announcementId]?.trim();
+    if (!content) return;
+    setSavingId(`${announcementId}:reply`);
+    try {
+      const response = await fetch("/api/app/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ announcementId, content }),
+      });
+      if (response.ok) {
+        setReplyDrafts((current) => ({ ...current, [announcementId]: "" }));
+        await loadAnnouncements();
+      }
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Announcement Board</h1>
+        <p className="text-sm text-gray-500">School-wide and batch updates from teachers. React and reply simply.</p>
+      </div>
+
+      {loading ? (
+        <Card className="border-0 bg-white shadow-sm">
+          <CardContent className="flex h-48 items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+          </CardContent>
+        </Card>
+      ) : items.length === 0 ? (
+        <Card className="border-0 bg-white shadow-sm">
+          <CardContent className="p-8 text-center text-gray-500">
+            <Bell className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+            No announcements yet.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="border-0 bg-white shadow-sm">
+              <CardHeader className="space-y-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                  <Badge className={item.type === "URGENT" ? "w-fit bg-red-100 text-red-700" : "w-fit bg-orange-50 text-orange-700"}>
+                    {item.type.toLowerCase()}
+                  </Badge>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">{item.content}</p>
+
+                <div className="flex flex-wrap gap-2">
+                  {reactions.map((reaction) => (
+                    <Button
+                      key={reaction.value}
+                      variant="outline"
+                      size="sm"
+                      className={item.ownReaction === reaction.label ? "border-orange-300 bg-orange-50" : ""}
+                      disabled={savingId === `${item.id}:${reaction.value}`}
+                      onClick={() => react(item.id, reaction.value)}
+                    >
+                      {reaction.label} {item.reactionCounts[reaction.label] || 0}
+                    </Button>
+                  ))}
+                </div>
+
+                {item.replies.length > 0 && (
+                  <div className="space-y-2 border-t pt-4">
+                    {item.replies.map((replyItem) => (
+                      <div key={replyItem.id} className="rounded-lg bg-gray-50 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold text-gray-700">
+                            {replyItem.mine ? "You" : replyItem.authorName}
+                          </p>
+                          <p className="text-[10px] text-gray-400">
+                            {new Date(replyItem.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-600">{replyItem.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-2 border-t pt-4">
+                  <input
+                    className="min-w-0 flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-orange-300"
+                    value={replyDrafts[item.id] || ""}
+                    onChange={(event) => setReplyDrafts((current) => ({ ...current, [item.id]: event.target.value }))}
+                    placeholder="Write a simple reply"
+                    maxLength={500}
+                  />
+                  <Button
+                    className="bg-orange-500 text-white hover:bg-orange-600"
+                    disabled={savingId === `${item.id}:reply`}
+                    onClick={() => reply(item.id)}
+                  >
+                    {savingId === `${item.id}:reply` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

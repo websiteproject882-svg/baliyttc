@@ -1,0 +1,234 @@
+{
+  "Navigation": {
+    "home": "ホーム",
+    "courses": "コース",
+    "about": "私たちについて",
+    "teachers": "講師",
+    "gallery": "ギャラリー",
+    "contact": "お問い合わせ",
+    "applyNow": "今すぐ申し込む",
+    "course100": "100時間YTT",
+    "course200": "200時間YTT",
+    "course300": "300時間YTT",
+    "trainings": "トレーニング",
+    "allTrainings": "すべてのトレーニング",
+    "experience": "体験",
+    "activities": "アクティビティ",
+    "studentStories": "受講生の声",
+    "videos": "動画",
+    "blog": "ブログ",
+    "whyUbud": "ウブドを選ぶ理由",
+    "planYourTrip": "旅の準備",
+    "pricing": "料金",
+    "visa": "ビザ情報",
+    "faq": "よくある質問",
+    "school": "学校",
+    "aboutUs": "Bali YTTCについて",
+    "yogaAlliance": "Yoga Alliance",
+    "reviews": "受講生レビュー",
+    "terms": "規約とポリシー",
+    "retreats": "リトリート",
+    "workshops": "ワークショップ",
+    "programs": "プログラム",
+    "testimonials": "体験談",
+    "login": "ログイン",
+    "scarcity": "2026年3月コースは残り4席です！",
+    "needHelp": "お困りですか？",
+    "applyBatch": "2026年コースに申し込む",
+    "onlySeatsLeft": "残り4席",
+    "marchBatch": "2026年3月の200時間YTTコース。",
+    "reserveSpot": "席を予約する"
+  },
+  "Hero": {
+    "title": "バリのヨガ指導者養成",
+    "titleLine1": "ヨガ指導者養成",
+    "titleLine2": "バリ・ウブド",
+    "description": "ウブドで学ぶYoga Alliance認定100時間、200時間、300時間コース。少人数制、経験豊富な講師、本質的な実践。",
+    "subtitle": "バリ・ウブドのYoga Alliance認定ヨガ指導者養成",
+    "cta": "旅を始める",
+    "watchVideo": "動画を見る",
+    "days": "日",
+    "hrs": "時間",
+    "min": "分",
+    "sec": "秒",
+    "nextBatch": "次回コース",
+    "graduates": "卒業生",
+    "rating": "評価",
+    "certified": "認定",
+    "nextBatchStarts": "次回コースがまもなく開始！",
+    "location": "ウブド、バリ",
+    "applyBatch": "2026年コースに申し込む",
+    "explorePrograms": "プログラムを見る"
+  },
+  "TrustStrip": {
+    "recognisedBy": "認定・登録",
+    "yogaAlliance": "Yoga Alliance認定",
+    "students": "2,500名以上の卒業生",
+    "rating": "4.9/5 評価",
+    "certified": "200時間・300時間認定",
+    "established": "2018年設立"
+  },
+  "Courses": {
+    "title": "ヨガ指導者養成プログラム",
+    "subtitle": "あなたに合うヨガの道を選びましょう",
+    "viewDetails": "詳細を見る",
+    "applyNow": "今すぐ申し込む",
+    "seatsLeft": "席残り",
+    "enrolmentOpen": "受付中",
+    "popular": "人気"
+  },
+  "Course100": {
+    "title": "100時間ヨガ指導者養成",
+    "duration": "100時間 | 11日間",
+    "summary": "初心者向けの11日間マルチスタイル・ヨガ指導者養成コース。Yoga Alliance認定です。",
+    "price": "$999から",
+    "nextBatch": "次回日程",
+    "highlights": "ハイライト"
+  },
+  "Course200": {
+    "title": "200時間ヨガ指導者養成",
+    "duration": "200時間 | 21日間",
+    "summary": "初心者から中級者向けの代表的な21日間集中コース。Yoga Alliance認定講師として世界で教える準備をします。",
+    "price": "$1,499から",
+    "nextBatch": "次回日程",
+    "highlights": "ハイライト",
+    "featured": "代表プログラム"
+  },
+  "Course300": {
+    "title": "300時間上級ヨガ指導者養成",
+    "duration": "300時間 | 28日間",
+    "summary": "200時間認定講師がアーサナ、哲学、メンタリングをさらに深めるための上級コースです。",
+    "price": "$1,899から",
+    "nextBatch": "次回日程",
+    "highlights": "ハイライト"
+  },
+  "FeaturedCourses": {
+    "title": "ヨガ指導者養成プログラム",
+    "subtitle": "あなたに合うヨガの道を選びましょう",
+    "viewDetails": "詳細を見る",
+    "applyNow": "今すぐ申し込む",
+    "seatsLeft": "席残り",
+    "enrollmentOpen": "受付中",
+    "popular": "人気",
+    "ctaText": "Yoga Alliance認定100時間、200時間、300時間プログラム",
+    "viewAllCourses": "すべてのコースを見る"
+  },
+  "Manifesto": {
+    "title": "私たちの哲学",
+    "quote": "ヨガはすべての人のためのものです。伝統的な智慧と現代科学が調和する道です。",
+    "eyebrow": "Bali YTTCについて",
+    "titleLine1": "本格的なヨガトレーニングを、",
+    "titleLine2": "穏やかなバリで。",
+    "description1": "Bali YTTCはウブドにあるYoga Alliance登録校です。アーサナ、プラーナーヤーマ、瞑想、解剖学、哲学、指導法を体系的な滞在型プログラムで学びます。",
+    "description2": "目的は資格だけではありません。卒業時には深い個人練習、明確な指導言語、実際のクラスを導く自信を身につけます。",
+    "point1": "個別フィードバックのある少人数制",
+    "point2": "伝統練習と実践的な解剖学",
+    "point3": "卒業前の毎日の指導実習",
+    "yearsExperience": "年の経験",
+    "learnMore": "学校について詳しく見る"
+  },
+  "Pillars": {
+    "title": "6つの柱",
+    "subtitle": "自信あるヨガ講師になるための精神的・実践的フレームワーク"
+  },
+  "Teachers": {
+    "title": "講師紹介",
+    "subtitle": "あなたを導く経験豊富な講師陣"
+  },
+  "Schedule": {
+    "title": "1日のスケジュール",
+    "subtitle": "トレーニング期間中の1日"
+  },
+  "Experiences": {
+    "title": "特別な体験",
+    "subtitle": "ヨガトレーニングを超えたバリ体験"
+  },
+  "Gallery": {
+    "title": "ギャラリー",
+    "viewAll": "すべて見る"
+  },
+  "Testimonials": {
+    "title": "卒業生の声",
+    "subtitle": "卒業生たちのストーリー"
+  },
+  "FAQ": {
+    "title": "知っておきたいこと",
+    "subtitle": "申し込み前の疑問に、私たちのチームがお答えします。",
+    "eyebrow": "よくある質問",
+    "searchPlaceholder": "質問を検索...",
+    "noResults": "質問が見つかりません",
+    "contactTitle": "まだ質問がありますか？",
+    "contactDesc": "必要な答えが見つからない場合は直接お問い合わせください。",
+    "emailButton": "メールする",
+    "whatsappButton": "WhatsApp"
+  },
+  "FinalCTA": {
+    "title": "ヨガの旅を始める準備はできましたか？",
+    "subtitle": "世界中の2,500名以上の卒業生に続きましょう",
+    "cta": "今すぐ申し込む"
+  },
+  "Apply": {
+    "title": "ヨガの旅を始めましょう",
+    "step": "{total}ステップ中 {current}",
+    "yourInfo": "あなたの情報",
+    "selectProgram": "プログラムを選択",
+    "finalDetails": "最終情報",
+    "fullName": "氏名",
+    "email": "メール",
+    "phone": "電話番号（国番号を含む）",
+    "preferredDate": "希望開始日",
+    "message": "自己紹介",
+    "messagePlaceholder": "ヨガ経験、健康目標、食事の希望など...",
+    "continue": "続ける",
+    "back": "戻る",
+    "submit": "申し込みを完了",
+    "submitting": "送信中...",
+    "success": "申し込みを受け付けました！",
+    "successDesc": "申し込みは正常に送信されました。24時間以内にチームよりご連絡します。",
+    "noPayment": "今すぐの支払いは不要です。確認後、個別の登録リンクをお送りします。",
+    "reply24h": "入学チームから24時間以内に返信",
+    "freeCancel": "プログラム開始30日前まで無料キャンセル可能",
+    "yogaAlliance": "国際的に認められるYoga Alliance認定プログラム"
+  },
+  "Contact": {
+    "title": "お問い合わせ",
+    "subtitle": "ご質問があればいつでもご連絡ください",
+    "name": "名前",
+    "email": "メール",
+    "subject": "件名",
+    "message": "メッセージ",
+    "send": "メッセージを送信",
+    "sending": "送信中...",
+    "success": "メッセージを送信しました！",
+    "phone": "電話",
+    "whatsapp": "WhatsApp",
+    "address": "住所"
+  },
+  "Footer": {
+    "tagline": "バリの中心でヨガを通じた変容を",
+    "description": "ウブド、バリのYoga Alliance認定指導者養成で人生を変えた多くの学生に続きましょう。",
+    "quickLinks": "クイックリンク",
+    "programs": "プログラム",
+    "legal": "法的情報",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "contact": "お問い合わせ",
+    "followUs": "フォローする",
+    "copyright": "© 2024 Bali YTTC. All rights reserved.",
+    "newsletter": "ニュースレター",
+    "newsletterDesc": "ヨガのヒントと特別オファーを受け取る",
+    "emailPlaceholder": "メールアドレス",
+    "subscribe": "購読する",
+    "newsletterSuccess": "購読ありがとうございます！",
+    "rights": "All rights reserved."
+  },
+  "WhatsApp": {
+    "chatWithUs": "WhatsAppで相談する",
+    "hi": "こんにちは！Bali YTTCについて詳しく知りたいです"
+  },
+  "Error": {
+    "required": "必須項目です",
+    "invalidEmail": "有効なメールアドレスではありません",
+    "generic": "エラーが発生しました。もう一度お試しください。"
+  }
+}

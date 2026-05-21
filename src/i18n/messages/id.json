@@ -1,0 +1,161 @@
+{
+  "Navigation": {
+    "home": "Beranda",
+    "courses": "Kursus",
+    "about": "Tentang",
+    "teachers": "Pengajar",
+    "gallery": "Galeri",
+    "contact": "Kontak",
+    "applyNow": "Daftar Sekarang",
+    "course100": "YTT 100 Jam",
+    "course200": "YTT 200 Jam",
+    "course300": "YTT 300 Jam",
+    "trainings": "Pelatihan",
+    "experience": "Pengalaman",
+    "activities": "Aktivitas",
+    "testimonials": "Testimoni",
+    "videos": "Video"
+  },
+  "Hero": {
+    "title": "Transformasi Hidup Anda dengan Yoga di Bali",
+    "subtitle": "Pelatihan Guru Yoga bersertifikat Yoga Alliance di Ubud, Bali",
+    "cta": "Mulai Perjalanan Anda",
+    "watchVideo": "Tonton Video"
+  },
+  "TrustStrip": {
+    "recognisedBy": "Diakui & disertifikasi oleh",
+    "yogaAlliance": "Sertifikasi Yoga Alliance",
+    "students": "2.500+ Lulusan",
+    "rating": "Rating 4.9/5",
+    "certified": "200jam & 300jam tersertifikasi",
+    "established": "Didirikan 2018"
+  },
+  "Courses": {
+    "title": "Program Pelatihan Guru Yoga",
+    "subtitle": "Pilih perjalanan yoga Anda",
+    "viewDetails": "Lihat Detail",
+    "applyNow": "Daftar Sekarang",
+    "seatsLeft": "sisa kursi",
+    "enrolmentOpen": "Pendaftaran Terbuka",
+    "popular": "Populer"
+  },
+  "Course100": {
+    "title": "Pelatihan Guru Yoga 100 Jam",
+    "duration": "100 Jam | 11 Hari",
+    "summary": "Kursus pelatihan guru yoga multi-gaya selama 11 hari untuk yogi pemula, terakreditasi oleh Yoga Alliance.",
+    "price": "Mulai dari $999",
+    "nextBatch": "Batch Berikutnya",
+    "highlights": "Sorotan"
+  },
+  "Course200": {
+    "title": "Pelatihan Guru Yoga 200 Jam",
+    "duration": "200 Jam | 21 Hari",
+    "summary": "Immersi 21 hari kami untuk yogi pemula dan menengah. Menjadi guru bersertifikat Yoga Alliance dan mengajar di seluruh dunia.",
+    "price": "Mulai dari $1.499",
+    "nextBatch": "Batch Berikutnya",
+    "highlights": "Sorotan",
+    "featured": "Program Andalan"
+  },
+  "Course300": {
+    "title": "Pelatihan Guru Yoga Lanjutan 300 Jam",
+    "duration": "300 Jam | 28 Hari",
+    "summary": "Untuk guru bersertifikat 200 jam yang siap mendalami praktik dan pengajaran melalui asana lanjutan, filosofi, dan mentoring.",
+    "price": "Mulai dari $1.899",
+    "nextBatch": "Batch Berikutnya",
+    "highlights": "Sorotan"
+  },
+  "Manifesto": {
+    "title": "Filosofi Kami",
+    "quote": "Yoga untuk semua orang. Ini adalah perpaduan harmonis antara Kebijaksanaan Tradisional dan Sains Modern."
+  },
+  "Pillars": {
+    "title": "Enam Pilar",
+    "subtitle": "Kerangka spiritual dan praktis untuk guru yoga yang percaya diri"
+  },
+  "Teachers": {
+    "title": "Pengajar Kami",
+    "subtitle": "Guru-guru berpengalaman yang siap membimbing Anda"
+  },
+  "Schedule": {
+    "title": "Jadwal Harian",
+    "subtitle": "Rutinitas harian selama pelatihan"
+  },
+  "Experiences": {
+    "title": "Pengalaman Eksklusif",
+    "subtitle": "Lebih dari sekadar pelatihan yoga"
+  },
+  "Gallery": {
+    "title": "Galeri",
+    "viewAll": "Lihat Semua"
+  },
+  "Testimonials": {
+    "title": "Kata Mereka yang Sudah Lulus",
+    "subtitle": "Cerita dari para lulusan kami"
+  },
+  "FAQ": {
+    "title": "Pertanyaan Umum",
+    "subtitle": "Temukan jawaban untuk pertanyaan Anda"
+  },
+  "FinalCTA": {
+    "title": "Siap Memulai Perjalanan Yoga Anda?",
+    "subtitle": "Bergabunglah dengan 2.500+ lulusan dari seluruh dunia",
+    "cta": "Daftar Sekarang"
+  },
+  "Apply": {
+    "title": "Mulailah Perjalanan Yoga Anda",
+    "step": "Langkah {current} dari {total}",
+    "yourInfo": "Informasi Anda",
+    "selectProgram": "Pilih Program",
+    "finalDetails": "Detail Akhir",
+    "fullName": "Nama Lengkap",
+    "email": "Email",
+    "phone": "Telepon (dengan kode negara)",
+    "preferredDate": "Tanggal Mulai yang Diinginkan",
+    "message": "Ceritakan Tentang Anda",
+    "messagePlaceholder": "Pengalaman yoga, tujuan kesejahteraan, kebutuhan diet...",
+    "continue": "Lanjutkan",
+    "back": "Kembali",
+    "submit": "Kirim Aplikasi",
+    "submitting": "Mengirim...",
+    "success": "Aplikasi Diterima!",
+    "successDesc": "Aplikasi Anda telah berhasil dikirim. Tim kami akan menghubungi Anda dalam 24 jam.",
+    "noPayment": "Tidak perlu pembayaran sekarang - terima tautan pendaftaran khusus setelah peninjauan",
+    "reply24h": "Balasan pribadi dalam 24 jam dari tim penerimaan kami",
+    "freeCancel": "Pembatalan gratis hingga 30 hari sebelum program dimulai",
+    "yogaAlliance": "Program bersertifikat Yoga Alliance dengan pengakuan internasional"
+  },
+  "Contact": {
+    "title": "Hubungi Kami",
+    "subtitle": "Kami siap membantu Anda",
+    "name": "Nama",
+    "email": "Email",
+    "subject": "Subjek",
+    "message": "Pesan",
+    "send": "Kirim Pesan",
+    "sending": "Mengirim...",
+    "success": "Pesan Terkirim!",
+    "phone": "Telepon",
+    "whatsapp": "WhatsApp",
+    "address": "Alamat"
+  },
+  "Footer": {
+    "tagline": "Transformasi melalui yoga di jantung Bali",
+    "quickLinks": "Tautan Cepat",
+    "programs": "Program",
+    "legal": "Legal",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Syarat & Ketentuan",
+    "contact": "Kontak",
+    "followUs": "Ikuti Kami",
+    "copyright": "© 2024 Bali YTTC. Hak cipta dilindungi."
+  },
+  "WhatsApp": {
+    "chatWithUs": "Chat dengan kami di WhatsApp",
+    "hi": "Hai! Saya ingin tahu lebih lanjut tentang Bali YTTC"
+  },
+  "Error": {
+    "required": "Kolom ini wajib diisi",
+    "invalidEmail": "Email tidak valid",
+    "generic": "Terjadi kesalahan. Silakan coba lagi."
+  }
+}
