@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,24 +44,82 @@ interface AbandonedEnrollment {
   status: "pending" | "converted" | "lost";
 }
 
-const demoAbandoned: AbandonedEnrollment[] = [
-  { id: "1", name: "John Smith", email: "john@example.com", courseSlug: "200hr", lastActivity: new Date(Date.now() - 3600000).toISOString(), remindersSent: 0, status: "pending" },
-  { id: "2", name: "Sarah Johnson", email: "sarah@example.com", courseSlug: "100hr", lastActivity: new Date(Date.now() - 86400000).toISOString(), remindersSent: 1, status: "pending" },
-  { id: "3", name: "Mike Chen", email: "mike@example.com", courseSlug: "200hr", lastActivity: new Date(Date.now() - 259200000).toISOString(), remindersSent: 2, status: "pending" },
-];
-
 export default function AbandonedEnrollmentPage() {
   const [settings, setSettings] = useState<ReminderSettings>(defaultSettings);
-  const [abandonedList] = useState<AbandonedEnrollment[]>(demoAbandoned);
+  const [abandonedList, setAbandonedList] = useState<AbandonedEnrollment[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const fetchAbandoned = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/abandoned");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch abandoned enrollments");
+      }
+      setSettings(data.settings || defaultSettings);
+      setAbandonedList(Array.isArray(data.abandoned) ? data.abandoned : []);
+    } catch (err) {
+      console.error("Failed to fetch abandoned enrollments:", err);
+      setAbandonedList([]);
+      setError(err instanceof Error ? err.message : "Failed to fetch abandoned enrollments");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetchAbandoned();
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/abandoned", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save settings");
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save abandoned settings:", err);
+      setError(err instanceof Error ? err.message : "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSendManual = async (id: string) => {
+    setSendingId(id);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/abandoned", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: id }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send reminder");
+      }
+      await fetchAbandoned();
+    } catch (err) {
+      console.error("Failed to send abandoned reminder:", err);
+      setError(err instanceof Error ? err.message : "Failed to send reminder");
+    } finally {
+      setSendingId(null);
+    }
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -89,6 +147,12 @@ export default function AbandonedEnrollmentPage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {error && (
+          <Card className="border border-red-200 bg-red-50 shadow-sm">
+            <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+          </Card>
+        )}
+
         {/* Enable/Disable */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
@@ -250,7 +314,12 @@ export default function AbandonedEnrollmentPage() {
             <CardDescription>Students who started but didn't complete enrollment</CardDescription>
           </CardHeader>
           <CardContent>
-            {abandonedList.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-8">
+                <RefreshCw className="h-8 w-8 mx-auto text-gray-300 mb-4 animate-spin" />
+                <p className="text-gray-500">Loading abandoned enrollments...</p>
+              </div>
+            ) : abandonedList.length === 0 ? (
               <div className="text-center py-8">
                 <CheckCircle className="h-12 w-12 mx-auto text-green-400 mb-4" />
                 <p className="text-gray-500">No abandoned enrollments</p>
@@ -280,9 +349,9 @@ export default function AbandonedEnrollmentPage() {
                       }>
                         {item.status}
                       </Badge>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" disabled={sendingId === item.id} onClick={() => void handleSendManual(item.id)}>
                         <Mail className="h-4 w-4 mr-2" />
-                        Send Manual
+                        {sendingId === item.id ? "Sending..." : "Send Manual"}
                       </Button>
                     </div>
                   </div>

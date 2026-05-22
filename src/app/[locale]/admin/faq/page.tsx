@@ -79,19 +79,28 @@ export default function FAQPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Load FAQs from localStorage (in production, this would be from DB)
-    const saved = localStorage.getItem("baliyttc_faqs");
-    if (saved) {
-      setFaqs(JSON.parse(saved));
+  const fetchFaqs = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/faq");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch FAQs");
+      }
+      setFaqs(Array.isArray(data.faqs) ? data.faqs : []);
+    } catch (err) {
+      console.error("Failed to fetch FAQs:", err);
+      setFaqs([]);
+      setError(err instanceof Error ? err.message : "Failed to fetch FAQs");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, []);
-
-  const saveFaqs = (updated: FAQItem[]) => {
-    setFaqs(updated);
-    localStorage.setItem("baliyttc_faqs", JSON.stringify(updated));
   };
+
+  useEffect(() => {
+    void fetchFaqs();
+  }, []);
 
   const openCreateDialog = () => {
     setForm(defaultForm);
@@ -111,7 +120,7 @@ export default function FAQPage() {
     setDialogOpen(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.question || !form.answer) {
       setError("Question and answer are required");
       return;
@@ -121,48 +130,49 @@ export default function FAQPage() {
     setError(null);
 
     const keywords = form.keywords.split(",").map(k => k.trim()).filter(Boolean);
-    const now = new Date().toISOString();
-
-    if (form.id) {
-      // Update existing
-      const updated = faqs.map(f => {
-        if (f.id === form.id) {
-          return {
-            ...f,
-            question: form.question,
-            answer: form.answer,
-            category: form.category,
-            keywords,
-            locale: form.locale,
-            isActive: form.isActive,
-          };
-        }
-        return f;
+    try {
+      const response = await fetch("/api/admin/faq", {
+        method: form.id ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(form.id ? { id: form.id } : {}),
+          question: form.question,
+          answer: form.answer,
+          category: form.category || "General",
+          keywords,
+          locale: form.locale,
+          isActive: form.isActive,
+        }),
       });
-      saveFaqs(updated);
-    } else {
-      // Create new
-      const newFaq: FAQItem = {
-        id: `faq-${Date.now()}`,
-        question: form.question,
-        answer: form.answer,
-        category: form.category,
-        keywords,
-        locale: form.locale,
-        isActive: form.isActive,
-      };
-      saveFaqs([...faqs, newFaq]);
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save FAQ");
+      }
+      setDialogOpen(false);
+      setForm(defaultForm);
+      await fetchFaqs();
+    } catch (err) {
+      console.error("Failed to save FAQ:", err);
+      setError(err instanceof Error ? err.message : "Failed to save FAQ");
+    } finally {
+      setSubmitting(false);
     }
-
-    setDialogOpen(false);
-    setSubmitting(false);
-    setForm(defaultForm);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm("Delete this FAQ?")) return;
-    const updated = faqs.filter(f => f.id !== id);
-    saveFaqs(updated);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/faq?id=${id}`, { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete FAQ");
+      }
+      await fetchFaqs();
+    } catch (err) {
+      console.error("Failed to delete FAQ:", err);
+      setError(err instanceof Error ? err.message : "Failed to delete FAQ");
+    }
   };
 
   const filteredFaqs = faqs.filter(faq => {
@@ -338,7 +348,7 @@ export default function FAQPage() {
                           <Button variant="ghost" size="sm" onClick={() => openEditDialog(faq)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(faq.id)}>
+                          <Button variant="ghost" size="sm" onClick={() => void handleDelete(faq.id)}>
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
