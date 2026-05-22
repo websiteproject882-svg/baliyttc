@@ -40,12 +40,19 @@ export default function StudentProfilePage() {
   const [form, setForm] = useState<ProfileForm>(EMPTY_FORM);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     void fetch("/api/app/profile")
-      .then((response) => response.json())
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to load profile");
+        }
+        return result;
+      })
       .then((result) => setForm({ ...EMPTY_FORM, ...result }))
-      .catch(console.error)
+      .catch((err) => setStatus({ type: "error", message: err instanceof Error ? err.message : "Failed to load profile" }))
       .finally(() => setLoading(false));
   }, []);
 
@@ -65,12 +72,20 @@ export default function StudentProfilePage() {
 
   const saveProfile = async () => {
     setSaving(true);
+    setStatus(null);
     try {
-      await fetch("/api/app/profile", {
+      const response = await fetch("/api/app/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save profile");
+      }
+      setStatus({ type: "success", message: "Profile saved." });
+    } catch (err) {
+      setStatus({ type: "error", message: err instanceof Error ? err.message : "Failed to save profile" });
     } finally {
       setSaving(false);
     }
@@ -96,11 +111,21 @@ export default function StudentProfilePage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
+          {status && (
+            <div
+              className={`rounded-lg border px-3 py-2 text-sm md:col-span-2 ${
+                status.type === "success"
+                  ? "border-green-200 bg-green-50 text-green-700"
+                  : "border-red-200 bg-red-50 text-red-700"
+              }`}
+            >
+              {status.message}
+            </div>
+          )}
           <div className="rounded-xl bg-gray-50 p-4 md:col-span-2">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative h-20 w-20 overflow-hidden rounded-full bg-gradient-to-br from-orange-100 to-amber-100">
                 {form.photoURL ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={form.photoURL} alt={form.displayName || "Student"} className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-orange-700">

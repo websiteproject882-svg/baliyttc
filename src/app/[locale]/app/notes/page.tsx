@@ -11,29 +11,43 @@ export default function StudentNotesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void fetch("/api/app/notes")
-      .then((response) => response.json())
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to load notes");
+        }
+        return result;
+      })
       .then((result) => {
         const initial = result.personalNotes || "";
         setNotes(initial);
         setLoadedNotes(initial);
       })
-      .catch(console.error)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load notes"))
       .finally(() => setLoading(false));
   }, []);
 
   const saveNotes = useCallback(async (value = notes) => {
     setSaving(true);
+    setError(null);
     try {
-      await fetch("/api/app/notes", {
+      const response = await fetch("/api/app/notes", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ personalNotes: value }),
       });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save notes");
+      }
       setLoadedNotes(value);
       setSavedAt(new Date());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save notes");
     } finally {
       setSaving(false);
     }
@@ -74,6 +88,11 @@ export default function StudentNotesPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <textarea
             className="min-h-[55vh] w-full rounded-lg border border-gray-200 p-4 text-sm text-gray-800 outline-none focus:border-orange-300"
             placeholder="Write your reflections, practice notes, travel checklist, and questions here."

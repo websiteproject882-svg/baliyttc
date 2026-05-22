@@ -4,6 +4,7 @@ import { useState } from "react";
 import { HelpCircle, Mail, MessageSquare, Phone, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SITE } from "@/data/site";
 
 const helpTopics = [
   {
@@ -26,7 +27,8 @@ const helpTopics = [
 
 export default function StudentSupportPage() {
   const [message, setMessage] = useState("");
-  const mailto = `mailto:hello@baliyttc.com?subject=Student%20Portal%20Support&body=${encodeURIComponent(message)}`;
+  const mailto = `mailto:${SITE.email}?subject=Student%20Portal%20Support&body=${encodeURIComponent(message)}`;
+  const whatsappUrl = `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(message || "Hi Bali YTTC, I need help with my student portal.")}`;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -64,11 +66,11 @@ export default function StudentSupportPage() {
             <div className="space-y-2 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
               <p className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-orange-500" />
-                hello@baliyttc.com
+                {SITE.email}
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-orange-500" />
-                WhatsApp details can be added by admin.
+                {SITE.phone}
               </p>
             </div>
             <textarea
@@ -81,6 +83,12 @@ export default function StudentSupportPage() {
               <a href={mailto}>
                 <Send className="mr-2 h-4 w-4" />
                 Email support
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                <Phone className="mr-2 h-4 w-4" />
+                WhatsApp support
               </a>
             </Button>
           </CardContent>
