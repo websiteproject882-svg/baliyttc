@@ -8,7 +8,10 @@ export const dynamic = "force-dynamic";
 const providerKeys = {
   razorpay: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET"],
   paypal: ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_WEBHOOK_ID"],
-  resend: ["RESEND_API_KEY"],
+  email: [
+    ["RESEND_API_KEY"],
+    ["GMAIL_EMAIL", "GMAIL_APP_PASSWORD"],
+  ],
   whatsapp: ["WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_ACCESS_TOKEN"],
 };
 
@@ -17,6 +20,13 @@ function providerStatus(keys: string[]) {
   if (configured === 0) return "missing";
   if (configured === keys.length) return "configured";
   return "partial";
+}
+
+function alternativeProviderStatus(groups: string[][]) {
+  const statuses = groups.map(providerStatus);
+  if (statuses.includes("configured")) return "configured";
+  if (statuses.includes("partial")) return "partial";
+  return "missing";
 }
 
 export async function GET(request: NextRequest) {
@@ -43,7 +53,10 @@ export async function GET(request: NextRequest) {
         env: env.ok ? "ok" : "error",
       },
       providers: Object.fromEntries(
-        Object.entries(providerKeys).map(([name, keys]) => [name, providerStatus(keys)]),
+        Object.entries(providerKeys).map(([name, keys]) => [
+          name,
+          Array.isArray(keys[0]) ? alternativeProviderStatus(keys as string[][]) : providerStatus(keys as string[]),
+        ]),
       ),
       warnings: env.warnings,
       errors: env.errors,

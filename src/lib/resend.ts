@@ -1,11 +1,12 @@
 import { Resend } from "resend";
+import { isGmailConfigured, sendGmailEmail } from "@/lib/gmail-smtp";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
 export const isEmailConfigured = () => {
-  return !!process.env.RESEND_API_KEY;
+  return !!process.env.RESEND_API_KEY || isGmailConfigured();
 };
 
 const FROM_EMAIL = "Bali YTTC <noreply@baliyttc.com>";
@@ -26,6 +27,10 @@ export async function sendEmail(options: EmailOptions) {
     console.log("[Email Dev] Would send email:", options.subject);
     console.log("[Email Dev] To:", options.to);
     return { success: true, demo: true };
+  }
+
+  if (!resend && isGmailConfigured()) {
+    return sendGmailEmail(options);
   }
 
   try {

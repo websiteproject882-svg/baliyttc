@@ -8,7 +8,10 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 export const dynamic = "force-dynamic";
 
 const providerKeys = {
-  email: ["RESEND_API_KEY"],
+  email: [
+    ["RESEND_API_KEY"],
+    ["GMAIL_EMAIL", "GMAIL_APP_PASSWORD"],
+  ],
   whatsapp: ["WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_ACCESS_TOKEN"],
 } as const;
 
@@ -49,6 +52,17 @@ function providerStatus(keys: readonly string[]) {
   return { status, missingKeys };
 }
 
+function alternativeProviderStatus(groups: readonly (readonly string[])[]) {
+  const statuses = groups.map(providerStatus);
+  const configured = statuses.find((item) => item.status === "configured");
+  if (configured) return { status: "configured", missingKeys: [] };
+
+  const partial = statuses.find((item) => item.status === "partial");
+  if (partial) return { status: "partial", missingKeys: partial.missingKeys };
+
+  return { status: "missing", missingKeys: groups.flatMap((group) => [...group]) };
+}
+
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
@@ -75,7 +89,10 @@ export async function GET(request: NextRequest) {
   return jsonWithRequestId(
     {
       providers: Object.fromEntries(
-        Object.entries(providerKeys).map(([name, keys]) => [name, providerStatus(keys)]),
+        Object.entries(providerKeys).map(([name, keys]) => [
+          name,
+          Array.isArray(keys[0]) ? alternativeProviderStatus(keys as readonly (readonly string[])[]) : providerStatus(keys as readonly string[]),
+        ]),
       ),
     },
     undefined,
@@ -104,7 +121,7 @@ export async function POST(request: NextRequest) {
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
             <h1 style="font-size: 20px;">Bali YTTC provider smoke test</h1>
-            <p>This confirms the hosted Resend email provider can send from the current environment.</p>
+            <p>This confirms the hosted email provider can send from the current environment.</p>
             <p>Time: ${new Date().toISOString()}</p>
           </div>
         `,
@@ -114,7 +131,7 @@ export async function POST(request: NextRequest) {
         actorUserId: user.id,
         action: "provider.smoke_test",
         entity: "email_provider",
-        entityId: "resend",
+        entityId: "email",
         newValue: {
           provider: payload.provider,
           target: maskEmail(payload.email),
@@ -134,7 +151,12 @@ export async function POST(request: NextRequest) {
       }
 
       return jsonWithRequestId(
-        { success: true, provider: payload.provider, target: maskEmail(payload.email), id: result.id ?? null },
+        {
+          success: true,
+          provider: payload.provider,
+          target: maskEmail(payload.email),
+          id: "id" in result ? result.id ?? null : null,
+        },
         undefined,
         request,
       );

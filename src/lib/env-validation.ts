@@ -84,6 +84,7 @@ export function validateRuntimeEnv(): ValidationResult {
     { name: "Razorpay", keys: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET"] },
     { name: "PayPal", keys: ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_WEBHOOK_ID"] },
     { name: "Resend", keys: ["RESEND_API_KEY"] },
+    { name: "Gmail SMTP", keys: ["GMAIL_EMAIL", "GMAIL_APP_PASSWORD"] },
     { name: "WhatsApp", keys: ["WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_ACCESS_TOKEN"] },
   ];
 
