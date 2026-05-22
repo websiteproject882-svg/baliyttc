@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { hasPermission } from "@/lib/rbac";
@@ -10,6 +12,20 @@ const ALLOWED_TEACHER_SCHEDULE_ROLES = new Set([
   "COURSE_MANAGER",
   "STUDENT_MANAGER",
 ]);
+
+const scheduleBaseSchema = z.object({
+  batchId: z.string().min(1),
+  teacherId: z.string().min(1).nullable().optional(),
+  date: z.string().datetime(),
+  dayNumber: z.number().int().min(0),
+  activities: z.array(z.unknown()).default([]),
+  ceremonyBlocked: z.boolean().default(false),
+  notes: z.string().max(2000).nullable().optional(),
+});
+
+const scheduleUpdateSchema = scheduleBaseSchema.partial().extend({
+  id: z.string().min(1),
+});
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireAuthenticatedUser();
@@ -82,15 +98,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const { batchId, teacherId, date, dayNumber, activities, ceremonyBlocked, notes } = body;
-
-    if (!batchId || !date || dayNumber === undefined) {
-      return NextResponse.json(
-        { error: "batchId, date, and dayNumber are required" },
-        { status: 400 }
-      );
-    }
+    const { batchId, teacherId, date, dayNumber, activities, ceremonyBlocked, notes } =
+      scheduleBaseSchema.parse(await request.json());
 
     const schedule = await prisma.scheduleEntry.create({
       data: {
@@ -98,7 +107,7 @@ export async function POST(request: NextRequest) {
         teacherId,
         date: new Date(date),
         dayNumber,
-        activities: activities || [],
+        activities: activities as Prisma.InputJsonValue,
         ceremonyBlocked: ceremonyBlocked || false,
         notes,
       },
@@ -118,6 +127,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, schedule });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("POST schedule error:", error);
     return NextResponse.json({ error: "Failed to create schedule entry" }, { status: 500 });
   }
@@ -139,12 +151,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const { id, ...data } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
-    }
+    const { id, ...data } = scheduleUpdateSchema.parse(await request.json());
 
     const existing = await prisma.scheduleEntry.findUnique({
       where: { id },
@@ -157,8 +164,13 @@ export async function PATCH(request: NextRequest) {
     const schedule = await prisma.scheduleEntry.update({
       where: { id },
       data: {
-        ...data,
+        batchId: data.batchId,
+        teacherId: data.teacherId,
         date: data.date ? new Date(data.date) : undefined,
+        dayNumber: data.dayNumber,
+        activities: data.activities as Prisma.InputJsonValue | undefined,
+        ceremonyBlocked: data.ceremonyBlocked,
+        notes: data.notes,
       },
     });
 
@@ -174,6 +186,9 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, schedule });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("PATCH schedule error:", error);
     return NextResponse.json({ error: "Failed to update schedule entry" }, { status: 500 });
   }

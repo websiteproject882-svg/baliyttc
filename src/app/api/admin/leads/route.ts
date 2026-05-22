@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+
+const leadUpdateSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(["NEW", "CONTACTED", "INTERESTED", "ENROLLED", "NOT_INTERESTED", "SPAM"]).optional(),
+  notes: z.string().max(5000).nullable().optional(),
+  assignedTo: z.string().max(120).nullable().optional(),
+  followUpAt: z.string().datetime().nullable().optional(),
+});
 
 // Re-export leads routes with admin-specific features
 export async function GET(request: NextRequest) {
@@ -60,8 +69,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const { id, status, notes, assignedTo, followUpAt } = body;
+    const { id, status, notes, assignedTo, followUpAt } = leadUpdateSchema.parse(await request.json());
 
     const existing = await prisma.lead.findUnique({
       where: { id },
@@ -77,7 +85,7 @@ export async function PATCH(request: NextRequest) {
         ...(status && { status }),
         ...(notes !== undefined && { notes }),
         ...(assignedTo !== undefined && { assignedTo }),
-        ...(followUpAt && { followUpAt: new Date(followUpAt) }),
+        ...(followUpAt !== undefined && { followUpAt: followUpAt ? new Date(followUpAt) : null }),
       },
     });
 
@@ -93,6 +101,9 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, lead });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("PATCH admin lead error:", error);
     return NextResponse.json({ error: "Failed to update lead" }, { status: 500 });
   }
