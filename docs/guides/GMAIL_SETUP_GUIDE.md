@@ -39,8 +39,8 @@ Add these variables to your `.env` file:
 
 ```env
 # Gmail SMTP
-GMAIL_EMAIL="baliyttc@gmail.com"
-GMAIL_APP_PASSWORD="abcd efgh ijkl mnop"  # Your 16-char app password
+GMAIL_EMAIL="client-owned-inbox@gmail.com"
+GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"  # Your 16-character app password
 ADMIN_EMAIL="info@baliyttc.com"
 ```
 
@@ -94,7 +94,7 @@ If you expect higher volume, better deliverability reporting, or domain-based se
 4. Get API key
 5. Update .env:
 ```env
-RESEND_API_KEY="re_xxxxxxxxxxxxx"
+RESEND_API_KEY="re_your_resend_api_key"
 ```
 
 ---

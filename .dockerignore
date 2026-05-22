@@ -10,6 +10,13 @@ logs
 .env.*
 !.env.example
 !.env.production.example
+serviceAccountKey.json
+firebase-service-account*.json
+firebase-adminsdk*.json
+*service-account*.json
+*.pem
+*.key
+*.p12
 tsconfig.tsbuildinfo
 tsconfig.typecheck.tsbuildinfo
 *.mp4
