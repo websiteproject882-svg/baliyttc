@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireStudentUser, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Task not found" }, { status: 404 }, request);
     }
 
     const updated = await prisma.taskProgress.update({
@@ -61,12 +62,12 @@ export async function PATCH(
       request,
     });
 
-    return NextResponse.json({ success: true, task: updated });
+    return jsonWithRequestId({ success: true, task: updated }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH app task error:", error);
-    return NextResponse.json({ error: "Failed to update task" }, { status: 500 });
+    logApiError("app.tasks.progress", error, request, { taskKey: params.taskKey });
+    return jsonWithRequestId({ error: "Failed to update task" }, { status: 500 }, request);
   }
 }

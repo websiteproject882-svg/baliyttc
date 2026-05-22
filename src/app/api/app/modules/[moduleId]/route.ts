@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireStudentUser, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export async function PATCH(
     const courseId = activeBatch?.courseId || null;
 
     if (!courseId) {
-      return NextResponse.json({ error: "Student batch is not assigned" }, { status: 400 });
+      return jsonWithRequestId({ error: "Student batch is not assigned" }, { status: 400 }, request);
     }
 
     const module = await prisma.module.findFirst({
@@ -65,7 +66,7 @@ export async function PATCH(
     });
 
     if (!module) {
-      return NextResponse.json({ error: "Module not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Module not found" }, { status: 404 }, request);
     }
 
     const existing = await prisma.moduleProgress.findUnique({
@@ -158,12 +159,12 @@ export async function PATCH(
       request,
     });
 
-    return NextResponse.json({ success: true, progress: updated, completedHours });
+    return jsonWithRequestId({ success: true, progress: updated, completedHours }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH app module progress error:", error);
-    return NextResponse.json({ error: "Failed to update module progress" }, { status: 500 });
+    logApiError("app.modules.progress", error, request, { moduleId: params.moduleId });
+    return jsonWithRequestId({ error: "Failed to update module progress" }, { status: 500 }, request);
   }
 }
