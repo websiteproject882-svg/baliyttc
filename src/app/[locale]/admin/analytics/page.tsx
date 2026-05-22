@@ -47,117 +47,42 @@ export default function AnalyticsPage() {
     try {
       const response = await fetch("/api/admin/analytics");
       const result = await response.json();
-      // Add demo data if API returns empty
-      if (!result.stats) {
-        setData({
-          stats: {
-            totalEnrollments: 47,
-            totalStudents: 152,
-            totalRevenue: 89500,
-            upcomingBatches: 4,
-            monthlyRevenue: 24500,
-            revenueChange: 23,
-            enrollmentChange: 12,
-          },
-          enrollmentsByMonth: [
-            { month: "Jan", count: 3, revenue: 5700 },
-            { month: "Feb", count: 5, revenue: 9500 },
-            { month: "Mar", count: 8, revenue: 15200 },
-            { month: "Apr", count: 6, revenue: 11400 },
-            { month: "May", count: 12, revenue: 22800 },
-            { month: "Jun", count: 13, revenue: 24700 },
-          ],
-          enrollmentsByCourse: [
-            { course: "200hr YTTC", count: 28, revenue: 53200 },
-            { course: "100hr YTTC", count: 12, revenue: 14400 },
-            { course: "300hr YTTC", count: 5, revenue: 15000 },
-            { course: "50hr Workshop", count: 2, revenue: 1900 },
-          ],
-          paymentStatusBreakdown: {
-            FULL_PAID: 32,
-            DEPOSIT_PAID: 8,
-            PENDING: 4,
-            REFUNDED: 2,
-            FAILED: 1,
-          },
-          accessLevelBreakdown: {
-            FULL: 35,
-            PRE_ARRIVAL: 8,
-            ALUMNI: 25,
-            NONE: 4,
-          },
-          recentEnrollments: [
-            { id: "1", name: "Sarah Johnson", email: "sarah@email.com", course: "200hr YTTC", amount: 2200, status: "FULL_PAID", date: "2026-05-15" },
-            { id: "2", name: "Michael Chen", email: "michael@email.com", course: "100hr YTTC", amount: 1200, status: "DEPOSIT_PAID", date: "2026-05-14" },
-            { id: "3", name: "Emma Wilson", email: "emma@email.com", course: "300hr YTTC", amount: 3000, status: "FULL_PAID", date: "2026-05-13" },
-            { id: "4", name: "James Miller", email: "james@email.com", course: "200hr YTTC", amount: 1100, status: "PENDING", date: "2026-05-12" },
-            { id: "5", name: "Anna Mueller", email: "anna@email.com", course: "200hr YTTC", amount: 2200, status: "FULL_PAID", date: "2026-05-11" },
-          ],
-        });
-      } else {
-        setData({
-          ...result,
-          enrollmentsByMonth: result.enrollmentsByMonth || [
-            { month: "Jan", count: 3, revenue: 5700 },
-            { month: "Feb", count: 5, revenue: 9500 },
-            { month: "Mar", count: 8, revenue: 15200 },
-            { month: "Apr", count: 6, revenue: 11400 },
-            { month: "May", count: 12, revenue: 22800 },
-            { month: "Jun", count: 13, revenue: 24700 },
-          ],
-          enrollmentsByCourse: result.enrollmentsByCourse || [
-            { course: "200hr YTTC", count: 28, revenue: 53200 },
-            { course: "100hr YTTC", count: 12, revenue: 14400 },
-            { course: "300hr YTTC", count: 5, revenue: 15000 },
-          ],
-          recentEnrollments: result.recentEnrollments || [],
-        });
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to fetch analytics");
       }
+      setData({
+        stats: result.stats || {
+          totalEnrollments: 0,
+          totalStudents: 0,
+          totalRevenue: 0,
+          upcomingBatches: 0,
+          monthlyRevenue: 0,
+          revenueChange: 0,
+          enrollmentChange: 0,
+        },
+        enrollmentsByMonth: result.enrollmentsByMonth || [],
+        enrollmentsByCourse: result.enrollmentsByCourse || [],
+        paymentStatusBreakdown: result.paymentStatusBreakdown || {},
+        accessLevelBreakdown: result.accessLevelBreakdown || {},
+        recentEnrollments: result.recentEnrollments || [],
+      });
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
-      // Demo data on error
       setData({
         stats: {
-          totalEnrollments: 47,
-          totalStudents: 152,
-          totalRevenue: 89500,
-          upcomingBatches: 4,
-          monthlyRevenue: 24500,
-          revenueChange: 23,
-          enrollmentChange: 12,
+          totalEnrollments: 0,
+          totalStudents: 0,
+          totalRevenue: 0,
+          upcomingBatches: 0,
+          monthlyRevenue: 0,
+          revenueChange: 0,
+          enrollmentChange: 0,
         },
-        enrollmentsByMonth: [
-          { month: "Jan", count: 3, revenue: 5700 },
-          { month: "Feb", count: 5, revenue: 9500 },
-          { month: "Mar", count: 8, revenue: 15200 },
-          { month: "Apr", count: 6, revenue: 11400 },
-          { month: "May", count: 12, revenue: 22800 },
-          { month: "Jun", count: 13, revenue: 24700 },
-        ],
-        enrollmentsByCourse: [
-          { course: "200hr YTTC", count: 28, revenue: 53200 },
-          { course: "100hr YTTC", count: 12, revenue: 14400 },
-          { course: "300hr YTTC", count: 5, revenue: 15000 },
-          { course: "50hr Workshop", count: 2, revenue: 1900 },
-        ],
-        paymentStatusBreakdown: {
-          FULL_PAID: 32,
-          DEPOSIT_PAID: 8,
-          PENDING: 4,
-          REFUNDED: 2,
-          FAILED: 1,
-        },
-        accessLevelBreakdown: {
-          FULL: 35,
-          PRE_ARRIVAL: 8,
-          ALUMNI: 25,
-          NONE: 4,
-        },
-        recentEnrollments: [
-          { id: "1", name: "Sarah Johnson", email: "sarah@email.com", course: "200hr YTTC", amount: 2200, status: "FULL_PAID", date: "2026-05-15" },
-          { id: "2", name: "Michael Chen", email: "michael@email.com", course: "100hr YTTC", amount: 1200, status: "DEPOSIT_PAID", date: "2026-05-14" },
-          { id: "3", name: "Emma Wilson", email: "emma@email.com", course: "300hr YTTC", amount: 3000, status: "FULL_PAID", date: "2026-05-13" },
-        ],
+        enrollmentsByMonth: [],
+        enrollmentsByCourse: [],
+        paymentStatusBreakdown: {},
+        accessLevelBreakdown: {},
+        recentEnrollments: [],
       });
     } finally {
       setLoading(false);
