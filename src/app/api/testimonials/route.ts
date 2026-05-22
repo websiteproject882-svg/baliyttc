@@ -6,7 +6,10 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "6", 10), 20);
+    const requestedLimit = parseInt(searchParams.get("limit") || "6", 10);
+    const limit = Number.isFinite(requestedLimit)
+      ? Math.min(Math.max(requestedLimit, 1), 20)
+      : 6;
 
     const [testimonials, aggregates] = await Promise.all([
       prisma.testimonial.findMany({
@@ -36,7 +39,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       testimonials: testimonials.map((item) => ({
         id: item.id,
-        name: item.student.user.displayName || item.student.user.email,
+        name: item.student.user.displayName || "Bali YTTC Graduate",
         course: item.courseName || item.student.enrolledCourse || "Graduate",
         quote: item.quote,
         rating: item.rating,
