@@ -11,7 +11,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { requireSameOrigin } from "@/lib/authz";
 
 const paymentCreateSchema = z.object({
-  enrollmentId: z.string().optional(),
+  enrollmentId: z.string().min(1),
   amount: z.number().positive(),
   currency: z.string().default("usd"),
   email: z.string().email(),
@@ -44,12 +44,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const data = paymentCreateSchema.parse(body);
-    const storedEnrollment = data.enrollmentId
-      ? await resolveStoredEnrollmentAmount(data.enrollmentId)
-      : null;
-    const amount = storedEnrollment?.amount || data.amount;
-    const currency = (storedEnrollment?.currency || data.currency).toUpperCase();
-    const paymentType = (storedEnrollment?.paymentType || data.paymentType).toLowerCase();
+    const storedEnrollment = await resolveStoredEnrollmentAmount(data.enrollmentId);
+    const amount = storedEnrollment.amount;
+    const currency = storedEnrollment.currency.toUpperCase();
+    const paymentType = storedEnrollment.paymentType.toLowerCase();
     const settings = await getSiteSettings();
 
     if (paymentType === "deposit" && !settings.payments.depositEnabled) {
@@ -96,51 +94,49 @@ export async function POST(request: NextRequest) {
       const order = await getRazorpayClient().orders.create({
         amount: toMinorUnits(razorpayAmount),
         currency: razorpayCurrency,
-        receipt: data.enrollmentId ? data.enrollmentId.slice(0, 40) : `baliyttc-${Date.now()}`,
+        receipt: data.enrollmentId.slice(0, 40),
         notes: {
-          enrollmentId: data.enrollmentId || "",
+          enrollmentId: data.enrollmentId,
           courseName: data.courseName,
           paymentType,
-          email: storedEnrollment?.email || data.email,
-          name: storedEnrollment?.name || data.name,
+          email: storedEnrollment.email,
+          name: storedEnrollment.name,
           displayAmount: String(amount),
           displayCurrency: currency,
         },
       });
 
-      if (data.enrollmentId) {
-        const existingPayment = await prisma.payment.findFirst({
-          where: {
+      const existingPayment = await prisma.payment.findFirst({
+        where: {
+          enrollmentId: data.enrollmentId,
+          method: "RAZORPAY",
+          status: "PENDING",
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (existingPayment) {
+        await prisma.payment.update({
+          where: { id: existingPayment.id },
+          data: {
+            amount: razorpayAmount,
+            currency: razorpayCurrency,
+            razorpayOrderId: order.id,
+            razorpayPaymentId: null,
+            razorpaySignature: null,
+          },
+        });
+      } else {
+        await prisma.payment.create({
+          data: {
             enrollmentId: data.enrollmentId,
+            amount: razorpayAmount,
+            currency: razorpayCurrency,
+            razorpayOrderId: order.id,
             method: "RAZORPAY",
             status: "PENDING",
           },
-          orderBy: { createdAt: "desc" },
         });
-
-        if (existingPayment) {
-          await prisma.payment.update({
-            where: { id: existingPayment.id },
-            data: {
-              amount: razorpayAmount,
-              currency: razorpayCurrency,
-              razorpayOrderId: order.id,
-              razorpayPaymentId: null,
-              razorpaySignature: null,
-            },
-          });
-        } else {
-          await prisma.payment.create({
-            data: {
-              enrollmentId: data.enrollmentId,
-              amount: razorpayAmount,
-              currency: razorpayCurrency,
-              razorpayOrderId: order.id,
-              method: "RAZORPAY",
-              status: "PENDING",
-            },
-          });
-        }
       }
 
       return jsonWithRequestId({
@@ -164,32 +160,30 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (data.enrollmentId) {
-        const existingPayment = await prisma.payment.findFirst({
-          where: {
+      const existingPayment = await prisma.payment.findFirst({
+        where: {
+          enrollmentId: data.enrollmentId,
+          method: "BANK_TRANSFER",
+          status: "PENDING",
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (existingPayment) {
+        await prisma.payment.update({
+          where: { id: existingPayment.id },
+          data: { amount, currency },
+        });
+      } else {
+        await prisma.payment.create({
+          data: {
             enrollmentId: data.enrollmentId,
+            amount,
+            currency,
             method: "BANK_TRANSFER",
             status: "PENDING",
           },
-          orderBy: { createdAt: "desc" },
         });
-
-        if (existingPayment) {
-          await prisma.payment.update({
-            where: { id: existingPayment.id },
-            data: { amount, currency },
-          });
-        } else {
-          await prisma.payment.create({
-            data: {
-              enrollmentId: data.enrollmentId,
-              amount,
-              currency,
-              method: "BANK_TRANSFER",
-              status: "PENDING",
-            },
-          });
-        }
       }
 
       return jsonWithRequestId({
@@ -226,43 +220,41 @@ export async function POST(request: NextRequest) {
       enrollmentId: data.enrollmentId,
       courseName: data.courseName,
       paymentType,
-      email: storedEnrollment?.email || data.email,
+      email: storedEnrollment.email,
       returnUrl: data.returnUrl,
       cancelUrl: data.cancelUrl,
     });
 
-    if (data.enrollmentId) {
-      const existingPayment = await prisma.payment.findFirst({
-        where: {
+    const existingPayment = await prisma.payment.findFirst({
+      where: {
+        enrollmentId: data.enrollmentId,
+        method: "PAYPAL",
+        status: "PENDING",
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (existingPayment) {
+      await prisma.payment.update({
+        where: { id: existingPayment.id },
+        data: {
+          amount,
+          currency,
+          paypalOrderId: order.id,
+          paypalCaptureId: null,
+        },
+      });
+    } else {
+      await prisma.payment.create({
+        data: {
           enrollmentId: data.enrollmentId,
+          amount,
+          currency,
+          paypalOrderId: order.id,
           method: "PAYPAL",
           status: "PENDING",
         },
-        orderBy: { createdAt: "desc" },
       });
-
-      if (existingPayment) {
-        await prisma.payment.update({
-          where: { id: existingPayment.id },
-          data: {
-            amount,
-            currency,
-            paypalOrderId: order.id,
-            paypalCaptureId: null,
-          },
-        });
-      } else {
-        await prisma.payment.create({
-          data: {
-            enrollmentId: data.enrollmentId,
-            amount,
-            currency,
-            paypalOrderId: order.id,
-            method: "PAYPAL",
-            status: "PENDING",
-          },
-        });
-      }
     }
 
     return jsonWithRequestId({
