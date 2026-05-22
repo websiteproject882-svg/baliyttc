@@ -18,8 +18,7 @@ const activities = [
     category: "Ceremony",
     duration: "Half day",
     location: "Balinese water temple",
-    image:
-      "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:864/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/Holy-Temple-purification-in-Bali-1.jpg",
+    image: IMG.balinesesTempleGateway,
     excerpt: "A sacred Balinese cleansing ceremony where students set intention and experience local spiritual tradition.",
     details:
       "Students visit a traditional water temple for a guided purification ritual. The experience is designed as a respectful introduction to Balinese Hindu culture, not as a tourist performance. Teachers explain basic etiquette, dress code, intention setting, and how the ceremony connects to inner discipline during yoga training.",

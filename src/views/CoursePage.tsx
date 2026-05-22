@@ -421,7 +421,7 @@ const courseDetails = {
       {
         title: "Temple Purification",
         desc: "A Balinese cleansing ritual that gives students a meaningful cultural and spiritual experience.",
-        image: "https://baliyttc.com/wp-content/uploads/2025/08/Holy-Temple-purification-in-Bali-1.jpg",
+        image: IMG.balinesesTempleGateway,
       },
       {
         title: "Waterfall & Coffee Plantation",
