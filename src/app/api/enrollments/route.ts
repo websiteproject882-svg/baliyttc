@@ -171,6 +171,59 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const existingPendingEnrollment = await prisma.enrollment.findFirst({
+      where: {
+        email: data.email,
+        courseSlug: data.course,
+        batchId: data.batchId ?? null,
+        paymentStatus: "PENDING",
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+            displayName: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (existingPendingEnrollment) {
+      const enrollment = await prisma.enrollment.update({
+        where: { id: existingPendingEnrollment.id },
+        data: {
+          studentId: student.id,
+          accommodation: data.accommodation,
+          name: data.name,
+          phone: data.phone,
+          preferredDate: data.preferredDate,
+          message: data.message,
+          paymentType: data.paymentType,
+          amount: finalAmount,
+          currency,
+          couponCode: pricing.appliedCouponCode || data.couponCode,
+          discount: pricing.discount,
+          referralSource: data.referralSource,
+        },
+        include: {
+          user: {
+            select: {
+              email: true,
+              displayName: true,
+            },
+          },
+        },
+      });
+
+      return jsonWithRequestId({
+        success: true,
+        enrollment,
+        duplicate: true,
+        message: "Existing pending enrollment found. Complete payment to unlock access.",
+      }, undefined, request);
+    }
+
     // Create enrollment
     const enrollment = await prisma.enrollment.create({
       data: {

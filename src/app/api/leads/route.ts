@@ -15,7 +15,6 @@ const leadSchema = z.object({
   source: z.string().default("website"),
   course: z.string().optional(),
   message: z.string().optional(),
-  status: z.enum(["NEW", "CONTACTED", "INTERESTED", "ENROLLED", "NOT_INTERESTED", "SPAM"]).default("NEW"),
 });
 
 function withLeadsDeprecation(request: NextRequest, response: NextResponse) {
@@ -95,7 +94,7 @@ export async function POST(request: NextRequest) {
         source: data.source,
         course: data.course,
         message: data.message,
-        status: data.status,
+        status: "NEW",
       },
     });
 
