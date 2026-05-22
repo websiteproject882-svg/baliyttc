@@ -81,7 +81,9 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
   }, [pathname]);
 
   const isLightMode = scrolled || !onHome || menuOpen;
-  const textClass = isLightMode ? "text-gray-900" : "text-white";
+  const logoClass = isLightMode
+    ? "border-gray-200 bg-white/90 text-gray-950 shadow-sm"
+    : "border-white/20 bg-black/20 text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)]";
   const iconClass = isLightMode ? "text-gray-900 hover:bg-gray-100" : "text-white hover:bg-white/10";
   const desktopLinkClass = isLightMode ? "text-gray-800 hover:text-brand" : "text-white hover:text-white";
   const desktopPanelClass = isLightMode
@@ -132,14 +134,21 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
 
         <div className="container-wide" style={{ height: `${NAV_H}px` }}>
           <div className="relative flex h-full items-center justify-between gap-4">
-            <Link href="/" className="group absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 shrink-0 items-center gap-3 transition-opacity hover:opacity-95">
+            <Link
+              href="/"
+              className={`group absolute left-1/2 top-1/2 z-10 flex h-12 -translate-x-1/2 -translate-y-1/2 shrink-0 items-center gap-2 rounded-full border px-3 pr-4 transition-all duration-300 hover:-translate-y-[52%] ${logoClass}`}
+              aria-label="Bali YTTC home"
+            >
               <img
-                src="/images/brand/logo-full.png"
+                src="/images/brand/logo-512.png"
                 alt="Bali YTTC"
-                className="h-auto w-[120px] flex-shrink-0 drop-shadow-[0_2px_8px_rgba(0,0,0,0.18)] sm:w-[140px]"
+                className="h-9 w-9 flex-shrink-0 rounded-full object-contain"
                 loading="eager"
                 decoding="async"
               />
+              <span className="hidden whitespace-nowrap font-serif text-[1.25rem] font-semibold leading-none tracking-normal sm:block">
+                Bali YTTC
+              </span>
             </Link>
 
             <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
