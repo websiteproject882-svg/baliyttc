@@ -1,6 +1,15 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
-import { applyDeprecationHeaders, getRequestId, jsonWithRequestId, LEGACY_API_SUNSET, rateLimit } from "../lib/security";
+import {
+  applyDeprecationHeaders,
+  createApiErrorResponse,
+  createRateLimitResponse,
+  getRequestId,
+  jsonWithRequestId,
+  LEGACY_API_SUNSET,
+  rateLimit,
+  requireSameOrigin,
+} from "../lib/security";
 
 describe("security helpers", () => {
   it("enforces in-memory rate limits within window", () => {
@@ -40,5 +49,37 @@ describe("security helpers", () => {
     expect(response.headers.get("X-API-Replacement")).toBe("/api/admin/example");
     expect(response.headers.get("Sunset")).toBe(LEGACY_API_SUNSET);
     expect(response.headers.get("Warning")).toBe('299 - "Use /api/admin/example instead."');
+  });
+
+  it("adds request id and hardening headers to API error responses", async () => {
+    const request = new NextRequest("https://example.com/api/test", {
+      headers: { "x-request-id": "req-error" },
+    });
+
+    const response = createApiErrorResponse("Forbidden", 403, request);
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body).toEqual({ error: "Forbidden" });
+    expect(response.headers.get("X-Request-Id")).toBe("req-error");
+    expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+  });
+
+  it("adds request ids to same-origin and rate-limit failures", () => {
+    const request = new NextRequest("https://example.com/api/test", {
+      headers: {
+        "x-request-id": "req-guard",
+        origin: "https://evil.com",
+        host: "example.com",
+        "x-forwarded-proto": "https",
+      },
+    });
+
+    const originResponse = requireSameOrigin(request);
+    const rateLimitResponse = createRateLimitResponse("Slow down", 30, request);
+
+    expect(originResponse?.headers.get("X-Request-Id")).toBe("req-guard");
+    expect(rateLimitResponse.headers.get("X-Request-Id")).toBe("req-guard");
+    expect(rateLimitResponse.headers.get("Retry-After")).toBe("30");
   });
 });

@@ -70,8 +70,15 @@ export function rateLimit(params: {
   };
 }
 
-export function createRateLimitResponse(message = "Too many requests", retryAfterSeconds = 60) {
-  const response = NextResponse.json({ error: message }, { status: 429 });
+export function createApiErrorResponse(message: string, status: number, request?: NextRequest | string) {
+  const response = request
+    ? jsonWithRequestId({ error: message }, { status }, request)
+    : NextResponse.json({ error: message }, { status });
+  return applySecurityHeaders(response);
+}
+
+export function createRateLimitResponse(message = "Too many requests", retryAfterSeconds = 60, request?: NextRequest | string) {
+  const response = createApiErrorResponse(message, 429, request);
   response.headers.set("Retry-After", String(retryAfterSeconds));
   return response;
 }
@@ -160,19 +167,19 @@ export function requireSameOrigin(request: NextRequest) {
   const protocol = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "");
 
   if (!origin || !host) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return createApiErrorResponse("Forbidden", 403, request);
   }
 
   let originUrl: URL;
   try {
     originUrl = new URL(origin);
   } catch {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return createApiErrorResponse("Forbidden", 403, request);
   }
 
   const expectedOrigin = `${protocol}://${host}`;
   if (originUrl.origin !== expectedOrigin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return createApiErrorResponse("Forbidden", 403, request);
   }
 
   return null;
