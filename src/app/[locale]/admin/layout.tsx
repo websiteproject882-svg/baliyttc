@@ -14,7 +14,7 @@ export default async function AdminLayout({
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect(`/${params.locale}/login`);
+    return <>{children}</>;
   }
 
   if (!isAdminPanelRole(user.role) && user.role !== "ADMIN") {
