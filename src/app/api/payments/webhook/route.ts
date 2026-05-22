@@ -56,11 +56,19 @@ export async function POST(request: NextRequest) {
         return jsonWithRequestId({ received: true, duplicate: true }, undefined, request);
       }
 
-      if (event.event_type === "CHECKOUT.ORDER.APPROVED" || event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
+      if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
         const paypalOrderId = event.resource?.id;
-        const captureId = event.resource?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+        const captureId = event.resource?.purchase_units?.[0]?.payments?.captures?.[0]?.id || event.resource?.id;
         const payment = await prisma.payment.findFirst({
-          where: paypalOrderId ? { paypalOrderId } : { paypalCaptureId: captureId },
+          where: {
+            OR: [
+              ...(paypalOrderId ? [{ paypalOrderId }] : []),
+              ...(captureId ? [{ paypalCaptureId: captureId }] : []),
+              ...(event.resource?.purchase_units?.[0]?.custom_id
+                ? [{ enrollmentId: event.resource.purchase_units[0].custom_id }]
+                : []),
+            ],
+          },
           include: { enrollment: true },
         });
 
@@ -130,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     if (event.event === "payment.failed" && paymentEntity?.order_id) {
       await prisma.payment.updateMany({
-        where: { razorpayOrderId: paymentEntity.order_id },
+        where: { razorpayOrderId: paymentEntity.order_id, status: "PENDING" },
         data: { status: "FAILED", providerEventId: event.id, providerPayload: event },
       });
     }

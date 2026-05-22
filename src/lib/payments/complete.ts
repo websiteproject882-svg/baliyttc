@@ -12,6 +12,10 @@ export function statusForPaymentType(paymentType?: string): {
     : { paymentStatus: "FULL_PAID", accessLevel: "FULL" };
 }
 
+function isPaidStatus(status: PaymentStatus) {
+  return status === "DEPOSIT_PAID" || status === "FULL_PAID";
+}
+
 export async function markPaymentComplete(params: {
   paymentId: string;
   paymentType?: string;
@@ -26,9 +30,11 @@ export async function markPaymentComplete(params: {
     throw new Error("Payment not found");
   }
 
-  if (existingPayment.status === "DEPOSIT_PAID" || existingPayment.status === "FULL_PAID") {
+  if (isPaidStatus(existingPayment.status)) {
     return existingPayment;
   }
+
+  const wasEnrollmentAlreadyPaid = isPaidStatus(existingPayment.enrollment.paymentStatus);
 
   const payment = await prisma.payment.update({
     where: { id: params.paymentId },
@@ -47,7 +53,7 @@ export async function markPaymentComplete(params: {
     },
   });
 
-  if (existingPayment.enrollment.batchId) {
+  if (!wasEnrollmentAlreadyPaid && existingPayment.enrollment.batchId) {
     await prisma.batch.update({
       where: { id: existingPayment.enrollment.batchId },
       data: { enrolled: { increment: 1 } },
