@@ -15,7 +15,7 @@ describe("rbac helpers", () => {
 
   it("maps role home paths correctly", () => {
     expect(getRoleHomePath("TEACHER")).toBe("/app/teacher/dashboard");
-    expect(getRoleHomePath("SEO_EDITOR")).toBe("/admin/dashboard");
+    expect(getRoleHomePath("SEO_EDITOR")).toBe("/admin/overview");
     expect(getRoleHomePath("STUDENT")).toBe("/app/dashboard");
   });
 

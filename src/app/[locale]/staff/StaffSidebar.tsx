@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { BalieytcLogo } from "@/components/shared/BalieytcLogo";
 import {
   LayoutDashboard,
@@ -28,8 +28,10 @@ const navigationItems = [
 ];
 
 export function StaffSidebar() {
+  const params = useParams<{ locale: string }>();
   const pathname = usePathname();
-  const { user, role, logout } = useAuth();
+  const { role, logout } = useAuth();
+  const locale = params.locale || "en";
 
   const filteredNav = navigationItems.filter(
     (item) => !item.permission || (role && hasPermission(role, item.permission))
@@ -39,7 +41,7 @@ export function StaffSidebar() {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-emerald-900 text-white flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-emerald-800">
-        <Link href="/staff/dashboard" className="flex items-center gap-3">
+        <Link href={`/${locale}/staff/dashboard`} className="flex items-center gap-3">
           <BalieytcLogo className="h-10 w-10" showText={false} />
           <div>
             <span className="font-serif text-xl font-bold">Bali YTTC</span>
@@ -58,13 +60,14 @@ export function StaffSidebar() {
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-3">
           {filteredNav.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const href = `/${locale}${item.href}`;
+            const isActive = pathname === href || pathname.startsWith(`${href}/`);
             const Icon = item.icon;
 
             return (
               <li key={item.name}>
                 <Link
-                  href={item.href}
+                  href={href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
                       ? "bg-emerald-700 text-white"

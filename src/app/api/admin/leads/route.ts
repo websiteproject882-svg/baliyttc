@@ -8,7 +8,7 @@ const leadUpdateSchema = z.object({
   status: z.enum(["NEW", "CONTACTED", "INTERESTED", "ENROLLED", "NOT_INTERESTED", "SPAM"]).optional(),
   notes: z.string().max(5000).nullable().optional(),
   assignedTo: z.string().max(120).nullable().optional(),
-  followUpAt: z.string().datetime().nullable().optional(),
+  followUpAt: z.string().min(1).nullable().optional(),
 });
 
 // Re-export leads routes with admin-specific features

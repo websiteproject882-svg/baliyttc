@@ -87,7 +87,7 @@ export default function LeadsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/leads?limit=100");
+      const response = await fetch("/api/admin/leads?limit=100", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch leads");
@@ -172,6 +172,38 @@ export default function LeadsPage() {
     }
   };
 
+  const exportLeads = () => {
+    const columns = ["Name", "Email", "Phone", "Source", "Course", "Status", "Follow Up", "Created", "Notes"];
+    const rows = filteredLeads.map((lead) => [
+      lead.name,
+      lead.email,
+      lead.phone || "",
+      sourceLabels[lead.source] || lead.source,
+      lead.course || "",
+      statusConfig[lead.status].label,
+      lead.followUpAt ? formatDate(lead.followUpAt) : "",
+      formatDate(lead.createdAt),
+      lead.notes || "",
+    ]);
+    const csv = [columns, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const openWhatsApp = (phone: string | null) => {
+    if (!phone) return;
+    const normalized = phone.replace(/[^\d]/g, "");
+    if (!normalized) return;
+    window.open(`https://wa.me/${normalized}`, "_blank", "noopener,noreferrer");
+  };
+
   if (loading && leads.length === 0) {
     return (
       <div className="p-6 space-y-6">
@@ -195,7 +227,7 @@ export default function LeadsPage() {
             <p className="text-sm text-gray-500 mt-1">Manage potential students and inquiries</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline">
+            <Button variant="outline" onClick={exportLeads} disabled={filteredLeads.length === 0}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -415,10 +447,18 @@ export default function LeadsPage() {
                                 <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Mail className="h-4 w-4" />
+                                <Button variant="ghost" size="sm" asChild>
+                                  <a href={`mailto:${lead.email}`} aria-label={`Email ${lead.name}`}>
+                                    <Mail className="h-4 w-4" />
+                                  </a>
                                 </Button>
-                                <Button variant="ghost" size="sm">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openWhatsApp(lead.phone)}
+                                  disabled={!lead.phone}
+                                  aria-label={`Message ${lead.name}`}
+                                >
                                   <MessageSquare className="h-4 w-4" />
                                 </Button>
                               </div>

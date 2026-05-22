@@ -8,7 +8,7 @@ import {
   ClipboardList, MessageCircle, Mail, Calendar, HelpCircle, FileText,
   Users2, DollarSign, FileEdit, Home, BellRing, Percent, UserPlus,
   BellDot, Image, FileText as FileTextIcon, CalendarDays, TrendingUp,
-  AlertCircle as AlertCircleIcon, MailOpen
+  AlertCircle as AlertCircleIcon, MailOpen, ChevronDown
 } from "lucide-react";
 
 type AdminSidebarProps = {
@@ -64,7 +64,6 @@ export default function AdminSidebar({ locale, user }: AdminSidebarProps) {
         { icon: BellDot, label: "Notifications", href: `/${locale}/admin/notifications` },
         { icon: BookOpen, label: "Resources", href: `/${locale}/admin/resources` },
         { icon: Mail, label: "Communications", href: `/${locale}/admin/communications` },
-        { icon: HelpCircle, label: "FAQ Bot", href: `/${locale}/admin/faq` },
       ],
     },
     {
@@ -110,41 +109,10 @@ export default function AdminSidebar({ locale, user }: AdminSidebarProps) {
   };
 
   const isActive = (href: string) => {
-    if (href.includes("/admin/overview") && pathname.includes("/admin/overview")) {
-      return true;
-    }
-    if (href.includes("/admin/courses") && pathname.includes("/admin/courses")) {
-      return true;
-    }
-    if (href.includes("/admin/batches") && pathname.includes("/admin/batches")) {
-      return true;
-    }
-    if (href.includes("/admin/waitlist") && pathname.includes("/admin/waitlist")) {
-      return true;
-    }
-    if (href.includes("/admin/finance") && pathname.includes("/admin/finance")) {
-      return true;
-    }
-    if (href.includes("/admin/resources") && pathname.includes("/admin/resources")) {
-      return true;
-    }
-    if (href.includes("/admin/communications") && pathname.includes("/admin/communications")) {
-      return true;
-    }
-    if (href.includes("/admin/blog") && pathname.includes("/admin/blog")) {
-      return true;
-    }
-    if (href.includes("/admin/faq") && pathname.includes("/admin/faq")) {
-      return true;
-    }
-    if (href.includes("?tab=")) {
-      const tabParam = href.split("?tab=")[1];
-      return pathname.includes("/admin/dashboard") && pathname.includes(`tab=${tabParam}`);
-    }
     if (href === `/${locale}`) {
       return pathname === `/${locale}`;
     }
-    return false;
+    return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   return (
@@ -187,7 +155,7 @@ export default function AdminSidebar({ locale, user }: AdminSidebarProps) {
                   className="w-full flex items-center justify-between px-5 py-2 text-[11px] uppercase tracking-wider text-gray-500 font-semibold hover:text-gray-400 transition-colors"
                 >
                   <span>{group.title}</span>
-                  <span className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}>▼</span>
+                  <ChevronDown size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                 </button>
               ) : (
                 <div className="px-2 py-2 text-center text-[10px] text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-800">

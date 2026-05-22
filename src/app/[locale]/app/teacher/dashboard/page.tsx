@@ -11,6 +11,7 @@ import {
   Clock, LogOut, ChevronRight, Video, BookOpen, Settings
 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface Batch {
   id: string;
@@ -41,7 +42,9 @@ interface Announcement {
 }
 
 export default function TeacherDashboardPage() {
+  const params = useParams<{ locale: string }>();
   const { user, role, logout } = useAuth();
+  const locale = params.locale || "en";
   const [data, setData] = useState<{
     upcomingBatches: Batch[];
     totalStudents: number;
@@ -56,8 +59,9 @@ export default function TeacherDashboardPage() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch("/api/teacher/dashboard");
+      const res = await fetch("/api/teacher/dashboard", { cache: "no-store" });
       const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to fetch teacher data");
       setData(result);
     } catch (err) {
       console.error("Failed to fetch teacher data:", err);
@@ -256,21 +260,21 @@ export default function TeacherDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Link href="/app/teacher/schedule">
+                  <Link href={`/${locale}/app/teacher/schedule`}>
                     <Button variant="outline" className="w-full justify-start">
                       <Calendar className="h-4 w-4 mr-2" />
                       View Full Schedule
                       <ChevronRight className="h-4 w-4 ml-auto" />
                     </Button>
                   </Link>
-                  <Link href="/app/teacher/students">
+                  <Link href={`/${locale}/app/teacher/students`}>
                     <Button variant="outline" className="w-full justify-start">
                       <Users className="h-4 w-4 mr-2" />
                       View Student List
                       <ChevronRight className="h-4 w-4 ml-auto" />
                     </Button>
                   </Link>
-                  <Link href="/app/teacher/announcements">
+                  <Link href={`/${locale}/app/teacher/announcements`}>
                     <Button variant="outline" className="w-full justify-start">
                       <Bell className="h-4 w-4 mr-2" />
                       Post Announcement

@@ -62,6 +62,7 @@ const ITEMS_PER_PAGE = 15;
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
@@ -69,12 +70,16 @@ export default function EnrollmentsPage() {
 
   const fetchEnrollments = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch("/api/enrollments?limit=100");
+      const response = await fetch("/api/enrollments?limit=100", { cache: "no-store" });
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to fetch enrollments");
       setEnrollments(data.enrollments || []);
     } catch (err) {
       console.error("Failed to fetch enrollments:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch enrollments");
+      setEnrollments([]);
     } finally {
       setLoading(false);
     }
@@ -115,6 +120,32 @@ export default function EnrollmentsPage() {
   const formatCurrency = (amount: number, currency = "USD") =>
     new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 0 }).format(amount);
 
+  const exportEnrollments = () => {
+    const columns = ["Name", "Email", "Phone", "Course", "Batch", "Payment", "Access", "Amount", "Currency", "Created"];
+    const rows = filteredEnrollments.map((enrollment) => [
+      enrollment.name,
+      enrollment.email,
+      enrollment.phone || "",
+      enrollment.courseSlug,
+      enrollment.batch?.name || "",
+      paymentConfig[enrollment.paymentStatus]?.label || enrollment.paymentStatus,
+      accessConfig[enrollment.accessLevel]?.label || enrollment.accessLevel,
+      enrollment.amount,
+      enrollment.currency,
+      formatDate(enrollment.createdAt),
+    ]);
+    const csv = [columns, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `enrollments-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -141,7 +172,7 @@ export default function EnrollmentsPage() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={exportEnrollments} disabled={filteredEnrollments.length === 0}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -150,6 +181,12 @@ export default function EnrollmentsPage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {error && (
+          <Card className="border border-red-200 bg-red-50 shadow-sm">
+            <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+          </Card>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="border-0 shadow-sm">
@@ -330,10 +367,12 @@ export default function EnrollmentsPage() {
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Mail className="h-4 w-4" />
+                                <Button variant="ghost" size="sm" asChild>
+                                  <a href={`mailto:${enrollment.email}`} aria-label={`Email ${enrollment.name}`}>
+                                    <Mail className="h-4 w-4" />
+                                  </a>
                                 </Button>
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" onClick={() => setSelectedEnrollment(enrollment)} title="Open access details">
                                   <Shield className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -452,15 +491,17 @@ export default function EnrollmentsPage() {
               )}
 
               <DialogFooter>
-                <Button variant="outline">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Send Email
+                <Button variant="outline" asChild>
+                  <a href={`mailto:${selectedEnrollment.email}`}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Email
+                  </a>
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" disabled title="Use Students page to change access level">
                   <Shield className="h-4 w-4 mr-2" />
                   Manage Access
                 </Button>
-                <Button>
+                <Button disabled title="Payment confirmation must come from payment gateway webhook or finance tools">
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Confirm Payment
                 </Button>

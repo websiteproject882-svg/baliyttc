@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Plus, Link, FileText, Video, MessageCircle, Loader2, Edit, Trash2,
-  BookOpen, ExternalLink, GripVertical
+  BookOpen, ExternalLink
 } from "lucide-react";
 
 interface Resource {
@@ -77,7 +77,7 @@ export default function ResourcesPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/prearrival-resources");
+      const response = await fetch("/api/admin/prearrival-resources", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to load resources");
@@ -273,7 +273,7 @@ export default function ResourcesPage() {
                           <Button variant="ghost" size="sm" onClick={() => openEditDialog(resource)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(resource.id)}>
+                          <Button variant="ghost" size="sm" onClick={() => void handleDelete(resource.id)}>
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>

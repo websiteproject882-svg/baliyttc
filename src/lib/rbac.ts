@@ -36,6 +36,7 @@ export const PERMISSIONS: Record<string, string[]> = {
     "leads.view", "leads.edit",
     "enrollments.view", "enrollments.approve", "enrollments.reject",
     "announcements.view", "announcements.create", "announcements.edit",
+    "waitlist.view", "waitlist.edit",
     "certificates.view", "certificates.issue",
     "testimonials.view", "testimonials.approve",
     "communications.view", "communications.send",
@@ -54,6 +55,7 @@ export const PERMISSIONS: Record<string, string[]> = {
     "coupons.view", "coupons.create", "coupons.edit",
     "communications.view", "communications.send",
     "leads.view",
+    "waitlist.view", "waitlist.edit",
     "analytics.revenue",
     "alumni.view", "alumni.edit",
   ],
@@ -97,7 +99,7 @@ export function getRoleHomePath(role: string): string {
   }
 
   if (isAdminPanelRole(role) || role === "ADMIN" || role === "SUPER_ADMIN") {
-    return "/admin/dashboard";
+    return "/admin/overview";
   }
 
   return "/app/dashboard";

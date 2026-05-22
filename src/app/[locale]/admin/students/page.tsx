@@ -70,6 +70,7 @@ const ITEMS_PER_PAGE = 10;
 export default function StudentsPage() {
   const [enrollments, setEnrollments] = useState<EnrollmentRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [accessFilter, setAccessFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
@@ -78,12 +79,16 @@ export default function StudentsPage() {
 
   const fetchEnrollments = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch("/api/enrollments?limit=100");
+      const response = await fetch("/api/enrollments?limit=100", { cache: "no-store" });
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to fetch students");
       setEnrollments(data.enrollments || []);
     } catch (err) {
       console.error("Failed to fetch enrollments:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch students");
+      setEnrollments([]);
     } finally {
       setLoading(false);
     }
@@ -96,11 +101,12 @@ export default function StudentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enrollmentId, accessLevel: newAccess }),
       });
-      if (response.ok) {
-        await fetchEnrollments();
-      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to update access");
+      await fetchEnrollments();
     } catch (err) {
       console.error("Failed to update access:", err);
+      setError(err instanceof Error ? err.message : "Failed to update access");
     }
   };
 
@@ -139,6 +145,43 @@ export default function StudentsPage() {
   const formatCurrency = (amount: number, currency = "USD") =>
     new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 0 }).format(amount);
 
+  const exportStudents = () => {
+    const columns = ["Name", "Email", "Phone", "Course", "Batch", "Access", "Payment", "Progress", "Enrolled"];
+    const rows = filteredEnrollments.map((enrollment) => {
+      const progress = enrollment.student?.totalHours
+        ? Math.round((enrollment.student.completedHours / enrollment.student.totalHours) * 100)
+        : 0;
+      return [
+        enrollment.name,
+        enrollment.email,
+        enrollment.phone || "",
+        enrollment.courseSlug,
+        enrollment.batch?.name || "",
+        accessConfig[enrollment.accessLevel]?.label || enrollment.accessLevel,
+        paymentConfig[enrollment.paymentStatus]?.label || enrollment.paymentStatus,
+        `${progress}%`,
+        formatDate(enrollment.createdAt),
+      ];
+    });
+    const csv = [columns, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `students-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const openWhatsApp = (phone: string | null) => {
+    if (!phone) return;
+    const normalized = phone.replace(/[^\d]/g, "");
+    if (!normalized) return;
+    window.open(`https://wa.me/${normalized}`, "_blank", "noopener,noreferrer");
+  };
+
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -161,11 +204,11 @@ export default function StudentsPage() {
             <p className="text-sm text-gray-500 mt-1">Manage all enrolled students and their access</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline">
+            <Button variant="outline" onClick={exportStudents} disabled={filteredEnrollments.length === 0}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button>
+            <Button disabled title="Create a student by confirming an enrollment">
               <Users className="h-4 w-4 mr-2" />
               Add Student
             </Button>
@@ -174,6 +217,12 @@ export default function StudentsPage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {error && (
+          <Card className="border border-red-200 bg-red-50 shadow-sm">
+            <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+          </Card>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <Card className="border-0 shadow-sm" onClick={() => setAccessFilter("all")}>
@@ -382,8 +431,10 @@ export default function StudentsPage() {
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Mail className="h-4 w-4" />
+                                <Button variant="ghost" size="sm" asChild>
+                                  <a href={`mailto:${enrollment.email}`} aria-label={`Email ${enrollment.name}`}>
+                                    <Mail className="h-4 w-4" />
+                                  </a>
                                 </Button>
                               </div>
                             </td>
@@ -520,15 +571,22 @@ export default function StudentsPage() {
 
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
-                <Button variant="outline" className="flex-1">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Send Email
+                <Button variant="outline" className="flex-1" asChild>
+                  <a href={`mailto:${viewDialog.email}`}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Email
+                  </a>
                 </Button>
-                <Button variant="outline" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => openWhatsApp(viewDialog.phone)}
+                  disabled={!viewDialog.phone}
+                >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Send Message
                 </Button>
-                <Button className="flex-1">
+                <Button className="flex-1" onClick={() => void updateAccess(viewDialog.id, viewDialog.accessLevel === "NONE" ? "PRE_ARRIVAL" : "NONE")}>
                   <Shield className="h-4 w-4 mr-2" />
                   Manage Access
                 </Button>

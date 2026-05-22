@@ -55,24 +55,31 @@ export default function FinancePage() {
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "PENDING" | "DEPOSIT_PAID" | "FULL_PAID">("all");
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
         const [analyticsRes, enrollmentsRes] = await Promise.all([
-          fetch("/api/admin/analytics"),
-          fetch("/api/enrollments?limit=100"),
+          fetch("/api/admin/analytics", { cache: "no-store" }),
+          fetch("/api/enrollments?limit=100", { cache: "no-store" }),
         ]);
         const [analyticsData, enrollmentsData] = await Promise.all([
           analyticsRes.json(),
           enrollmentsRes.json(),
         ]);
+        if (!analyticsRes.ok) throw new Error(analyticsData.error || "Failed to fetch finance analytics");
+        if (!enrollmentsRes.ok) throw new Error(enrollmentsData.error || "Failed to fetch enrollments");
         setStats(analyticsData.stats);
         setEnrollments(enrollmentsData.enrollments || []);
       } catch (err) {
         console.error("Failed to fetch data:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch finance data");
+        setStats(null);
+        setEnrollments([]);
       } finally {
         setLoading(false);
       }
@@ -90,6 +97,33 @@ export default function FinancePage() {
   const filteredEnrollments = enrollments.filter((e) =>
     filter === "all" || e.paymentStatus === filter
   );
+
+  const exportReport = () => {
+    const columns = ["Student", "Email", "Course", "Payment Method", "Amount", "Currency", "Payment Status", "Created"];
+    const rows = filteredEnrollments.map((enrollment) => {
+      const latestPayment = enrollment.payments?.[0];
+      return [
+        enrollment.name,
+        enrollment.email,
+        enrollment.courseSlug,
+        latestPayment ? methodLabels[latestPayment.method] || latestPayment.method : "",
+        enrollment.amount,
+        enrollment.currency,
+        statusConfig[enrollment.paymentStatus as keyof typeof statusConfig]?.label || enrollment.paymentStatus,
+        formatDate(enrollment.createdAt),
+      ];
+    });
+    const csv = [columns, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `finance-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Calculate summary metrics
   const pendingPayments = enrollments.filter((e) => e.paymentStatus === "PENDING");
@@ -160,11 +194,17 @@ export default function FinancePage() {
           <h1 className="text-2xl font-bold text-gray-900">Finance Overview</h1>
           <p className="text-sm text-gray-500 mt-1">Payment status and revenue tracking</p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={exportReport} disabled={filteredEnrollments.length === 0}>
           <Download className="h-4 w-4 mr-2" />
           Export Report
         </Button>
       </div>
+
+      {error && (
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -278,7 +318,7 @@ export default function FinancePage() {
                           {latestPayment ? (
                             <Badge variant="outline">{methodLabels[latestPayment.method] || latestPayment.method}</Badge>
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-gray-400">-</span>
                           )}
                         </td>
                         <td className="py-3 px-2 text-right text-sm font-medium">

@@ -68,7 +68,7 @@ export default function AnnouncementsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/announcements");
+      const response = await fetch("/api/admin/announcements", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch announcements");

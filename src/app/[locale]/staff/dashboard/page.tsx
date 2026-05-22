@@ -3,9 +3,13 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, FileText, MessageSquare, Image, CheckCircle } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export default function StaffDashboardPage() {
+  const params = useParams<{ locale: string }>();
   const { user, role } = useAuth();
+  const locale = params.locale || "en";
 
   const roleWelcome = {
     TEACHER: "Teacher Dashboard",
@@ -85,27 +89,27 @@ export default function StaffDashboardPage() {
           <CardContent className="space-y-3">
             {role === "TEACHER" && (
               <>
-                <ActionItem href="/staff/schedule" icon={Calendar} label="View Schedule" />
-                <ActionItem href="/staff/my-batch" icon={Users} label="My Batch Students" />
-                <ActionItem href="/staff/announcements" icon={MessageSquare} label="Post Announcement" />
+                <ActionItem href={`/${locale}/staff/schedule`} icon={Calendar} label="View Schedule" />
+                <ActionItem href={`/${locale}/staff/my-batch`} icon={Users} label="My Batch Students" />
+                <ActionItem href={`/${locale}/staff/announcements`} icon={MessageSquare} label="Post Announcement" />
               </>
             )}
             {role === "SEO_EDITOR" && (
               <>
-                <ActionItem href="/staff/blog" icon={FileText} label="Manage Blog Posts" />
-                <ActionItem href="/staff/gallery" icon={Image} label="Manage Gallery" />
+                <ActionItem href={`/${locale}/staff/blog`} icon={FileText} label="Manage Blog Posts" />
+                <ActionItem href={`/${locale}/staff/gallery`} icon={Image} label="Manage Gallery" />
               </>
             )}
             {role === "FINANCE_MANAGER" && (
               <>
-                <ActionItem href="/admin/finance" icon={FileText} label="View Payments" />
-                <ActionItem href="/admin/enrollments" icon={Users} label="Review Enrollments" />
+                <ActionItem href={`/${locale}/admin/finance`} icon={FileText} label="View Payments" />
+                <ActionItem href={`/${locale}/admin/enrollments`} icon={Users} label="Review Enrollments" />
               </>
             )}
             {role === "COURSE_MANAGER" && (
               <>
-                <ActionItem href="/admin/courses" icon={FileText} label="Manage Courses" />
-                <ActionItem href="/admin/batches" icon={Calendar} label="Manage Batches" />
+                <ActionItem href={`/${locale}/admin/courses`} icon={FileText} label="Manage Courses" />
+                <ActionItem href={`/${locale}/admin/batches`} icon={Calendar} label="Manage Batches" />
               </>
             )}
           </CardContent>
@@ -130,12 +134,12 @@ export default function StaffDashboardPage() {
 
 function ActionItem({ href, icon: Icon, label }: { href: string; icon: any; label: string }) {
   return (
-    <a
+    <Link
       href={href}
       className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
     >
       <Icon className="h-5 w-5 text-emerald-600" />
       <span className="font-medium text-gray-700">{label}</span>
-    </a>
+    </Link>
   );
 }

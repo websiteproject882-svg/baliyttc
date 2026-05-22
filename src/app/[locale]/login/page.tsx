@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import { isFirebaseConfigured } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params.locale || "en";
   const { login, verifyTwoFactor } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -227,7 +229,7 @@ export default function LoginPage() {
                       Password
                     </Label>
                     <a
-                      href="#"
+                      href={`mailto:info@baliyttc.com?subject=${encodeURIComponent("Student portal password reset")}`}
                       className="text-sm text-amber-600 hover:text-amber-700 font-medium"
                     >
                       Forgot password?
@@ -289,7 +291,7 @@ export default function LoginPage() {
               {/* Register Link */}
               <p className="text-center text-sm text-gray-600 mt-6">
                 Don&apos;t have an account?{" "}
-                <a href="/apply" className="text-amber-600 hover:text-amber-700 font-semibold">
+                <a href={`/${locale}/contact`} className="text-amber-600 hover:text-amber-700 font-semibold">
                   Apply Now
                 </a>
               </p>

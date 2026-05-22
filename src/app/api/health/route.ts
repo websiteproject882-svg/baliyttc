@@ -48,6 +48,11 @@ export async function GET(request: NextRequest) {
       status: healthy ? "ok" : "degraded",
       timestamp: new Date().toISOString(),
       durationMs: Date.now() - startedAt,
+      runtime: {
+        nodeEnv: process.env.NODE_ENV || "development",
+        commit: process.env.VERCEL_GIT_COMMIT_SHA || process.env.RAILWAY_GIT_COMMIT_SHA || null,
+        region: process.env.VERCEL_REGION || process.env.RAILWAY_REGION || null,
+      },
       checks: {
         database,
         env: env.ok ? "ok" : "error",
