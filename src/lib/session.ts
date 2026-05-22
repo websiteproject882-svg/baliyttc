@@ -42,11 +42,19 @@ export async function decrypt(input: string): Promise<any> {
 }
 
 // Session cookie names for different auth types
-const SESSION_COOKIE_NAMES: Record<AuthType, string> = {
+export const SESSION_COOKIE_NAMES: Record<AuthType, string> = {
   student: 'student_session',
   admin: 'admin_session',
   staff: 'staff_session',
 };
+
+export function sessionMatchesAuthType(payload: unknown, authType: AuthType) {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+
+  return (payload as { authType?: unknown }).authType === authType;
+}
 
 export async function createSession(userId: string, role: string, email: string, authType: AuthType = 'student') {
   const expires = new Date(Date.now() + 8 * 60 * 60 * 1000); // 8 hours
@@ -92,7 +100,8 @@ export async function getSession(authType?: AuthType) {
   if (authType) {
     const session = cookies().get(SESSION_COOKIE_NAMES[authType])?.value;
     if (!session) return null;
-    return await decrypt(session);
+    const decrypted = await decrypt(session);
+    return sessionMatchesAuthType(decrypted, authType) ? decrypted : null;
   }
 
   // Check all session types in priority order: admin, staff, student
@@ -100,7 +109,7 @@ export async function getSession(authType?: AuthType) {
     const session = cookies().get(SESSION_COOKIE_NAMES[type])?.value;
     if (session) {
       const decrypted = await decrypt(session);
-      if (decrypted) {
+      if (sessionMatchesAuthType(decrypted, type)) {
         return { ...decrypted, authType: type };
       }
     }
@@ -155,6 +164,7 @@ export async function updateSession(request: NextRequest, authType?: AuthType) {
   // Refresh the session so it doesn't expire if the user is active
   const parsed = await decrypt(session);
   if (!parsed) return;
+  if (!sessionMatchesAuthType(parsed, authType ?? "student")) return;
 
   parsed.expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
   const res = NextResponse.next();
