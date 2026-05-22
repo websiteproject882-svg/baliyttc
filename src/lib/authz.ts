@@ -82,9 +82,9 @@ export async function requireAuthenticatedUser() {
 }
 
 export async function requireStudentUser(options?: { minimumAccess?: "PRE_ARRIVAL" | "FULL" | "ALUMNI" }) {
-  const { user, response } = await requireAuthenticatedUser();
-  if (!user || response) {
-    return { user: null, student: null, response };
+  const user = await getCurrentUser('student');
+  if (!user) {
+    return { user: null, student: null, response: jsonError("Unauthorized", 401) };
   }
 
   const student = await prisma.student.findUnique({
