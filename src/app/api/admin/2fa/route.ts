@@ -1,11 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { generateTotpQrDataUrl, generateTotpSecret, verifyTotpToken } from "@/lib/totp";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+const twoFactorActionSchema = z.object({
+  action: z.enum(["generate", "verify_setup", "disable"]),
+  code: z.string().optional(),
+});
+
+export async function GET(request: NextRequest) {
   const { user, response } = await requireAdminUser();
   if (!user || response) {
     return response;
@@ -17,13 +24,13 @@ export async function GET() {
   });
 
   if (!currentUser?.staff) {
-    return NextResponse.json({ error: "Staff account not found" }, { status: 404 });
+    return jsonWithRequestId({ error: "Staff account not found" }, { status: 404 }, request);
   }
 
-  return NextResponse.json({
+  return jsonWithRequestId({
     enabled: currentUser.staff.totpEnabled,
     hasSecret: Boolean(currentUser.staff.totpSecret),
-  });
+  }, undefined, request);
 }
 
 export async function POST(request: NextRequest) {
@@ -38,14 +45,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { action, code } = await request.json();
+    const { action, code } = twoFactorActionSchema.parse(await request.json());
     const currentUser = await prisma.user.findUnique({
       where: { id: user.id },
       include: { staff: true },
     });
 
     if (!currentUser?.staff) {
-      return NextResponse.json({ error: "Staff account not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Staff account not found" }, { status: 404 }, request);
     }
 
     if (action === "generate") {
@@ -60,21 +67,26 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return NextResponse.json({
+      return jsonWithRequestId({
         success: true,
         manualEntryKey: secret,
         qrCodeDataUrl,
-      });
+      }, undefined, request);
     }
 
     if (!currentUser.staff.totpSecret) {
-      return NextResponse.json({ error: "2FA secret is not set up yet" }, { status: 400 });
+      return jsonWithRequestId({ error: "2FA secret is not set up yet" }, { status: 400 }, request);
+    }
+
+    const normalizedCode = String(code || "").trim();
+    if (!normalizedCode) {
+      return jsonWithRequestId({ error: "Missing authentication code" }, { status: 400 }, request);
     }
 
     if (action === "verify_setup") {
-      const valid = verifyTotpToken(currentUser.staff.totpSecret, String(code || "").trim());
+      const valid = verifyTotpToken(currentUser.staff.totpSecret, normalizedCode);
       if (!valid) {
-        return NextResponse.json({ error: "Invalid authentication code" }, { status: 401 });
+        return jsonWithRequestId({ error: "Invalid authentication code" }, { status: 401 }, request);
       }
 
       await prisma.staff.update({
@@ -91,13 +103,13 @@ export async function POST(request: NextRequest) {
         request,
       });
 
-      return NextResponse.json({ success: true, enabled: true });
+      return jsonWithRequestId({ success: true, enabled: true }, undefined, request);
     }
 
     if (action === "disable") {
-      const valid = verifyTotpToken(currentUser.staff.totpSecret, String(code || "").trim());
+      const valid = verifyTotpToken(currentUser.staff.totpSecret, normalizedCode);
       if (!valid) {
-        return NextResponse.json({ error: "Invalid authentication code" }, { status: 401 });
+        return jsonWithRequestId({ error: "Invalid authentication code" }, { status: 401 }, request);
       }
 
       await prisma.staff.update({
@@ -118,12 +130,19 @@ export async function POST(request: NextRequest) {
         request,
       });
 
-      return NextResponse.json({ success: true, enabled: false });
+      return jsonWithRequestId({ success: true, enabled: false }, undefined, request);
     }
 
-    return NextResponse.json({ error: "Unsupported 2FA action" }, { status: 400 });
+    return jsonWithRequestId({ error: "Unsupported 2FA action" }, { status: 400 }, request);
   } catch (error) {
-    console.error("POST admin 2FA error:", error);
-    return NextResponse.json({ error: "Failed to process 2FA action" }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: error.errors },
+        { status: 400 },
+        request,
+      );
+    }
+    logApiError("admin.2fa", error, request);
+    return jsonWithRequestId({ error: "Failed to process 2FA action" }, { status: 500 }, request);
   }
 }
