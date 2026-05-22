@@ -1,215 +1,151 @@
-﻿# Balieytc - Premium Yoga & Wellness Center
+# Bali YTTC
 
-A modern, high-performance website for Balieytc, a premier yoga and wellness center in Ubud, Bali. This site features professional yoga teacher trainings, wellness retreats, and meditation programs.
+Production-ready website and portal for Bali YTTC, including public course pages, multilingual routing, enrollments, bank transfer checkout, student portal, staff/admin panels, communications, and operational settings.
 
-## Features
+## Stack
 
-âœ¨ **Modern Design**
-- Responsive, mobile-first design
-- Smooth animations and transitions
-- Professional color scheme (Amber/Orange accent colors)
-- High-performance image optimization
+- Next.js 14 App Router
+- React 18 + TypeScript
+- Tailwind CSS + Radix UI components
+- Prisma + PostgreSQL
+- Firebase Auth / Firebase Admin
+- Gmail SMTP or Resend for transactional email
+- Razorpay, PayPal, and Bank Transfer payment modules
+- Vercel for staging, Docker Compose for VPS production
 
-ðŸ§˜ **Yoga Training Programs**
-- 100-Hour Yoga Intensive
-- 200-Hour Teacher Training (Most Popular)
-- 300-Hour Advanced Training
-- Detailed course information with pricing and schedules
+## Current Deployment
 
-ðŸŒ **Yoga Alliance Certified**
-- RYS (Registered Yoga School) certified programs
-- Internationally recognized certifications
-- Authentic, multi-style yoga training
+- GitHub: `websiteproject882-svg/baliyttc`
+- Vercel project: `vivek07-s-projects/baliyttc`
+- Staging/temporary production URL: `https://baliyttc-vivek07-s-projects.vercel.app`
+- Health check: `/api/health`
 
-ðŸ“± **Responsive Navigation**
-- Hamburger menu for mobile devices
-- Dropdown navigation for courses
-- Sticky header with scroll animations
-- WhatsApp integration for quick contact
+The final client production target is a VPS with `docker-compose.vps.yml`. Vercel can continue as staging/testing.
 
-ðŸ’¼ **Advanced Features**
-- Application modal with multi-step form
-- Course scheduling and booking system
-- Testimonials section from real students
-- Gallery with professional imagery
-- Contact integration with Google Maps
-- Newsletter subscription
-
-ðŸ” **SEO Optimized**
-- Comprehensive meta tags
-- Sitemap.xml for search engines
-- Robots.txt configuration
-- Optimized Open Graph tags
-- Schema markup ready
-- Mobile-friendly design
-- Fast page load times with optimized images
-
-## Technology Stack
-
-- **Frontend Framework**: React 18+ with TypeScript
-- **Styling**: Tailwind CSS 3
-- **Build Tool**: Vite
-- **Routing**: React Router v6
-- **Animations**: Framer Motion
-- **UI Components**: Custom components with Radix UI
-- **State Management**: React Query
-
-## Project Structure
-
-```
-src/
-├── app/               # Next.js routes, layouts, API handlers
-├── components/
-│   ├── home/          # Homepage sections (Hero, Courses, etc.)
-│   ├── layout/        # Navigation, Footer, Layout
-│   ├── navigation/    # Navigation link components
-│   └── shared/        # Reusable components (Modal, Button, etc.)
-├── views/             # Page view components (About, Courses, etc.)
-├── data/              # Static data (site config, courses, teachers)
-├── hooks/             # Custom React hooks
-├── i18n/              # Locale routing, request config, messages
-└── lib/               # Utility functions and services
-```
-
-## Getting Started
-
-### Prerequisites
-- Node.js 16+ 
-- npm or yarn
-
-### Installation
+## Local Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/balieytc.git
-cd balieytc
-
-# Install dependencies
 npm install
-
-# Start development server
+cp .env.example .env
+npm run db:generate
 npm run dev
+```
 
-# Build for production
+For local database work:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+For a hosted database such as Railway, use the public PostgreSQL URL in `DATABASE_URL` when running locally or on Vercel. The internal Railway hostname only works between Railway services.
+
+## Required Environment
+
+Minimum runtime variables:
+
+```env
+DATABASE_URL=
+NEXT_PUBLIC_BASE_URL=
+SESSION_SECRET=
+```
+
+Production auth variables:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
+```
+
+Email can use Gmail SMTP now:
+
+```env
+GMAIL_EMAIL=
+GMAIL_APP_PASSWORD=
+ADMIN_EMAIL=
+```
+
+Or Resend later:
+
+```env
+RESEND_API_KEY=
+```
+
+Payment providers are optional until client accounts are ready:
+
+```env
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+NEXT_PUBLIC_RAZORPAY_KEY_ID=
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+PAYPAL_WEBHOOK_ID=
+PAYPAL_ENV=sandbox
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=
+```
+
+Temporary test login is env-gated:
+
+```env
+ENABLE_TEST_LOGIN=false
+TEST_ADMIN_PASSWORD=
+TEST_STUDENT_PASSWORD=
+TEST_TEACHER_PASSWORD=
+```
+
+Disable test login before final client handoff unless it is explicitly needed for staging.
+
+## Useful Commands
+
+```bash
+npm run typecheck
+npm test
 npm run build
-
-# Preview production build
-npm run preview
+npm run db:migrate:deploy
+npm run db:seed
 ```
 
-## Configuration
+`npm run lint` is not currently configured; Next.js opens an interactive ESLint setup prompt.
 
-### Update Site Information
-Edit `src/data/site.ts` to update:
-- Site name and branding
-- Contact information
-- Course details and pricing
-- Teacher profiles
-- Testimonials
-- FAQs
+## Admin And Operations
 
-### Customize Colors
-The main brand color is Amber (used throughout):
-- `bg-amber-600`: Primary action buttons
-- `text-amber-300/400/600`: Text accents
-- Update in components as needed
+- Admin settings control payment provider visibility and display order.
+- Checkout only enables a provider when both admin toggle and env keys are ready.
+- Bank Transfer is the default safe fallback while PayPal/Razorpay client accounts are pending.
+- `/api/admin/provider-smoke` can test email and WhatsApp provider connectivity from the admin panel.
+- `/api/health` reports database, env, and provider readiness.
 
-### Add New Pages
-1. Create a new file in `src/views/`
-2. Add route in `src/app/[locale]/<route>/page.tsx`
-3. Add navigation link in `src/data/site.ts`
+## VPS Deployment
 
-## Branding & Design
+1. Copy `.env.production.example` to `.env.production` on the VPS.
+2. Fill client-owned secrets.
+3. Start services:
 
-### Color Palette
-- **Primary**: Amber-600 (#d97706)
-- **Secondary**: Warm colors (cream, sand)
-- **Dark**: Warm-dark background
-
-### Logo
-The logo uses the Om (à¥) symbol in a gradient amber/orange circle. Update in:
-- `src/components/layout/Nav.tsx`
-- `src/components/layout/Footer.tsx`
-
-### Typography
-- **Serif Font**: Used for headings (elegant, traditional yoga aesthetic)
-- **Sans-serif**: Used for body text (modern, readable)
-
-## SEO Improvements
-
-âœ… Meta tags optimization
-âœ… Open Graph tags for social sharing
-âœ… XML Sitemap at `/sitemap.xml`
-âœ… Robots.txt configuration
-âœ… Mobile-responsive design
-âœ… Fast loading with image optimization
-âœ… Structured data ready
-âœ… Internal linking strategy
-
-## Performance Optimizations
-
-- Lazy loading images
-- Code splitting with React Router
-- CSS optimization with Tailwind
-- Image CDN integration ready
-- Minified production builds
-
-## Future Enhancements
-
-- [ ] Blog/Article section for yoga tips
-- [ ] Student login and progress tracking
-- [ ] Payment gateway integration
-- [ ] Email confirmation automation
-- [ ] Video testimonials
-- [ ] Instructor certification verification
-- [ ] Live chat support
-- [ ] Mobile app
-- [ ] Advanced analytics
-- [ ] Multi-language support
-
-## Deployment
-
-### Vercel (Recommended)
 ```bash
-npm i -g vercel
-vercel
+docker compose -f docker-compose.vps.yml up -d --build
+docker compose -f docker-compose.vps.yml exec app npm run db:migrate:deploy
 ```
 
-### Netlify
-```bash
-# Connect GitHub repo to Netlify
-# Automatic deployments on push
-```
+The compose file provides:
 
-### Traditional Hosting
-```bash
-npm run build
-# Upload 'dist' folder to your server
-```
+- Next.js app container
+- PostgreSQL 16
+- Redis 7
 
-## Contributing
+Use Cloudflare DNS/proxy once the VPS SSL and health check are verified.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Handoff Notes
 
-## License
+- Client should own GitHub, Vercel, Firebase, database, Cloudflare, Gmail/Workspace, Razorpay, PayPal, and any future email provider accounts.
+- Developer accounts should be collaborators only.
+- Rotate any secrets that were shared in chat/screenshots before final production.
+- Keep `.env`, `.env.local`, and `.env.production` out of git.
 
-Copyright Â© 2026 Balieytc. All rights reserved.
-
-## Contact
-
-- **Email**: hello@balieytc.com
-- **Phone**: +62 819-1234-5678
-- **WhatsApp**: +62 819-1234-5678
-- **Location**: Ubud, Bali, Indonesia
-
-## Support
-
-For support, email us at hello@balieytc.com or contact us via WhatsApp.
-
----
-
-**Built with â¤ï¸ for yoga enthusiasts worldwide**

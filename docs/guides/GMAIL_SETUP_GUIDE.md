@@ -1,6 +1,6 @@
 # Gmail Setup Guide for Bali YTTC
 
-Current status (May 21, 2026): Resend is the preferred production transactional provider. Gmail SMTP remains documented as a fallback/testing option, and EmailJS remains relevant only for client-side contact-form style integrations if the team chooses to keep it.
+Current status (May 22, 2026): Gmail SMTP is the active transactional email option for staging/testing. The app also supports Resend, but Resend is optional until the client wants a dedicated transactional email provider with domain verification.
 
 ## Prerequisites
 - Client's Gmail account (with 2-Factor Authentication enabled)
@@ -84,9 +84,9 @@ For higher volume, consider Resend API.
 
 ---
 
-## Alternative: Use Resend (Recommended for Production)
+## Alternative: Use Resend
 
-If you expect more than 500 emails/month, use Resend:
+If you expect higher volume, better deliverability reporting, or domain-based sending, use Resend:
 
 1. Sign up at: https://resend.com
 2. Add a domain (baliyttc.com)
