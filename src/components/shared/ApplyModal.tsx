@@ -69,13 +69,16 @@ interface PaymentProviderStatus {
     displayCurrencyPrimary: string;
     eurToInrRate: number;
     usdToInrRate: number;
+    providerOrder?: Array<"paypal" | "razorpay" | "bank_transfer">;
   };
   providers: {
     razorpay: { configured: boolean; unavailableReason?: string | null };
     paypal: { configured: boolean; unavailableReason?: string | null };
-    bankTransfer: { configured: boolean };
+    bankTransfer: { configured: boolean; unavailableReason?: string | null };
   };
 }
+
+type ProviderOrderKey = "paypal" | "razorpay" | "bank_transfer";
 
 declare global {
   interface Window {
@@ -90,6 +93,76 @@ const accommodationOptions = [
   { value: "SHARED", label: "Shared Twin Room", desc: "Included in course fee", icon: Users, price: 0 },
   { value: "PRIVATE", label: "Private Room", desc: "Private room upgrade", icon: Home, price: 400 },
 ];
+
+const providerValueMap = {
+  paypal: "PAYPAL",
+  razorpay: "RAZORPAY",
+  bank_transfer: "BANK_TRANSFER",
+} as const;
+
+function pickFirstAvailableProvider(status: PaymentProviderStatus | null) {
+  if (!status) return null;
+
+  const ordered: ProviderOrderKey[] = status.paymentSettings?.providerOrder?.length
+    ? status.paymentSettings.providerOrder
+    : ["paypal", "razorpay", "bank_transfer"];
+
+  return ordered
+    .map((provider) => providerValueMap[provider])
+    .find((provider) =>
+      provider === "PAYPAL"
+        ? status.providers.paypal.configured
+        : provider === "RAZORPAY"
+          ? status.providers.razorpay.configured
+          : status.providers.bankTransfer.configured,
+    ) || null;
+}
+
+function getPaymentProviderOptions(
+  status: PaymentProviderStatus | null,
+  razorpayInrEstimate: number,
+  paymentCurrency: string,
+) {
+  const ordered: ProviderOrderKey[] = status?.paymentSettings?.providerOrder?.length
+    ? status.paymentSettings.providerOrder
+    : ["paypal", "razorpay", "bank_transfer"];
+
+  const providers = status?.providers;
+  const optionMap = {
+    razorpay: {
+      value: "RAZORPAY",
+      id: "razorpay",
+      label: "Razorpay",
+      description: providers?.razorpay?.configured
+        ? `Cards, UPI, wallets. INR estimate: ${formatCurrency(razorpayInrEstimate, "INR")}`
+        : providers?.razorpay?.unavailableReason || "Coming soon.",
+      badge: providers?.razorpay?.configured ? "Instant" : "Pending",
+      available: Boolean(providers?.razorpay?.configured),
+    },
+    paypal: {
+      value: "PAYPAL",
+      id: "paypal",
+      label: "PayPal",
+      description: providers?.paypal?.configured
+        ? "Secure PayPal approval flow"
+        : providers?.paypal?.unavailableReason || "Coming soon.",
+      badge: providers?.paypal?.configured ? "Redirect" : "Pending",
+      available: Boolean(providers?.paypal?.configured),
+    },
+    bank_transfer: {
+      value: "BANK_TRANSFER",
+      id: "bank-transfer",
+      label: "Bank Transfer",
+      description: providers?.bankTransfer?.configured
+        ? "Manual finance confirmation"
+        : providers?.bankTransfer?.unavailableReason || "Bank transfer is disabled.",
+      badge: providers?.bankTransfer?.configured ? "Pending" : "Disabled",
+      available: Boolean(providers?.bankTransfer?.configured),
+    },
+  } as const;
+
+  return ordered.map((provider) => optionMap[provider]);
+}
 
 export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
   const pathname = usePathname();
@@ -147,10 +220,12 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
       const currentProvider = data.paymentProvider;
       const isUnavailable =
         (currentProvider === "RAZORPAY" && !result.providers?.razorpay?.configured) ||
-        (currentProvider === "PAYPAL" && !result.providers?.paypal?.configured);
+        (currentProvider === "PAYPAL" && !result.providers?.paypal?.configured) ||
+        (currentProvider === "BANK_TRANSFER" && !result.providers?.bankTransfer?.configured);
 
-      if (isUnavailable) {
-        setData((current) => ({ ...current, paymentProvider: "BANK_TRANSFER" }));
+      const fallback = pickFirstAvailableProvider(result) || "BANK_TRANSFER";
+      if (isUnavailable || (currentProvider === "BANK_TRANSFER" && fallback !== "BANK_TRANSFER")) {
+        setData((current) => ({ ...current, paymentProvider: fallback }));
       }
     } catch (error) {
       console.error("Failed to fetch payment provider status:", error);
@@ -173,10 +248,8 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
       : paymentCurrency === "USD"
         ? Math.round(paymentAmount * (paymentStatus?.paymentSettings?.usdToInrRate || 83))
         : Math.round(paymentAmount * (paymentStatus?.paymentSettings?.eurToInrRate || 90));
-  const isRazorpayAvailable = Boolean(paymentStatus?.providers?.razorpay?.configured);
-  const isPayPalAvailable = Boolean(paymentStatus?.providers?.paypal?.configured);
-  const razorpayReason = paymentStatus?.providers?.razorpay?.unavailableReason || "Coming soon.";
-  const paypalReason = paymentStatus?.providers?.paypal?.unavailableReason || "Coming soon.";
+  const paymentProviderOptions = getPaymentProviderOptions(paymentStatus, razorpayInrEstimate, paymentCurrency);
+  const hasAvailablePaymentProvider = paymentProviderOptions.some((option) => option.available);
 
   useEffect(() => {
     if (!open) {
@@ -570,34 +643,24 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
                       <div className="space-y-3">
                         <p className="text-gray-700 font-medium">Payment Method</p>
                         <RadioGroup value={data.paymentProvider} onValueChange={(value) => setData({ ...data, paymentProvider: value })} className="space-y-2">
-                          <div className={`p-4 rounded-xl border-2 ${data.paymentProvider === "RAZORPAY" ? "border-amber-500 bg-amber-50" : "border-gray-200"} ${!isRazorpayAvailable ? "opacity-60" : ""}`}>
-                            <RadioGroupItem value="RAZORPAY" id="razorpay" className="sr-only" disabled={!isRazorpayAvailable} />
-                            <Label htmlFor="razorpay" className={isRazorpayAvailable ? "cursor-pointer" : "cursor-not-allowed"}>
-                              <div className="flex justify-between items-center">
-                                <div><p className="font-medium">Razorpay</p><p className="text-sm text-gray-500">{isRazorpayAvailable ? `Cards, UPI, wallets. INR estimate: ${formatCurrency(razorpayInrEstimate, "INR")}` : razorpayReason}</p></div>
-                                <p className="font-bold text-sm text-gray-700">{isRazorpayAvailable ? "Instant" : "Pending"}</p>
-                              </div>
-                            </Label>
-                          </div>
-                          <div className={`p-4 rounded-xl border-2 ${data.paymentProvider === "PAYPAL" ? "border-amber-500 bg-amber-50" : "border-gray-200"} ${!isPayPalAvailable ? "opacity-60" : ""}`}>
-                            <RadioGroupItem value="PAYPAL" id="paypal" className="sr-only" disabled={!isPayPalAvailable} />
-                            <Label htmlFor="paypal" className={isPayPalAvailable ? "cursor-pointer" : "cursor-not-allowed"}>
-                              <div className="flex justify-between items-center">
-                                <div><p className="font-medium">PayPal</p><p className="text-sm text-gray-500">{isPayPalAvailable ? "Secure PayPal approval flow" : paypalReason}</p></div>
-                                <p className="font-bold text-sm text-gray-700">{isPayPalAvailable ? "Redirect" : "Pending"}</p>
-                              </div>
-                            </Label>
-                          </div>
-                          <div className={`p-4 rounded-xl border-2 ${data.paymentProvider === "BANK_TRANSFER" ? "border-amber-500 bg-amber-50" : "border-gray-200"}`}>
-                            <RadioGroupItem value="BANK_TRANSFER" id="bank-transfer" className="sr-only" />
-                            <Label htmlFor="bank-transfer" className="cursor-pointer">
-                              <div className="flex justify-between items-center">
-                                <div><p className="font-medium">Bank Transfer</p><p className="text-sm text-gray-500">Manual finance confirmation</p></div>
-                                <p className="font-bold text-sm text-gray-700">Pending</p>
-                              </div>
-                            </Label>
-                          </div>
+                          {paymentProviderOptions.map((option) => (
+                            <div key={option.value} className={`p-4 rounded-xl border-2 ${data.paymentProvider === option.value ? "border-amber-500 bg-amber-50" : "border-gray-200"} ${!option.available ? "opacity-60" : ""}`}>
+                              <RadioGroupItem value={option.value} id={option.id} className="sr-only" disabled={!option.available} />
+                              <Label htmlFor={option.id} className={option.available ? "cursor-pointer" : "cursor-not-allowed"}>
+                                <div className="flex justify-between items-center gap-4">
+                                  <div>
+                                    <p className="font-medium">{option.label}</p>
+                                    <p className="text-sm text-gray-500">{option.description}</p>
+                                  </div>
+                                  <p className="font-bold text-sm text-gray-700">{option.badge}</p>
+                                </div>
+                              </Label>
+                            </div>
+                          ))}
                         </RadioGroup>
+                        {!hasAvailablePaymentProvider && (
+                          <p className="text-sm text-red-600">No payment method is currently available. Please contact the school directly.</p>
+                        )}
                       </div>
                       <div><Label htmlFor="apply-msg">Message (Optional)</Label><Textarea id="apply-msg" rows={3} value={data.message} onChange={(e) => setData({ ...data, message: e.target.value })} placeholder="Yoga experience, dietary needs..." /></div>
                       <div className="bg-green-50 rounded-xl p-4 space-y-2">
@@ -613,7 +676,7 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
                 {step < 4 ? (
                   <Button onClick={next} className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600">Continue</Button>
                 ) : (
-                  <Button onClick={submit} disabled={isSubmitting} className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600">
+                  <Button onClick={submit} disabled={isSubmitting || !hasAvailablePaymentProvider} className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600">
                     {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Starting checkout...</> : "Continue To Payment"}
                   </Button>
                 )}
