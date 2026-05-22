@@ -70,6 +70,8 @@ interface PaymentProviderStatus {
     displayCurrencyPrimary: string;
     eurToInrRate: number;
     usdToInrRate: number;
+    depositEnabled: boolean;
+    fullPaymentEnabled: boolean;
     providerOrder?: Array<"paypal" | "razorpay" | "bank_transfer">;
   };
   providers: {
@@ -224,6 +226,9 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
     try {
       const response = await fetch("/api/payments/status");
       const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to fetch payment provider status");
+      }
       setPaymentStatus(result);
 
       const currentProvider = data.paymentProvider;
@@ -263,6 +268,17 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
         : Math.round(paymentAmount * (paymentStatus?.paymentSettings?.eurToInrRate || 90));
   const paymentProviderOptions = getPaymentProviderOptions(paymentStatus, razorpayInrEstimate, paymentCurrency);
   const hasAvailablePaymentProvider = paymentProviderOptions.some((option) => option.available);
+  const depositEnabled = paymentStatus?.paymentSettings?.depositEnabled ?? true;
+  const fullPaymentEnabled = paymentStatus?.paymentSettings?.fullPaymentEnabled ?? true;
+
+  useEffect(() => {
+    if (!depositEnabled && data.paymentType === "DEPOSIT" && fullPaymentEnabled) {
+      setData((current) => ({ ...current, paymentType: "FULL" }));
+    }
+    if (!fullPaymentEnabled && data.paymentType === "FULL" && depositEnabled) {
+      setData((current) => ({ ...current, paymentType: "DEPOSIT" }));
+    }
+  }, [data.paymentType, depositEnabled, fullPaymentEnabled]);
 
   useEffect(() => {
     if (!open) {
@@ -637,25 +653,28 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
                       <div className="space-y-3">
                         <p className="text-gray-700 font-medium">Payment Option</p>
                         <RadioGroup value={data.paymentType} onValueChange={(value) => setData({ ...data, paymentType: value })} className="space-y-2">
-                          <div className={`p-4 rounded-xl border-2 ${data.paymentType === "DEPOSIT" ? "border-amber-500 bg-amber-50" : "border-gray-200"}`}>
-                            <RadioGroupItem value="DEPOSIT" id="deposit" className="sr-only" />
-                            <Label htmlFor="deposit" className="cursor-pointer">
+                          <div className={`p-4 rounded-xl border-2 ${data.paymentType === "DEPOSIT" ? "border-amber-500 bg-amber-50" : "border-gray-200"} ${!depositEnabled ? "opacity-60" : ""}`}>
+                            <RadioGroupItem value="DEPOSIT" id="deposit" className="sr-only" disabled={!depositEnabled} />
+                            <Label htmlFor="deposit" className={depositEnabled ? "cursor-pointer" : "cursor-not-allowed"}>
                               <div className="flex justify-between items-center">
-                                <div><p className="font-medium">Pay Deposit</p><p className="text-sm text-gray-500">Secure your spot with {formatCurrency(depositAmount, paymentCurrency)}</p></div>
+                                <div><p className="font-medium">Pay Deposit</p><p className="text-sm text-gray-500">{depositEnabled ? `Secure your spot with ${formatCurrency(depositAmount, paymentCurrency)}` : "Deposit payments are disabled."}</p></div>
                                 <p className="font-bold text-lg">{formatCurrency(depositAmount, paymentCurrency)}</p>
                               </div>
                             </Label>
                           </div>
-                          <div className={`p-4 rounded-xl border-2 ${data.paymentType === "FULL" ? "border-amber-500 bg-amber-50" : "border-gray-200"}`}>
-                            <RadioGroupItem value="FULL" id="full" className="sr-only" />
-                            <Label htmlFor="full" className="cursor-pointer">
+                          <div className={`p-4 rounded-xl border-2 ${data.paymentType === "FULL" ? "border-amber-500 bg-amber-50" : "border-gray-200"} ${!fullPaymentEnabled ? "opacity-60" : ""}`}>
+                            <RadioGroupItem value="FULL" id="full" className="sr-only" disabled={!fullPaymentEnabled} />
+                            <Label htmlFor="full" className={fullPaymentEnabled ? "cursor-pointer" : "cursor-not-allowed"}>
                               <div className="flex justify-between items-center">
-                                <div><p className="font-medium">Pay Full Amount</p><p className="text-sm text-gray-500">Get 5% discount</p></div>
+                                <div><p className="font-medium">Pay Full Amount</p><p className="text-sm text-gray-500">{fullPaymentEnabled ? "Get 5% discount" : "Full payments are disabled."}</p></div>
                                 <p className="font-bold text-lg">{formatCurrency(totalPrice, paymentCurrency)}</p>
                               </div>
                             </Label>
                           </div>
                         </RadioGroup>
+                        {!depositEnabled && !fullPaymentEnabled && (
+                          <p className="text-sm text-red-600">Payments are currently disabled by the school. Please contact admissions.</p>
+                        )}
                       </div>
                       <div className="space-y-3">
                         <p className="text-gray-700 font-medium">Payment Method</p>
@@ -693,7 +712,7 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
                 {step < 4 ? (
                   <Button onClick={next} className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600">Continue</Button>
                 ) : (
-                  <Button onClick={submit} disabled={isSubmitting || !hasAvailablePaymentProvider} className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600">
+                  <Button onClick={submit} disabled={isSubmitting || !hasAvailablePaymentProvider || (!depositEnabled && !fullPaymentEnabled)} className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600">
                     {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Starting checkout...</> : "Continue To Payment"}
                   </Button>
                 )}

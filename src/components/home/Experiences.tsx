@@ -4,13 +4,12 @@ import { EXPERIENCES } from "@/data/site";
 import { Reveal } from "@/components/shared/Reveal";
 import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
-import { useLocale } from "next-intl";
-import { getHomeCopy } from "@/lib/home-localized";
+import { useHomeCopy } from "@/lib/use-home-copy";
 
 const icons = ["01", "02", "03", "04", "05", "06"];
 
 export const Experiences = () => {
-  const copy = getHomeCopy(useLocale());
+  const copy = useHomeCopy();
   const experiences = EXPERIENCES.map((item, index) => ({ ...item, ...copy.experiences.cards[index] }));
   const marqueeExperiences = [...experiences, ...experiences];
 

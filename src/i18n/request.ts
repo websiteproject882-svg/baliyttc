@@ -3,7 +3,7 @@ import type { AbstractIntlMessages } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { locales } from './routing';
 
-type Messages = AbstractIntlMessages;
+type Messages = Record<string, unknown>;
 
 function mergeMessages(base: Messages, override: Messages): Messages {
   const result: Messages = { ...base };
@@ -31,11 +31,11 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const locale = await requestLocale;
 
   if (!locale || !locales.includes(locale as any)) notFound();
-  const fallbackMessages = (await import('./messages/en.json')).default;
-  const localeMessages = (await import(`./messages/${locale}.json`)).default;
+  const fallbackMessages = (await import('./messages/en.json')).default as Messages;
+  const localeMessages = (await import(`./messages/${locale}.json`)).default as Messages;
 
   return {
     locale,
-    messages: mergeMessages(fallbackMessages, localeMessages)
+    messages: mergeMessages(fallbackMessages, localeMessages) as unknown as AbstractIntlMessages
   };
 });

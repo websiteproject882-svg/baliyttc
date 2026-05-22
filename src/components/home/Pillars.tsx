@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useLocale } from "next-intl";
 import { IMG } from "@/data/site";
-import { getHomeCopy } from "@/lib/home-localized";
+import { useHomeCopy } from "@/lib/use-home-copy";
 
 const pillarImages = [
   IMG.classMain,
@@ -16,45 +15,12 @@ const pillarImages = [
   IMG.templePurification,
 ];
 
-const pillarLabels = [
-  "Asana Mastery",
-  "Pranayama & Breath",
-  "Applied Anatomy",
-  "Vedic Philosophy",
-  "Teaching Methodology",
-  "Hands-on Adjustments",
-  "Meditation & Balinese Wisdom",
-];
-
-const pillarPoints = [
-  ["Multi-style lineage teaching (Vinyasa & Hatha)", "Advanced sequencing architectures & templates", "Therapeutic modifications & full prop guides"],
-  ["Classical breath techniques for daily practice", "Nervous-system regulation and energetic awareness", "Teaching pranayama safely to mixed-level students"],
-  ["Functional movement principles", "Injury-aware teaching choices", "Body mechanics for safe asana practice"],
-  ["Yoga Sutras, Bhagavad Gita and eight limbs", "Living philosophy beyond the mat", "Ethics, discipline and yogic lifestyle foundations"],
-  ["Cueing, sequencing and class architecture", "Holding space with confidence", "Practice teaching with direct feedback"],
-  ["Consent-led assisting and correction principles", "Clear, safe adjustment technique", "Alignment feedback for real classroom confidence"],
-  ["Guided meditation and inner stillness practices", "Balinese ceremony, ritual and cultural context", "Integrating wisdom, presence and teaching voice"],
-];
-
-const fallbackDescriptions = [
-  "Alignment-based practice across Hatha, Ashtanga and Vinyasa.",
-  "Breath techniques to refine energy and awareness.",
-  "Functional anatomy applied to safe, intelligent teaching.",
-  "Yoga Sutras, Bhagavad Gita and the eight limbs.",
-  "Cueing, sequencing and the art of holding space.",
-  "Hands-on assists with consent and clarity.",
-  "Guided meditation, inner stillness, Balinese ceremony and cultural wisdom.",
-];
-
 export const Pillars = () => {
-  const copy = getHomeCopy(useLocale());
-  const pillars = pillarLabels.map((label, index) => ({
-    title: copy.pillars[index]?.title || label,
-    desc: copy.pillars[index]?.desc || fallbackDescriptions[index],
-  }));
+  const copy = useHomeCopy();
+  const pillars = copy.pillars;
   const [active, setActive] = useState(0);
   const current = pillars[active] || pillars[0];
-  const currentTitle = pillarLabels[active] || current.title;
+  const currentTitle = current.title;
 
   return (
     <section id="pillars" className="bg-[#FAF9F6] py-10 md:py-14">
@@ -88,7 +54,7 @@ export const Pillars = () => {
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span className={`flex-1 font-serif text-lg ${isActive ? "font-semibold text-charcoal" : "font-normal text-charcoal"}`}>
-                    {pillarLabels[index] || pillar.title}
+                    {pillar.title}
                   </span>
                   <span className={`text-sm transition-all duration-300 ${isActive ? "translate-x-1 text-brand" : "text-stone-300"}`}>
                     *
@@ -121,7 +87,7 @@ export const Pillars = () => {
               <h3 className="display-sm mb-3 text-charcoal">{currentTitle}</h3>
               <p className="mb-5 text-[15px] leading-relaxed text-stone-600">{current.desc}</p>
               <div className="flex flex-col gap-2">
-                {(pillarPoints[active] || []).map((point) => (
+                {(current.points || []).map((point) => (
                   <div key={point} className="flex items-start gap-3">
                     <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">✓</span>
                     <span className="text-sm leading-6 text-charcoal">{point}</span>
@@ -136,7 +102,7 @@ export const Pillars = () => {
           <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_18px_55px_rgba(33,30,26,0.08)]">
             {pillars.map((pillar, index) => {
               const isActive = index === active;
-              const title = pillarLabels[index] || pillar.title;
+              const title = pillar.title;
 
               return (
                 <div key={pillar.title} className="border-b border-stone-100 last:border-b-0">
@@ -183,7 +149,7 @@ export const Pillars = () => {
                         <p className="mt-2 text-sm leading-relaxed text-stone-600">{pillar.desc}</p>
 
                         <div className="mt-4 grid gap-2">
-                          {(pillarPoints[index] || []).map((point) => (
+                          {(pillar.points || []).map((point) => (
                             <div key={point} className="flex items-start gap-2">
                               <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">✓</span>
                               <span className="text-sm leading-5 text-charcoal">{point}</span>

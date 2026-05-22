@@ -125,9 +125,9 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
             <span className="inline-flex items-center gap-2">
               <span className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
               {t("scarcity")}
-              <a href="/courses/200hr" className="ml-1 font-bold underline hover:text-amber-200">
+              <Link href="/courses/200hr" className="ml-1 font-bold underline hover:text-amber-200">
                 {t("applyNow")}
-              </a>
+              </Link>
             </span>
           </div>
         )}

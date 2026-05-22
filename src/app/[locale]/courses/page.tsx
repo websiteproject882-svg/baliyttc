@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Clock, Users, Award } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { getTranslations } from "next-intl/server";
 
 async function getCourses(locale: string) {
   try {
@@ -21,6 +22,7 @@ async function getCourses(locale: string) {
 
 export default async function CoursesPage({ params }: { params: { locale: string } }) {
   const courses = await getCourses(params.locale);
+  const t = await getTranslations({ locale: params.locale, namespace: "CoursesPage" });
 
   return (
     <NextLayoutWrapper>
@@ -28,9 +30,9 @@ export default async function CoursesPage({ params }: { params: { locale: string
         <div className="container-wide">
           <Reveal>
             <SectionHeading
-              eyebrow="Our Programs"
-              title={<>Transform Your <em className="text-terra">Yoga Journey</em></>}
-              sub="Choose from our Yoga Alliance certified programs designed for every level of practitioner."
+              eyebrow={t("eyebrow")}
+              title={<>{t("titlePrefix")} <em className="text-terra">{t("titleAccent")}</em></>}
+              sub={t("subtitle")}
             />
           </Reveal>
 
@@ -65,22 +67,22 @@ export default async function CoursesPage({ params }: { params: { locale: string
                         </span>
                         <span className="flex items-center gap-1">
                           <Award className="w-3 h-3" />
-                          Yoga Alliance
+                          {t("yogaAlliance")}
                         </span>
                       </div>
                       <div className="flex items-center justify-between pt-4 border-t border-warm-light/20">
                         <div>
-                          <p className="price-label">Starting from</p>
+                          <p className="price-label">{t("startingFrom")}</p>
                           <p className="price-value text-warm-dark">EUR {course.priceFrom}</p>
                         </div>
                         <div className="flex gap-2">
                           <Link href={`/courses/${course.slug}`}>
-                            <Button variant="outline" size="sm">Details</Button>
+                            <Button variant="outline" size="sm">{t("details")}</Button>
                           </Link>
                           <ApplyModal
                             trigger={
                               <Button size="sm" className="bg-terra hover:bg-terra-deep text-cream">
-                                Apply Now
+                                {t("applyNow")}
                               </Button>
                             }
                             defaultCourse={course.slug}
@@ -94,7 +96,7 @@ export default async function CoursesPage({ params }: { params: { locale: string
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-warm-mid">Loading courses...</p>
+              <p className="text-warm-mid">{t("loading")}</p>
             </div>
           )}
 
@@ -102,21 +104,21 @@ export default async function CoursesPage({ params }: { params: { locale: string
           <Reveal delay={0.3}>
             <div className="mt-16 bg-gradient-to-r from-terra to-terra-deep rounded-2xl p-8 md:p-12 text-center text-white">
               <h3 className="display-md mb-4">
-                Not Sure Which Program is Right for You?
+                {t("ctaTitle")}
               </h3>
               <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-                Our admissions team is here to help. Schedule a free consultation call and we'll guide you to the perfect program.
+                {t("ctaSubtitle")}
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link href="/contact">
                   <Button size="lg" variant="secondary" className="bg-white text-terra hover:bg-white/90">
-                    Contact Us <ArrowRight className="w-4 h-4 ml-2" />
+                    {t("contactUs")} <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
                 <ApplyModal
                   trigger={
                     <Button size="lg" className="bg-terra-deep hover:bg-terra text-white border-0">
-                      Apply Now
+                      {t("applyNow")}
                     </Button>
                   }
                 />

@@ -5,47 +5,13 @@ import { IMG } from "@/data/site";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRef } from "react";
+import { useHomeCopy } from "@/lib/use-home-copy";
 
-const whyCards = [
-  {
-    eyebrow: "Graduation Day",
-    title: "Yoga Alliance Certified",
-    desc: "Fully accredited RYS 200 and 300 registry recognized worldwide for international teaching.",
-    image: IMG.graduation,
-  },
-  {
-    eyebrow: "Sanctuary Life",
-    title: "All-Inclusive Ubud Sanctuary",
-    desc: "Immersive stay, plant-based meals, daily practice space, and complete course materials.",
-    image: IMG.classMain,
-  },
-  {
-    eyebrow: "Lifetime Connection",
-    title: "Global Alumni Community",
-    desc: "Join an expansive network of graduates from 70+ countries practicing and teaching worldwide.",
-    image: IMG.certified,
-  },
-  {
-    eyebrow: "Practical Mastery",
-    title: "Hands-on Teaching Practice",
-    desc: "Graduate with real teaching experience, direct alignment feedback, and classroom confidence.",
-    image: IMG.course100,
-  },
-  {
-    eyebrow: "Sacred Culture",
-    title: "Traditional Balinese Blessings",
-    desc: "Take part in purification ceremonies, flower blessings, and temple-based cultural learning.",
-    image: IMG.templePurification,
-  },
-  {
-    eyebrow: "Ongoing Mentorship",
-    title: "Lifetime Support & Mentorship",
-    desc: "Access continuing guidance, teacher check-ins, school updates, and career direction after graduation.",
-    image: IMG.pranayama,
-  },
-];
+const whyImages = [IMG.graduation, IMG.classMain, IMG.certified, IMG.course100, IMG.templePurification, IMG.pranayama];
 
 export const Manifesto = () => {
+  const copy = useHomeCopy();
+  const whyCards = copy.manifesto.cards.map((card, index) => ({ ...card, image: whyImages[index] || IMG.classMain }));
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const scrollSlider = (direction: "prev" | "next") => {
@@ -63,14 +29,12 @@ export const Manifesto = () => {
       <div className="container-edit">
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
-            <p className="label-caps text-sage">Why Choose Us</p>
+            <p className="label-caps text-sage">{copy.manifesto.eyebrow}</p>
             <div className="mx-auto my-5 h-px w-16 bg-brand" />
             <h2 className="display-lg text-charcoal">
-              More Than a <em className="font-serif italic text-brand">Certification</em>
+              {copy.manifesto.title} <em className="font-serif italic text-brand">{copy.manifesto.accent}</em>
             </h2>
-            <p className="body-lg mx-auto mt-5 max-w-xl">
-              Bali YTTC is a sanctuary of deep learning. We merge authentic Vedic philosophy with modern alignment in Ubud's most healing environment.
-            </p>
+            <p className="body-lg mx-auto mt-5 max-w-xl">{copy.manifesto.description}</p>
           </div>
         </Reveal>
 
@@ -79,7 +43,7 @@ export const Manifesto = () => {
             type="button"
             onClick={() => scrollSlider("prev")}
             className="absolute left-0 top-1/2 z-20 hidden h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-charcoal shadow-[0_10px_28px_rgba(35,35,30,0.14)] transition hover:border-sage hover:text-sage md:inline-flex"
-            aria-label="Scroll why choose us left"
+            aria-label={copy.manifesto.previous}
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -122,7 +86,7 @@ export const Manifesto = () => {
             type="button"
             onClick={() => scrollSlider("next")}
             className="absolute right-0 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-charcoal shadow-[0_10px_28px_rgba(35,35,30,0.14)] transition hover:border-sage hover:text-sage md:inline-flex"
-            aria-label="Scroll why choose us right"
+            aria-label={copy.manifesto.next}
           >
             <ArrowRight className="h-4 w-4" />
           </button>

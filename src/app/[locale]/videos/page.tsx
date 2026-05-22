@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { Play, Award, MessageCircle, ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 const videos = [
   {
@@ -42,15 +43,15 @@ const videos = [
   },
 ];
 
-const videoCategories = [
-  { name: "All Videos", count: videos.length },
-  { name: "Training", count: 1 },
-  { name: "Student Life", count: 1 },
-  { name: "Campus", count: 1 },
-  { name: "Ceremony", count: 1 },
-];
-
 export default function VideosPage() {
+  const t = useTranslations("VideosPage");
+  const localizedVideos = videos.map((video, index) => ({
+    ...video,
+    title: t(`videos.${index}.title`),
+    category: t(`videos.${index}.category`),
+    description: t(`videos.${index}.description`),
+  }));
+
   return (
     <NextLayoutWrapper>
       <div className="min-h-screen bg-[#FAFAFA]">
@@ -68,7 +69,7 @@ export default function VideosPage() {
               className="mb-10 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-white/70 transition-colors hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Home
+              {t("backHome")}
             </Link>
           </Reveal>
           <Reveal>
@@ -79,13 +80,13 @@ export default function VideosPage() {
             >
               <div className="inline-flex items-center gap-2 mb-6">
                 <Play className="h-5 w-5 text-orange-400" />
-                <span className="label-caps text-orange-400">Video Gallery</span>
+                <span className="label-caps text-orange-400">{t("eyebrow")}</span>
               </div>
               <h1 className="display-xl mb-6">
-                Experience Bali YTTC
+                {t("title")}
               </h1>
               <p className="body-lg text-gray-300">
-                Watch videos from our campus, hear student stories, and see what makes our yoga teacher training unique.
+                {t("subtitle")}
               </p>
             </motion.div>
           </Reveal>
@@ -104,9 +105,9 @@ export default function VideosPage() {
             >
               <div className="rounded-3xl overflow-hidden shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25)] ring-1 ring-gray-900/5">
                 <VideoPlayer
-                  youtubeId={videos[0].youtubeId}
-                  poster={videos[0].poster}
-                  title={videos[0].title}
+                  youtubeId={localizedVideos[0].youtubeId}
+                  poster={localizedVideos[0].poster}
+                  title={localizedVideos[0].title}
                   autoPlay={false}
                   muted={true}
                 />
@@ -114,15 +115,15 @@ export default function VideosPage() {
               <div className="mt-6">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="label-caps rounded-full bg-orange-100 px-3 py-1 text-orange-700">
-                    {videos[0].category}
+                    {localizedVideos[0].category}
                   </span>
-                  <span className="text-sm text-gray-500">{videos[0].duration}</span>
+                  <span className="text-sm text-gray-500">{localizedVideos[0].duration}</span>
                 </div>
                 <h2 className="display-md mb-3 text-gray-900">
-                  {videos[0].title}
+                  {localizedVideos[0].title}
                 </h2>
                 <p className="text-gray-600 leading-relaxed">
-                  {videos[0].description}
+                  {localizedVideos[0].description}
                 </p>
               </div>
             </motion.div>
@@ -135,15 +136,15 @@ export default function VideosPage() {
         <div className="container-wide">
           <Reveal>
             <SectionHeading
-              eyebrow="Video Library"
-              title="More Videos"
-              sub="Explore our collection of videos showcasing campus life, student experiences, and training programs."
+              eyebrow={t("libraryEyebrow")}
+              title={t("libraryTitle")}
+              sub={t("librarySubtitle")}
               align="left"
             />
           </Reveal>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {videos.slice(1).map((video, index) => (
+            {localizedVideos.slice(1).map((video, index) => (
               <Reveal key={video.youtubeId} delay={index * 0.1}>
                 <motion.article
                   whileHover={{ y: -8 }}
@@ -186,10 +187,10 @@ export default function VideosPage() {
         <div className="container-wide">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="display-lg mb-6">
-              Ready to Create Your Own Story?
+              {t("ctaTitle")}
             </h2>
             <p className="text-lg text-orange-100 mb-8">
-              Join thousands of yoga teachers who have transformed their practice at Bali YTTC. Your journey starts here.
+              {t("ctaSubtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -197,14 +198,14 @@ export default function VideosPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-[0.8125rem] font-medium uppercase tracking-[0.08em] text-orange-600 shadow-lg transition-colors hover:bg-orange-50"
               >
                 <Award className="h-5 w-5" />
-                Apply for Training
+                {t("applyTraining")}
               </Link>
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border-2 border-white/30 text-white font-semibold hover:bg-white/10 transition-colors"
               >
                 <MessageCircle className="h-5 w-5" />
-                Ask Questions
+                {t("askQuestions")}
               </Link>
             </div>
           </div>

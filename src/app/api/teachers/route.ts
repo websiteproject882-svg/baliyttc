@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { TEACHERS as STATIC_TEACHERS } from "@/data/site";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const slugify = (value: string) =>
   value.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 

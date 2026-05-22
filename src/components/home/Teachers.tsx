@@ -5,8 +5,7 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { useLocale } from "next-intl";
-import { getHomeCopy } from "@/lib/home-localized";
+import { useHomeCopy } from "@/lib/use-home-copy";
 import { useEffect, useRef, useState } from "react";
 
 type TeacherItem = (typeof TEACHERS)[number] & {
@@ -129,7 +128,7 @@ const TeacherCard = ({
 };
 
 export const Teachers = () => {
-  const copy = getHomeCopy(useLocale());
+  const copy = useHomeCopy();
   const teachers = TEACHERS.map((teacher, index) => ({ ...teacher, ...copy.teachers.items[index] }));
   const [activeIndex, setActiveIndex] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);

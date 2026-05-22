@@ -50,14 +50,6 @@ async function requireSession(
 }
 
 export default async function middleware(request: NextRequest) {
-  const segments = request.nextUrl.pathname.split('/').filter(Boolean);
-  if (segments[0] === 'id') {
-    const url = request.nextUrl.clone();
-    const rest = segments.slice(1).join('/');
-    url.pathname = rest ? `/en/${rest}` : '/en';
-    return applySecurityHeaders(NextResponse.redirect(url));
-  }
-
   const { locale, pathWithoutLocale } = getLocalizedPath(request.nextUrl.pathname);
   const isAdminLogin = pathWithoutLocale === '/admin/login';
   const isStaffLogin = pathWithoutLocale === '/staff/login';

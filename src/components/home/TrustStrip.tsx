@@ -3,6 +3,7 @@
 import { Star } from "lucide-react";
 import { IMG } from "@/data/site";
 import { Link } from "@/i18n/routing";
+import { useHomeCopy } from "@/lib/use-home-copy";
 
 const authorityCards = [
   {
@@ -35,6 +36,7 @@ const authorityCards = [
 ];
 
 export const TrustStrip = () => {
+  const copy = useHomeCopy();
   const marqueeCards = [...authorityCards, ...authorityCards];
 
   return (
@@ -42,7 +44,7 @@ export const TrustStrip = () => {
       <div className="container-edit">
         <div className="mb-4 text-center">
           <p className="label-caps text-ink-muted">
-            Accreditations & Professional Authority
+            {copy.trust.recognised}
           </p>
         </div>
 
@@ -82,7 +84,7 @@ export const TrustStrip = () => {
             href="/yoga-alliance"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-sage transition-colors hover:text-brand"
           >
-            What Yoga Alliance certification means
+            {copy.trust.certificationMeaning}
             <span aria-hidden>&rarr;</span>
           </Link>
         </div>

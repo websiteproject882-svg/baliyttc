@@ -11,10 +11,10 @@
     "course200": "FORMATION 200h",
     "course300": "FORMATION 300h",
     "trainings": "Formation",
-    "experience": "ExpÃ©rience",
-    "activities": "ActivitÃ©s",
-    "testimonials": "TÃ©moignages",
-    "videos": "VidÃ©os",
+    "experience": "Exp?rience",
+    "activities": "Activit?s",
+    "testimonials": "T?moignages",
+    "videos": "Vid?os",
     "login": "Connexion",
     "scarcity": "Plus que 4 places pour la session de mars 2026 !",
     "needHelp": "Besoin d?aide ?",
@@ -111,8 +111,32 @@
     "subtitle": "Témoignages de nos anciens élèves"
   },
   "FAQ": {
-    "title": "Questions Fréquentes",
-    "subtitle": "Trouvez des réponses à vos questions"
+    "title": "Tout ce que vous devez savoir",
+    "subtitle": "Des questions avant de postuler ? Notre ?quipe vous aide ? choisir la bonne formation.",
+    "eyebrow": "Questions fr?quentes",
+    "searchPlaceholder": "Rechercher...",
+    "noResults": "Aucune question trouv?e",
+    "contactTitle": "Encore des questions ?",
+    "contactDesc": "Contactez-nous directement.",
+    "emailButton": "Nous ?crire",
+    "whatsappButton": "WhatsApp",
+    "clearSearch": "Effacer",
+    "resultsFor": "{count} r?sultats pour ?{query}?",
+    "imageAlt": "C?r?monie Bali YTTC",
+    "items": [
+      {
+        "q": "Qu?est-ce que Bali YTTC ?",
+        "a": "Une ?cole certifi?e Yoga Alliance ? Ubud avec formations 100h, 200h et 300h."
+      },
+      {
+        "q": "Quel visa faut-il ?",
+        "a": "La plupart utilisent VOA ou B211A. Nous vous guidons selon votre passeport et la dur?e."
+      },
+      {
+        "q": "Que dois-je apporter ?",
+        "a": "Tenues de yoga, cr?me solaire, r?pulsif et un esprit ouvert."
+      }
+    ]
   },
   "FinalCTA": {
     "title": "Prêt à Commencer Votre Voyage de Yoga?",
@@ -214,5 +238,457 @@
     "installment": "Paiement en Plusieurs Fois",
     "accommodation": "Hébergement",
     "earlyBird": "Prix Réservation Anticipée"
+  },
+  "FeaturedCourses": {
+    "choosePath": "Choisissez votre voie",
+    "professionalTracks": "Parcours certifiants professionnels",
+    "viewAllPrograms": "Voir tous les programmes",
+    "viewAllCourses": "Voir tous les cours",
+    "nextDates": "Prochaines dates",
+    "residential": "R?sidentiel",
+    "seatsLeft": "places restantes",
+    "openSeats": "Places ouvertes",
+    "yogaTraining": "Formation de yoga",
+    "trainingStyle": "Formation de professeur de yoga",
+    "defaultHighlights": [
+      "Yoga Alliance curriculum",
+      "Daily guided practice",
+      "Residential Bali experience"
+    ],
+    "mostPopular": "Le plus populaire",
+    "mostAccessible": "Le plus accessible",
+    "advancedTrack": "Niveau avanc?",
+    "shortCourse": "Cours court",
+    "openSeatsBadge": "Places ouvertes",
+    "from": "? partir de",
+    "startsFrom": "? partir de",
+    "details": "D?tails",
+    "certificationTrack": "certification"
+  },
+  "HomeCopy": {
+    "common": {
+      "view": "Voir",
+      "learnMore": "En savoir plus",
+      "galleryEyebrow": "Au coeur de Bali YTTC",
+      "galleryTitle": "Moments authentiques de",
+      "galleryAccent": "Ubud",
+      "viewGallery": "Voir la galerie",
+      "galleryItems": [
+        "Shala en plein air",
+        "Pratique du matin",
+        "Repas sattviques",
+        "C?r?monie au temple",
+        "Formation en jungle",
+        "Communaut? ?tudiante"
+      ]
+    },
+    "trust": {
+      "recognised": "Accr?ditations et autorit? professionnelle",
+      "certificationMeaning": "Ce que signifie la certification Yoga Alliance",
+      "metrics": [
+        {
+          "label": "Students trained",
+          "sub": "worldwide since 2018"
+        },
+        {
+          "label": "Average rating",
+          "sub": "verified reviews"
+        },
+        {
+          "label": "Yoga Alliance",
+          "sub": "200hr & 300hr certified"
+        },
+        {
+          "label": "Years experience",
+          "sub": "combined faculty"
+        }
+      ]
+    },
+    "manifesto": {
+      "eyebrow": "Pourquoi nous choisir",
+      "title": "Plus qu?une",
+      "accent": "certification",
+      "description": "Bali YTTC est un sanctuaire d?apprentissage profond alliant philosophie v?dique et alignement moderne ? Ubud.",
+      "previous": "Cartes pr?c?dentes",
+      "next": "Cartes suivantes",
+      "cards": [
+        {
+          "eyebrow": "Graduation Day",
+          "title": "Yoga Alliance Certified",
+          "desc": "Fully accredited RYS 200 and 300 registry recognized worldwide for international teaching."
+        },
+        {
+          "eyebrow": "Sanctuary Life",
+          "title": "All-Inclusive Ubud Sanctuary",
+          "desc": "Immersive stay, plant-based meals, daily practice space, and complete course materials."
+        },
+        {
+          "eyebrow": "Lifetime Connection",
+          "title": "Global Alumni Community",
+          "desc": "Join an expansive network of graduates from 70+ countries practicing and teaching worldwide."
+        },
+        {
+          "eyebrow": "Practical Mastery",
+          "title": "Hands-on Teaching Practice",
+          "desc": "Graduate with real teaching experience, direct alignment feedback, and classroom confidence."
+        },
+        {
+          "eyebrow": "Sacred Culture",
+          "title": "Traditional Balinese Blessings",
+          "desc": "Take part in purification ceremonies, flower blessings, and temple-based cultural learning."
+        },
+        {
+          "eyebrow": "Ongoing Mentorship",
+          "title": "Lifetime Support & Mentorship",
+          "desc": "Access continuing guidance, teacher check-ins, school updates, and career direction after graduation."
+        }
+      ]
+    },
+    "pillars": [
+      {
+        "title": "Asana Mastery",
+        "desc": "Alignment-based practice across Hatha, Ashtanga and Vinyasa.",
+        "points": [
+          "Multi-style lineage teaching",
+          "Advanced sequencing templates",
+          "Therapeutic modifications and prop guides"
+        ]
+      },
+      {
+        "title": "Pranayama & Breath",
+        "desc": "Breath techniques to refine energy and awareness.",
+        "points": [
+          "Classical daily breath techniques",
+          "Nervous-system regulation",
+          "Safe pranayama for mixed levels"
+        ]
+      },
+      {
+        "title": "Applied Anatomy",
+        "desc": "Functional anatomy applied to safe, intelligent teaching.",
+        "points": [
+          "Functional movement principles",
+          "Injury-aware teaching choices",
+          "Body mechanics for safe practice"
+        ]
+      },
+      {
+        "title": "Vedic Philosophy",
+        "desc": "Yoga Sutras, Bhagavad Gita and the eight limbs.",
+        "points": [
+          "Yoga Sutras and Bhagavad Gita",
+          "Living philosophy beyond the mat",
+          "Ethics and yogic lifestyle foundations"
+        ]
+      },
+      {
+        "title": "Teaching Methodology",
+        "desc": "Cueing, sequencing and the art of holding space.",
+        "points": [
+          "Cueing and class architecture",
+          "Holding space with confidence",
+          "Practice teaching with feedback"
+        ]
+      },
+      {
+        "title": "Hands-on Adjustments",
+        "desc": "Hands-on assists with consent and clarity.",
+        "points": [
+          "Consent-led assisting principles",
+          "Clear and safe adjustment technique",
+          "Alignment feedback for confidence"
+        ]
+      },
+      {
+        "title": "Meditation & Balinese Wisdom",
+        "desc": "Guided meditation, inner stillness, Balinese ceremony and cultural wisdom.",
+        "points": [
+          "Guided meditation practices",
+          "Balinese ceremony and cultural context",
+          "Integrating wisdom and teaching voice"
+        ]
+      }
+    ],
+    "experiences": {
+      "eyebrow": "Au-del? du tapis",
+      "title": "Immersions quotidiennes, c?r?monies sacr?es et",
+      "accent": "int?gration culturelle",
+      "subtitle": "Chaque semaine comprend rituels, ateliers, pratique ? la plage et arts m?ditatifs balinais.",
+      "mobileHint": "Touchez une exp?rience pour en savoir plus.",
+      "cards": [
+        {
+          "title": "Temple Purification",
+          "desc": "A sacred Balinese cleansing ceremony in the first week."
+        },
+        {
+          "title": "Arm Balancing Workshop",
+          "desc": "Guided technique for strength, trust and balance."
+        },
+        {
+          "title": "Sound Healing",
+          "desc": "Tibetan bowls and sound therapy for deep integration."
+        },
+        {
+          "title": "Acro Yoga",
+          "desc": "Partner practice with trust, play and presence."
+        },
+        {
+          "title": "Beach Yoga",
+          "desc": "Sunrise practice on Bali's quiet eastern coast."
+        },
+        {
+          "title": "Mandala Painting",
+          "desc": "A meditative art practice to realign the mind."
+        }
+      ]
+    },
+    "teachers": {
+      "eyebrow": "Rencontrez vos guides",
+      "title": "Professeurs exp?riment?s",
+      "accent": "sur le chemin",
+      "subtitle": "Des enseignants exp?riment?s vous guident avec pr?cision et compassion.",
+      "viewAll": "Voir tous les professeurs",
+      "cta": "Apprenez avec des professeurs certifi?s Yoga Alliance",
+      "items": [
+        {
+          "role": "Lead Teacher / Founder",
+          "bio": "Vivek blends classical Hatha discipline with fluid Vinyasa and authentic lineage.",
+          "experience": "15+ years of teaching experience"
+        },
+        {
+          "role": "Senior Teacher",
+          "bio": "Sachin teaches precise alignment, intelligent sequencing and safe adjustments.",
+          "experience": "15+ years of teaching experience"
+        },
+        {
+          "role": "Vinyasa & Sound Specialist",
+          "bio": "Yuli brings Balinese warmth through Vinyasa, Yin Yoga and sound healing.",
+          "experience": "15+ years of teaching experience"
+        },
+        {
+          "role": "Philosophy Master",
+          "bio": "Sandeep bridges ancient texts and modern application for spiritual depth.",
+          "experience": "15+ years of teaching experience"
+        }
+      ]
+    },
+    "schedule": {
+      "eyebrow": "Upcoming batches",
+      "title": "Secure Your Place for",
+      "subtitle": "Small cohorts for personalized attention. Limited spots available per batch.",
+      "batchStatuses": [
+        "6 seats left",
+        "Only 4 seats left",
+        "Enrolment open",
+        "Open",
+        "Open"
+      ],
+      "batchCourses": [
+        "100-Hour YTT",
+        "200-Hour YTT",
+        "300-Hour YTT",
+        "200-Hour YTT",
+        "100-Hour YTT"
+      ],
+      "batch": {
+        "tuition": "Tuition Fee",
+        "person": "/ person",
+        "cta": "Secure Your Spot",
+        "guarantees": [
+          {
+            "title": "Money-back Guarantee",
+            "desc": "If you're not satisfied"
+          },
+          {
+            "title": "Flexible Dates",
+            "desc": "Switch batches anytime"
+          },
+          {
+            "title": "Early Bird Perks",
+            "desc": "Discounts available"
+          }
+        ]
+      }
+    },
+    "testimonials": {
+      "eyebrow": "Histoires d??tudiants",
+      "title": "Histoires de nos",
+      "accent": "dipl?m?s",
+      "subtitle": "Transformations r?elles d??tudiants form?s ? Ubud.",
+      "verified": "avis v?rifi?s",
+      "topRated": "Tr?s bien not? ? Bali",
+      "readVerified": "Lire les avis v?rifi?s",
+      "startJourney": "Commencer",
+      "viewAll": "Voir les avis",
+      "items": [
+        {
+          "course": "200-Hour Graduate",
+          "quote": "I felt supported throughout the entire training and learned far more than I expected."
+        },
+        {
+          "course": "200-Hour YTT Graduate",
+          "quote": "This training was life-changing and gave me clarity, strength and peace."
+        },
+        {
+          "course": "200-Hour YTT Graduate",
+          "quote": "The teachers, nature and structure made this a magical place to learn."
+        }
+      ]
+    },
+    "video": {
+      "eyebrow": "Campus & communaut?",
+      "title": "D?couvrez le sanctuaire",
+      "subtitle": "Visitez notre sanctuaire de yoga ? Ubud.",
+      "campusAlt": "Campus Bali YTTC",
+      "reviewEyebrow": "Vid?os ?tudiantes",
+      "reviewTitle": "Regarder des histoires r?elles",
+      "reviewSubtitle": "Des dipl?m?s partagent leur parcours et leur transformation.",
+      "previousReview": "Vid?o pr?c?dente",
+      "nextReview": "Vid?o suivante",
+      "playReview": "Lire la vid?o",
+      "facilitiesTitle": "World-Class Facilities",
+      "facilitiesSubtitle": "Everything you need for distraction-free practice",
+      "whyTitle": "Why Students Choose Bali YTTC",
+      "facilities": [
+        {
+          "title": "Professional Studio",
+          "desc": "Yoga studios with equipment and serene ambiance."
+        },
+        {
+          "title": "Sacred Gardens",
+          "desc": "Peaceful gardens for meditation and pranayama."
+        },
+        {
+          "title": "Comfortable Lodging",
+          "desc": "Clean rooms with amenities for focused practice."
+        },
+        {
+          "title": "Organic Meals",
+          "desc": "Plant-based meals prepared fresh daily."
+        },
+        {
+          "title": "Welcoming Community",
+          "desc": "Connect with practitioners from around the world."
+        },
+        {
+          "title": "Spiritual Location",
+          "desc": "Located in Ubud, Bali's spiritual heart."
+        }
+      ],
+      "points": [
+        "Internationally certified Yoga Alliance programs",
+        "Expert instructors with deep teaching experience",
+        "All-inclusive pricing with accommodation and meals",
+        "Thousands of students transformed since 2018",
+        "Lifetime access to alumni community",
+        "Supportive and structured learning environment"
+      ],
+      "reviews": [
+        {
+          "name": "Bastian from Germany",
+          "course": "Yoga Teacher Training Review",
+          "quote": "A real student review from Bali YTTC's 200-hour yoga teacher training experience."
+        },
+        {
+          "name": "200-Hour YTT Testimonial",
+          "course": "Student Testimonial",
+          "quote": "Honest feedback from a graduate after completing the 200-hour Yoga Teacher Training at Bali YTTC."
+        },
+        {
+          "name": "Student Review in Bali",
+          "course": "200-Hour Course Review",
+          "quote": "A short student review sharing the training atmosphere, learning journey, and Bali experience."
+        },
+        {
+          "name": "Stephanie from Belgium",
+          "course": "Wonderful Journey Review",
+          "quote": "A graduate story from Belgium about the 200-hour Yoga Teacher Training journey in Bali."
+        }
+      ]
+    },
+    "finalCta": {
+      "eyebrow": "Juin 2026 ? Plus que 4 places",
+      "title": "Commencez votre formation ?",
+      "accent": "Ubud",
+      "subtitle": "Rejoignez plus de 2 500 dipl?m?s dans une formation certifi?e Yoga Alliance.",
+      "primary": "R?server ma place",
+      "secondary": "Voir les formations",
+      "benefits": [
+        "Annulation 30 jours",
+        "Paiements disponibles",
+        "?cole RYS certifi?e"
+      ],
+      "imageAlt": "Bali YTTC graduates in Ubud"
+    },
+    "intro": {
+      "eyebrow": "Le sanctuaire de sagesse",
+      "title": "L? o? la lign?e ancienne rencontre la transformation moderne.",
+      "subtitle": "Bali YTTC est une ?cole de yoga dans les hauteurs sacr?es d?Ubud, pens?e pour ceux qui cherchent plus qu?un certificat.",
+      "body": "Depuis 2018, nous guidons des ?tudiants de plus de 70 pays dans des formations certifi?es Yoga Alliance m?lant philosophie v?dique, alignement, pratique p?dagogique, pranayama, m?ditation et culture balinaise.",
+      "cta": "D?couvrir notre philosophie",
+      "stats": [
+        {
+          "value": "2,500+",
+          "label": "Dipl?m?s"
+        },
+        {
+          "value": "70+",
+          "label": "Nationalit?s"
+        },
+        {
+          "value": "4.9/5",
+          "label": "Note moyenne"
+        }
+      ]
+    }
+  },
+  "CoursesPage": {
+    "eyebrow": "Nos programmes",
+    "titlePrefix": "Transformez votre",
+    "titleAccent": "parcours yoga",
+    "subtitle": "Choisissez des programmes certifi?s Yoga Alliance pour chaque niveau.",
+    "yogaAlliance": "Yoga Alliance",
+    "startingFrom": "? partir de",
+    "details": "D?tails",
+    "applyNow": "Postuler",
+    "loading": "Chargement des cours...",
+    "ctaTitle": "Vous ne savez pas quel programme choisir ?",
+    "ctaSubtitle": "Notre ?quipe admissions vous aide ? trouver le programme id?al.",
+    "contactUs": "Contactez-nous"
+  },
+  "VideosPage": {
+    "backHome": "Retour accueil",
+    "eyebrow": "Galerie vid?o",
+    "title": "D?couvrez Bali YTTC",
+    "subtitle": "Regardez le campus, les histoires ?tudiantes et notre formation.",
+    "libraryEyebrow": "Biblioth?que vid?o",
+    "libraryTitle": "Plus de vid?os",
+    "librarySubtitle": "Explorez la vie du campus, les exp?riences et les programmes.",
+    "ctaTitle": "Pr?t ? cr?er votre histoire ?",
+    "ctaSubtitle": "Rejoignez des milliers de professeurs transform?s ? Bali YTTC.",
+    "applyTraining": "Postuler ? la formation",
+    "askQuestions": "Poser des questions",
+    "videos": [
+      {
+        "title": "Bali YTTC Yoga Teacher Training",
+        "category": "Training",
+        "description": "A real look at Bali YTTC training, practice, teachers, and student life in Ubud."
+      },
+      {
+        "title": "Bali Yoga Teacher Training Experience",
+        "category": "Student Life",
+        "description": "Campus atmosphere, daily practice, and training moments from Bali Yoga Teacher Training Center."
+      },
+      {
+        "title": "Yoga Teacher Training in Bali",
+        "category": "Campus",
+        "description": "Explore the school environment, teaching space, and Bali YTTC learning experience."
+      },
+      {
+        "title": "Bali YTTC Student Journey",
+        "category": "Ceremony",
+        "description": "Student journey, ceremony moments, and the transformation around teacher training in Bali."
+      }
+    ]
   }
 }

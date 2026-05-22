@@ -6,11 +6,10 @@ import { Reveal } from "@/components/shared/Reveal";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { motion } from "framer-motion";
 import { CalendarDays, Loader2, ShieldCheck } from "lucide-react";
-import { useLocale } from "next-intl";
-import { getHomeCopy } from "@/lib/home-localized";
+import { useHomeCopy } from "@/lib/use-home-copy";
 
 export const Schedule = () => {
-  const copy = getHomeCopy(useLocale());
+  const copy = useHomeCopy();
   const batches = FALLBACK_BATCHES.map((batch, index) => ({
     ...batch,
     course: copy.schedule.batchCourses[index] || batch.course,

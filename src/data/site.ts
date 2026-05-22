@@ -84,6 +84,8 @@ export const IMG = {
   mobileHeroReference: "/images/campus/mobile-hero-reference.jpeg",
   yogaStudio: "/images/campus/yoga-studio-bali-yttc.jpg",
   studioPoolDrone: "/images/campus/yoga-studio-pool-drone.jpg",
+  fireflyGraduation: "/images/firefly-sanctuary.jpg",
+  balinesesTempleGateway: "/images/balinese-temple-gateway.jpg",
 };
 
 export const COURSES = [

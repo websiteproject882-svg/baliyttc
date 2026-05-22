@@ -140,11 +140,11 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} {SITE.name}. {tFooter("rights")}
+            &copy; {new Date().getFullYear()} {SITE.name}. {tFooter("rights")}
           </p>
           <div className="flex gap-6 text-sm">
             <Link href="/terms" className="text-gray-500 hover:text-white transition-colors">{tFooter("terms")}</Link>
-            <Link href="/privacy" className="text-gray-500 hover:text-white transition-colors">{tFooter("privacy")}</Link>
+            <Link href="/terms" className="text-gray-500 hover:text-white transition-colors">{tFooter("privacy")}</Link>
           </div>
         </div>
       </div>

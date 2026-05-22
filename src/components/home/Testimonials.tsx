@@ -7,8 +7,7 @@ import { motion } from "framer-motion";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
-import { getHomeCopy } from "@/lib/home-localized";
+import { useHomeCopy } from "@/lib/use-home-copy";
 import { Link } from "@/i18n/routing";
 
 type PublicTestimonial = {
@@ -21,7 +20,7 @@ type PublicTestimonial = {
 const avatarGradients = ["from-brand to-brand-light", "from-sage to-sage-light", "from-gold to-gold-light"];
 
 export const Testimonials = () => {
-  const copy = getHomeCopy(useLocale());
+  const copy = useHomeCopy();
   const fallbackTestimonials = STATIC_TESTIMONIALS.map((item, index) => ({
     ...item,
     course: copy.testimonials.items[index]?.course || item.course,
@@ -49,7 +48,7 @@ export const Testimonials = () => {
   }, []);
 
   return (
-    <section id="testimonials" className="relative overflow-hidden bg-gradient-to-b from-cream to-white py-12 md:py-16">
+    <section id="testimonials" className="relative overflow-hidden bg-[#f8f5ef] py-12 md:py-16">
       <div className="container-wide relative z-10">
         {/* Section Header */}
         <div className="mb-10 flex flex-col gap-8 md:mb-12 md:flex-row md:items-end md:justify-between lg:container-edit">
@@ -71,10 +70,10 @@ export const Testimonials = () => {
 
           {/* Rating Card */}
           <Reveal delay={0.1}>
-            <div className="shrink-0 rounded-2xl border border-gray-100 bg-white p-8 shadow-premium-lg">
-              <div className="mb-4 flex items-center justify-center gap-1">
+            <div className="shrink-0 rounded-[10px] border border-stone-200 bg-white p-6 shadow-[0_14px_34px_rgba(35,35,30,0.08)] md:p-7">
+              <div className="mb-4 flex items-center justify-center gap-1 text-gold">
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <Star key={n} className="h-6 w-6 fill-gold text-gold" />
+                  <Star key={n} className="h-5 w-5 fill-current" />
                 ))}
               </div>
               <p className="number-value text-center text-charcoal">{stats.averageRating.toFixed(1)}/5</p>
@@ -90,13 +89,13 @@ export const Testimonials = () => {
         </div>
 
         {/* Testimonial Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:container-edit">
+        <div className="grid gap-5 md:grid-cols-2 lg:container-edit lg:grid-cols-3">
           {testimonials.map((testimonial, index) => (
             <Reveal key={testimonial.name + index} delay={index * 0.1}>
               <motion.article
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="group flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-8 shadow-premium-md transition-all duration-500 hover:border-brand/30 hover:shadow-premium-xl"
+                className="group flex h-full flex-col rounded-[10px] border border-stone-200 bg-white p-6 shadow-[0_12px_28px_rgba(35,35,30,0.06)] transition-all duration-500 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[0_18px_42px_rgba(35,35,30,0.12)] md:p-7"
               >
                 {/* Stars and Quote */}
                 <div className="mb-6 flex items-center justify-between">
@@ -105,17 +104,17 @@ export const Testimonials = () => {
                       <Star key={n} className="h-5 w-5 fill-gold text-gold" />
                     ))}
                   </div>
-                  <Quote className="h-7 w-7 text-brand/30" />
+                  <Quote className="h-7 w-7 text-brand/25" />
                 </div>
 
                 {/* Quote */}
-                <p className="flex-1 font-serif text-lg italic leading-relaxed text-charcoal md:text-xl font-normal">
+                <p className="flex-1 font-serif text-[1.08rem] font-normal italic leading-8 text-charcoal md:text-[1.18rem]">
                   &ldquo;{testimonial.quote}&rdquo;
                 </p>
 
                 {/* Author */}
                 <div className="mt-8 flex items-center gap-4 border-t border-gray-100 pt-6">
-                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarGradients[index % 3]} text-lg font-bold text-white shadow-lg`}>
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarGradients[index % 3]} text-base font-bold text-white shadow-lg`}>
                     {testimonial.name.split(" ").map((name) => name[0]).join("").slice(0, 2)}
                   </div>
                   <div>

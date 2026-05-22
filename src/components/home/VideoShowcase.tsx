@@ -2,10 +2,9 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Play } from "lucide-react";
-import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
 import { Reveal } from "@/components/shared/Reveal";
-import { getHomeCopy } from "@/lib/home-localized";
+import { useHomeCopy } from "@/lib/use-home-copy";
 
 const reviewVideos = [
   {
@@ -37,7 +36,8 @@ const reviewVideos = [
 const CAMPUS_IMAGE = "/images/campus/firefly-sanctuary.jpg";
 
 export const VideoShowcase = () => {
-  const copy = getHomeCopy(useLocale());
+  const copy = useHomeCopy();
+  const videos = reviewVideos.map((video, index) => ({ ...video, ...copy.video.reviews[index] }));
   const journalRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
@@ -107,7 +107,7 @@ export const VideoShowcase = () => {
             className="mx-auto mb-8 max-w-5xl overflow-hidden rounded-2xl bg-[#f4eee6] shadow-[0_14px_34px_-16px_rgba(0,0,0,0.18)] ring-1 ring-gray-900/5 md:mb-10"
           >
             <div className="relative aspect-[3/2] overflow-hidden">
-              <img src={CAMPUS_IMAGE} alt="Bali YTTC Campus" className="h-full w-full object-contain" />
+              <img src={CAMPUS_IMAGE} alt={copy.video.campusAlt} className="h-full w-full object-contain" />
             </div>
           </motion.div>
         </Reveal>
@@ -116,12 +116,12 @@ export const VideoShowcase = () => {
           <div className="relative">
             <div className="mb-6 flex flex-col gap-5 md:mb-8 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="label-caps text-[#F04E23]">Student Review Videos</p>
+                <p className="label-caps text-[#F04E23]">{copy.video.reviewEyebrow}</p>
                 <h3 className="display-md mt-4 text-gray-900">
-                  Watch Real Student Stories
+                  {copy.video.reviewTitle}
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600 md:text-base">
-                  Real Bali YTTC graduates sharing their teacher training journey, practice, and transformation.
+                  {copy.video.reviewSubtitle}
                 </p>
               </div>
 
@@ -130,7 +130,7 @@ export const VideoShowcase = () => {
                   type="button"
                   onClick={() => scrollJournal("prev")}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 shadow-sm transition hover:border-[#F04E23] hover:text-[#F04E23]"
-                  aria-label="Previous review video"
+                  aria-label={copy.video.previousReview}
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
@@ -138,7 +138,7 @@ export const VideoShowcase = () => {
                   type="button"
                   onClick={() => scrollJournal("next")}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 shadow-sm transition hover:border-[#F04E23] hover:text-[#F04E23]"
-                  aria-label="Next review video"
+                  aria-label={copy.video.nextReview}
                 >
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -149,7 +149,7 @@ export const VideoShowcase = () => {
               ref={journalRef}
               className="-mx-4 flex snap-x snap-mandatory scroll-pl-4 gap-5 overflow-x-auto px-4 pb-4 [scrollbar-width:none] md:gap-6 [&::-webkit-scrollbar]:hidden"
             >
-              {reviewVideos.map((video, index) => {
+              {videos.map((video, index) => {
                 const isPlaying = playingIndex === index;
 
                 return (
@@ -193,7 +193,7 @@ export const VideoShowcase = () => {
                             type="button"
                             onClick={() => toggleVideo(index)}
                             className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#F04E23] text-white shadow-lg transition hover:scale-110 focus:outline-none focus:ring-4 focus:ring-white/40"
-                            aria-label={`Play ${video.name}`}
+                            aria-label={`${copy.video.playReview}: ${video.name}`}
                           >
                             <Play className="ml-1 h-7 w-7 fill-current" />
                           </button>
