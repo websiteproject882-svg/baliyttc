@@ -5,16 +5,20 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Vercel environment to deploy manually"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - preview
 
 jobs:
   Deploy-Preview:
-    if: github.event_name == 'pull_request'
+    if: github.event.inputs.environment == 'preview'
     runs-on: ubuntu-latest
     name: Deploy Preview to Vercel
     steps:
@@ -33,7 +37,7 @@ jobs:
         run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
   Deploy-Production:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
     name: Deploy Production to Vercel
     steps:
