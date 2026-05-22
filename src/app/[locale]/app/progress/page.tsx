@@ -27,18 +27,20 @@ export default function StudentProgressPage() {
   const [portal, setPortal] = useState<PortalProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const loadPortal = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch("/api/app/portal");
+      const response = await fetch("/api/app/portal", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Failed to load progress");
       }
       setPortal(result);
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : "Failed to load progress");
     } finally {
       setLoading(false);
     }
@@ -57,24 +59,46 @@ export default function StudentProgressPage() {
 
   const updateProgress = async (moduleId: string, completed: boolean, notes: string) => {
     setSavingId(moduleId);
+    setError(null);
     try {
-      await fetch(`/api/app/modules/${moduleId}`, {
+      const response = await fetch(`/api/app/modules/${moduleId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed, notes }),
       });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save progress");
+      }
       await loadPortal();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to save progress");
     } finally {
       setSavingId(null);
     }
   };
 
-  if (loading || !portal) {
-    return <div className="p-8 text-gray-500">{loading ? "Loading progress..." : "Progress unavailable"}</div>;
+  if (loading) {
+    return <div className="p-8 text-gray-500">Loading progress...</div>;
+  }
+
+  if (!portal) {
+    return (
+      <div className="p-8">
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error || "Progress unavailable"}</CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      {error && (
+        <Card className="mb-4 border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
       <Card className="mb-6 border-0 bg-white shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl">Module Progress</CardTitle>

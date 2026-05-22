@@ -22,6 +22,7 @@ export default function StudentReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [form, setForm] = useState({
     rating: 5,
     quote: "",
@@ -32,15 +33,17 @@ export default function StudentReviewsPage() {
 
   const loadTestimonials = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const response = await fetch("/api/app/testimonials");
+      const response = await fetch("/api/app/testimonials", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Failed to load reviews");
       }
       setItems(result.testimonials || []);
     } catch (error) {
-      console.error(error);
+      setItems([]);
+      setLoadError(error instanceof Error ? error.message : "Failed to load reviews");
     } finally {
       setLoading(false);
     }
@@ -147,6 +150,11 @@ export default function StudentReviewsPage() {
         </div>
 
         <div className="space-y-4">
+          {loadError && (
+            <Card className="border border-red-200 bg-red-50 shadow-sm">
+              <CardContent className="p-4 text-sm text-red-700">{loadError}</CardContent>
+            </Card>
+          )}
           {loading ? (
             <div className="p-8 text-gray-500">Loading reviews...</div>
           ) : items.length === 0 ? (

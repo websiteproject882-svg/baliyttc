@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function StudentCertificatesPage() {
   const [certificates, setCertificates] = useState<Array<{ id: string; certificateId: string; course: string; status: string; issuedAt: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [eligibility, setEligibility] = useState<{
     eligible: boolean;
     reasons: string[];
@@ -20,13 +22,20 @@ export default function StudentCertificatesPage() {
   } | null>(null);
 
   useEffect(() => {
-    void fetch("/api/app/portal")
-      .then((response) => response.json())
+    void fetch("/api/app/portal", { cache: "no-store" })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to load certificates");
+        }
+        return result;
+      })
       .then((result) => {
         setCertificates(result.certificates || []);
         setEligibility(result.certificateEligibility || null);
       })
-      .catch(console.error);
+      .catch((error) => setError(error instanceof Error ? error.message : "Failed to load certificates"))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -35,6 +44,11 @@ export default function StudentCertificatesPage() {
         <h1 className="text-2xl font-bold text-gray-900">Certificates</h1>
         <p className="mt-1 text-sm text-gray-500">Your issued and pending completion certificates.</p>
       </div>
+      {error && (
+        <Card className="mb-4 border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
       {eligibility ? (
         <Card className="mb-4 border-0 bg-white shadow-sm">
           <CardContent className="space-y-3 p-6">
@@ -63,7 +77,11 @@ export default function StudentCertificatesPage() {
         </Card>
       ) : null}
       <div className="space-y-4">
-        {certificates.length === 0 ? (
+        {loading ? (
+          <Card className="border-0 bg-white shadow-sm">
+            <CardContent className="p-6 text-sm text-gray-500">Loading certificates...</CardContent>
+          </Card>
+        ) : certificates.length === 0 ? (
           <Card className="border-0 bg-white shadow-sm">
             <CardContent className="p-6 text-sm text-gray-500">No certificate has been issued for this student yet.</CardContent>
           </Card>

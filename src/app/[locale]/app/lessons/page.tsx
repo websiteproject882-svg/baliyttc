@@ -38,12 +38,19 @@ function youtubeEmbedUrl(url: string) {
 export default function VideoLessonsPage() {
   const [portal, setPortal] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void fetch("/api/app/portal")
-      .then((response) => response.json())
+    void fetch("/api/app/portal", { cache: "no-store" })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to load video lessons");
+        }
+        return result;
+      })
       .then(setPortal)
-      .catch(console.error)
+      .catch((error) => setError(error instanceof Error ? error.message : "Failed to load video lessons"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -59,12 +66,27 @@ export default function VideoLessonsPage() {
 
   const fullAccess = portal?.student.accessLevel === "FULL";
 
-  if (loading || !portal) {
+  if (loading) {
     return <div className="min-h-screen bg-gray-50 p-8 text-sm text-gray-500">Loading video lessons...</div>;
+  }
+
+  if (!portal) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error || "Video lessons unavailable"}</CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      {error && (
+        <Card className="mb-4 border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Video Lessons</h1>

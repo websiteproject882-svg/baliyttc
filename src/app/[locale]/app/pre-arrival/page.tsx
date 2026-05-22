@@ -46,12 +46,19 @@ export default function PreArrivalPage() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void fetch("/api/app/portal")
-      .then((response) => response.json())
+    void fetch("/api/app/portal", { cache: "no-store" })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to load pre-arrival checklist");
+        }
+        return result;
+      })
       .then(setPortal)
-      .catch(console.error)
+      .catch((error) => setError(error instanceof Error ? error.message : "Failed to load pre-arrival checklist"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -65,6 +72,7 @@ export default function PreArrivalPage() {
   const toggleTask = async (taskKey: string, completed: boolean) => {
     setToggling(taskKey);
     setActionMessage(null);
+    setError(null);
     try {
       const update = await fetch(`/api/app/tasks/${taskKey}`, {
         method: "PATCH",
@@ -75,22 +83,36 @@ export default function PreArrivalPage() {
         const result = await update.json().catch(() => ({}));
         throw new Error(result.error || "Could not update checklist");
       }
-      const response = await fetch("/api/app/portal");
-      setPortal(await response.json());
+      const response = await fetch("/api/app/portal", { cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Checklist updated, but refresh failed");
+      }
+      setPortal(result);
       setActionMessage(completed ? "Checklist item reopened." : "Checklist item completed.");
     } catch (error) {
-      setActionMessage(error instanceof Error ? error.message : "Could not update checklist.");
+      setError(error instanceof Error ? error.message : "Could not update checklist.");
     } finally {
       setToggling(null);
     }
   };
 
-  if (loading || !portal) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-8">
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
         </div>
+      </div>
+    );
+  }
+
+  if (!portal) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error || "Pre-arrival checklist unavailable"}</CardContent>
+        </Card>
       </div>
     );
   }
@@ -111,6 +133,11 @@ export default function PreArrivalPage() {
           </Badge>
         </div>
       </div>
+      {error && (
+        <Card className="mb-4 border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="border-0 bg-white shadow-sm lg:col-span-2">

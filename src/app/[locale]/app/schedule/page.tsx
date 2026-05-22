@@ -26,12 +26,21 @@ type ScheduleEntry = {
 
 export default function StudentSchedulePage() {
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void fetch("/api/app/portal")
-      .then((response) => response.json())
+    void fetch("/api/app/portal", { cache: "no-store" })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to load schedule");
+        }
+        return result;
+      })
       .then((result) => setSchedule(result.schedule || []))
-      .catch(console.error);
+      .catch((error) => setError(error instanceof Error ? error.message : "Failed to load schedule"))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -40,8 +49,17 @@ export default function StudentSchedulePage() {
         <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
         <p className="mt-1 text-sm text-gray-500">Weekly and daily class plan with teacher, time, yoga style, and room.</p>
       </div>
+      {error && (
+        <Card className="mb-4 border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
       <div className="grid gap-4">
-        {schedule.length === 0 ? (
+        {loading ? (
+          <Card className="border-0 bg-white shadow-sm">
+            <CardContent className="p-6 text-sm text-gray-500">Loading schedule...</CardContent>
+          </Card>
+        ) : schedule.length === 0 ? (
           <Card className="border-0 bg-white shadow-sm">
             <CardContent className="p-6 text-sm text-gray-500">Schedule unlocks after your batch timetable is published.</CardContent>
           </Card>
