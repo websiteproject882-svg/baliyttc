@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   Users, DollarSign, GraduationCap, Calendar, BookOpen, CreditCard, Tag,
   MessageCircle, Bell, Award, TrendingUp, ArrowUpRight, ArrowDownRight,
@@ -23,6 +24,8 @@ interface Stats {
 }
 
 export default function AdminOverview() {
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale || "en";
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,21 +36,12 @@ export default function AdminOverview() {
         const data = await response.json();
         setStats({
           ...data.stats,
-          revenueChange: 23,
-          enrollmentChange: 12,
+          revenueChange: data.stats?.revenueChange ?? 0,
+          enrollmentChange: data.stats?.enrollmentChange ?? 0,
         });
       } catch (err) {
         console.error("Failed to fetch stats:", err);
-        // Demo data
-        setStats({
-          totalEnrollments: 47,
-          totalStudents: 152,
-          totalRevenue: 89500,
-          upcomingBatches: 4,
-          monthlyRevenue: 24500,
-          revenueChange: 23,
-          enrollmentChange: 12,
-        });
+        setStats(null);
       } finally {
         setLoading(false);
       }
@@ -77,7 +71,7 @@ export default function AdminOverview() {
       trend: "up" as const,
       icon: Users,
       gradient: "from-blue-500 to-blue-600",
-      href: "/admin/enrollments",
+      href: `/${locale}/admin/enrollments`,
     },
     {
       label: "Monthly Revenue",
@@ -86,7 +80,7 @@ export default function AdminOverview() {
       trend: "up" as const,
       icon: DollarSign,
       gradient: "from-green-500 to-emerald-600",
-      href: "/admin/finance",
+      href: `/${locale}/admin/finance`,
     },
     {
       label: "Active Students",
@@ -94,7 +88,7 @@ export default function AdminOverview() {
       trend: "neutral" as const,
       icon: GraduationCap,
       gradient: "from-purple-500 to-purple-600",
-      href: "/admin/students",
+      href: `/${locale}/admin/students`,
     },
     {
       label: "Upcoming Batches",
@@ -102,20 +96,32 @@ export default function AdminOverview() {
       trend: "neutral" as const,
       icon: Calendar,
       gradient: "from-orange-500 to-orange-600",
-      href: "/admin/batches",
+      href: `/${locale}/admin/batches`,
     },
   ];
 
   const quickActions = [
-    { label: "New Enrollment", icon: Plus, href: "/admin/enrollments", gradient: "bg-blue-50 text-blue-600" },
-    { label: "View Students", icon: Users, href: "/admin/students", gradient: "bg-purple-50 text-purple-600" },
-    { label: "Announce", icon: Bell, href: "/admin/announcements", gradient: "bg-green-50 text-green-600" },
-    { label: "Create Coupon", icon: Tag, href: "/admin/coupons", gradient: "bg-pink-50 text-pink-600" },
-    { label: "Batches", icon: Calendar, href: "/admin/batches", gradient: "bg-orange-50 text-orange-600" },
-    { label: "Leads", icon: MessageCircle, href: "/admin/dashboard?tab=leads", gradient: "bg-cyan-50 text-cyan-600" },
-    { label: "Analytics", icon: BarChart3, href: "/admin/analytics", gradient: "bg-indigo-50 text-indigo-600" },
-    { label: "Settings", icon: Settings, href: "/admin/settings", gradient: "bg-gray-50 text-gray-600" },
+    { label: "New Enrollment", icon: Plus, href: `/${locale}/admin/enrollments`, gradient: "bg-blue-50 text-blue-600" },
+    { label: "View Students", icon: Users, href: `/${locale}/admin/students`, gradient: "bg-purple-50 text-purple-600" },
+    { label: "Announce", icon: Bell, href: `/${locale}/admin/announcements`, gradient: "bg-green-50 text-green-600" },
+    { label: "Create Coupon", icon: Tag, href: `/${locale}/admin/coupons`, gradient: "bg-pink-50 text-pink-600" },
+    { label: "Batches", icon: Calendar, href: `/${locale}/admin/batches`, gradient: "bg-orange-50 text-orange-600" },
+    { label: "Leads", icon: MessageCircle, href: `/${locale}/admin/leads`, gradient: "bg-cyan-50 text-cyan-600" },
+    { label: "Analytics", icon: BarChart3, href: `/${locale}/admin/analytics`, gradient: "bg-indigo-50 text-indigo-600" },
+    { label: "Settings", icon: Settings, href: `/${locale}/admin/settings`, gradient: "bg-gray-50 text-gray-600" },
   ];
+
+  if (!stats) {
+    return (
+      <div className="p-6">
+        <Card className="border-0 shadow-md">
+          <CardContent className="p-8 text-center text-gray-500">
+            Analytics data could not be loaded.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -128,13 +134,13 @@ export default function AdminOverview() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild className="border-gray-200">
-              <Link href="/en">
+              <Link href={`/${locale}`}>
                 <Globe className="h-4 w-4 mr-2" />
                 View Site
               </Link>
             </Button>
             <Button asChild className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
-              <Link href="/admin/announcements">
+              <Link href={`/${locale}/admin/announcements`}>
                 <Bell className="h-4 w-4 mr-2" />
                 New Announcement
               </Link>
@@ -279,7 +285,7 @@ export default function AdminOverview() {
               Recent Activity
             </CardTitle>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/audit">
+              <Link href={`/${locale}/admin/audit`}>
                 View All <ChevronRight className="h-4 w-4 ml-1" />
               </Link>
             </Button>

@@ -163,6 +163,8 @@ export async function GET(request: NextRequest) {
         totalRevenue: totalRevenueResult._sum.amount || 0,
         upcomingBatches: topBatches.length,
         monthlyRevenue: currentMonthRevenue._sum.amount || 0,
+        revenueChange: 0,
+        enrollmentChange: 0,
       },
       overview: {
         totalEnrollments,
@@ -172,8 +174,12 @@ export async function GET(request: NextRequest) {
         periodEnrollments,
         period,
       },
-      recentEnrollments,
       courses: courseStats.map((c: CourseStat) => ({
+        course: c.courseSlug,
+        count: c._count,
+        revenue: c._sum?.amount || 0,
+      })),
+      enrollmentsByCourse: courseStats.map((c: CourseStat) => ({
         course: c.courseSlug,
         count: c._count,
         revenue: c._sum?.amount || 0,
@@ -181,12 +187,33 @@ export async function GET(request: NextRequest) {
       revenueByMonth: Object.entries(monthlyRevenue)
         .map(([month, revenue]) => ({ month, revenue }))
         .reverse(),
+      enrollmentsByMonth: Object.entries(monthlyRevenue)
+        .map(([month, revenue]) => ({ month, revenue, count: 0 }))
+        .reverse(),
       enrollmentBySource: enrollmentBySource
         .filter((s: EnrollmentSource) => s.referralSource)
         .map((s: EnrollmentSource) => ({ source: s.referralSource, count: s._count })),
       enrollmentByStatus: enrollmentByStatus.map((s: EnrollmentStatus) => ({
         status: s.paymentStatus,
         count: s._count,
+      })),
+      paymentStatusBreakdown: Object.fromEntries(
+        enrollmentByStatus.map((s: EnrollmentStatus) => [s.paymentStatus, s._count]),
+      ),
+      accessLevelBreakdown: {
+        NONE: await prisma.student.count({ where: { accessLevel: "NONE" } }),
+        PRE_ARRIVAL: await prisma.student.count({ where: { accessLevel: "PRE_ARRIVAL" } }),
+        FULL: await prisma.student.count({ where: { accessLevel: "FULL" } }),
+        ALUMNI: await prisma.student.count({ where: { accessLevel: "ALUMNI" } }),
+      },
+      recentEnrollments: recentEnrollments.map((enrollment) => ({
+        id: enrollment.id,
+        name: enrollment.name,
+        email: enrollment.email,
+        course: enrollment.courseSlug,
+        amount: enrollment.amount,
+        status: enrollment.paymentStatus,
+        date: enrollment.createdAt,
       })),
       batchUtilization: batchUtilization.map((b: BatchUtilization) => ({
         name: b.name,

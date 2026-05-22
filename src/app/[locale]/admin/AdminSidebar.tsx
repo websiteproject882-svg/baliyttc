@@ -51,8 +51,8 @@ export default function AdminSidebar({ locale, user }: AdminSidebarProps) {
       items: [
         { icon: Users, label: "All Students", href: `/${locale}/admin/students` },
         { icon: GraduationCap, label: "Enrollments", href: `/${locale}/admin/enrollments` },
-        { icon: Mail, label: "Leads & Inquiries", href: `/${locale}/admin/dashboard?tab=leads`, badge: "New", badgeColor: "bg-green-500" },
-        { icon: MessageCircle, label: "Testimonials", href: `/${locale}/admin/dashboard?tab=testimonials` },
+        { icon: Mail, label: "Leads & Inquiries", href: `/${locale}/admin/leads`, badge: "New", badgeColor: "bg-green-500" },
+        { icon: MessageCircle, label: "Testimonials", href: `/${locale}/admin/testimonials` },
         { icon: Calendar, label: "Waitlist", href: `/${locale}/admin/waitlist` },
       ],
     },
