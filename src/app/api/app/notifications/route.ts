@@ -27,6 +27,21 @@ function getAllowedAudiences(accessLevel: "NONE" | "PRE_ARRIVAL" | "FULL" | "ALU
   return [];
 }
 
+function notificationWhereForStudent(student: {
+  id: string;
+  batchId: string | null;
+  accessLevel: "NONE" | "PRE_ARRIVAL" | "FULL" | "ALUMNI";
+}) {
+  return {
+    publishedAt: { not: null },
+    OR: [
+      { audience: { in: getAllowedAudiences(student.accessLevel) as ("PRE_ARRIVAL" | "FULL" | "ALUMNI" | "ALL_ACTIVE")[] } },
+      { audience: "INDIVIDUAL" as const, studentId: student.id },
+      ...(student.batchId ? [{ batchId: student.batchId }] : []),
+    ],
+  };
+}
+
 export async function GET() {
   const { student, response } = await requireStudentUser({ minimumAccess: "PRE_ARRIVAL" });
   if (!student || response) {
@@ -34,14 +49,7 @@ export async function GET() {
   }
 
   const notifications = await prisma.notification.findMany({
-    where: {
-      publishedAt: { not: null },
-      OR: [
-        { audience: { in: getAllowedAudiences(student.accessLevel) as ("PRE_ARRIVAL" | "FULL" | "ALUMNI" | "ALL_ACTIVE")[] } },
-        { audience: "INDIVIDUAL", studentId: student.id },
-        ...(student.batchId ? [{ batchId: student.batchId }] : []),
-      ],
-    },
+    where: notificationWhereForStudent(student),
     include: {
       receipts: {
         where: { studentId: student.id },
@@ -121,8 +129,11 @@ export async function PATCH(request: NextRequest) {
 
     const { notificationId } = markReadSchema.parse(body);
 
-    const existing = await prisma.notification.findUnique({
-      where: { id: notificationId },
+    const existing = await prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+        ...notificationWhereForStudent(student),
+      },
       select: { id: true },
     });
 

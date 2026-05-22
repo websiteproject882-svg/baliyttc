@@ -24,6 +24,23 @@ type AnnouncementItem = {
   }>;
 };
 
+const reactionDisplayByCode: Record<string, string> = {
+  PRAY: "\u{1F64F}",
+  LOVE: "\u2764\uFE0F",
+  LIKE: "\u{1F44D}",
+  CELEBRATE: "\u{1F389}",
+  FIRE: "\u{1F525}",
+};
+
+const getReactionCount = (counts: Record<string, number>, reaction: string) => {
+  const displayEmoji = reactionDisplayByCode[reaction];
+  const legacyEmoji = reactionCodeToEmoji[reaction];
+  return (displayEmoji ? counts[displayEmoji] || 0 : 0) + (legacyEmoji && legacyEmoji !== displayEmoji ? counts[legacyEmoji] || 0 : 0);
+};
+
+const isOwnReaction = (ownReaction: string | null, reaction: string) =>
+  ownReaction === reactionDisplayByCode[reaction] || ownReaction === reactionCodeToEmoji[reaction];
+
 const reactions = [
   { label: "🙏", value: "PRAY" },
   { label: "❤️", value: "LOVE" },
@@ -32,18 +49,32 @@ const reactions = [
   { label: "🔥", value: "FIRE" },
 ];
 
+const reactionCodeToEmoji: Record<string, string> = {
+  PRAY: "🙏",
+  LOVE: "❤️",
+  LIKE: "👍",
+  CELEBRATE: "🎉",
+  FIRE: "🔥",
+};
+
 export default function AnnouncementsPage() {
   const [items, setItems] = useState<AnnouncementItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const loadAnnouncements = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch("/api/app/announcements");
+      const response = await fetch("/api/app/announcements", { cache: "no-store" });
       const result = await response.json();
-      if (response.ok) setItems(result.announcements || []);
+      if (!response.ok) throw new Error(result.error || "Failed to load announcements");
+      setItems(result.announcements || []);
+    } catch (err) {
+      setItems([]);
+      setError(err instanceof Error ? err.message : "Failed to load announcements");
     } finally {
       setLoading(false);
     }
@@ -61,7 +92,11 @@ export default function AnnouncementsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ announcementId, emoji: reaction }),
       });
-      if (response.ok) await loadAnnouncements();
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to save reaction");
+      await loadAnnouncements();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save reaction");
     } finally {
       setSavingId(null);
     }
@@ -77,10 +112,12 @@ export default function AnnouncementsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ announcementId, content }),
       });
-      if (response.ok) {
-        setReplyDrafts((current) => ({ ...current, [announcementId]: "" }));
-        await loadAnnouncements();
-      }
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to save reply");
+      setReplyDrafts((current) => ({ ...current, [announcementId]: "" }));
+      await loadAnnouncements();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save reply");
     } finally {
       setSavingId(null);
     }
@@ -98,6 +135,10 @@ export default function AnnouncementsPage() {
           <CardContent className="flex h-48 items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
           </CardContent>
+        </Card>
+      ) : error ? (
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
         </Card>
       ) : items.length === 0 ? (
         <Card className="border-0 bg-white shadow-sm">
@@ -130,11 +171,11 @@ export default function AnnouncementsPage() {
                       key={reaction.value}
                       variant="outline"
                       size="sm"
-                      className={item.ownReaction === reaction.label ? "border-orange-300 bg-orange-50" : ""}
+                      className={isOwnReaction(item.ownReaction, reaction.value) ? "border-orange-300 bg-orange-50" : ""}
                       disabled={savingId === `${item.id}:${reaction.value}`}
                       onClick={() => react(item.id, reaction.value)}
                     >
-                      {reaction.label} {item.reactionCounts[reaction.label] || 0}
+                      {reactionDisplayByCode[reaction.value]} {getReactionCount(item.reactionCounts, reaction.value)}
                     </Button>
                   ))}
                 </div>

@@ -89,6 +89,14 @@ export async function requireStudentUser(options?: { minimumAccess?: "PRE_ARRIVA
 
   const student = await prisma.student.findUnique({
     where: { userId: user.id },
+    include: {
+      enrollments: {
+        where: { paymentStatus: { in: ["DEPOSIT_PAID", "FULL_PAID"] } },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { batchId: true },
+      },
+    },
   });
 
   if (!student) {
@@ -102,6 +110,8 @@ export async function requireStudentUser(options?: { minimumAccess?: "PRE_ARRIVA
     }
   }
 
+  const effectiveBatchId = student.batchId || student.enrollments[0]?.batchId || null;
+
   return {
     user,
     student: {
@@ -109,7 +119,7 @@ export async function requireStudentUser(options?: { minimumAccess?: "PRE_ARRIVA
       userId: student.userId,
       accessLevel: student.accessLevel,
       paymentStatus: student.paymentStatus,
-      batchId: student.batchId,
+      batchId: effectiveBatchId,
       enrolledCourse: student.enrolledCourse,
     } as CurrentStudent,
     response: null,

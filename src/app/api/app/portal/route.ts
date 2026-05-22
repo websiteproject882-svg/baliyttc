@@ -151,6 +151,12 @@ export async function GET() {
         notes: row.notes || "",
         hours: 0,
       }));
+  const derivedTotalHours =
+    courseModules.reduce((sum, module) => sum + (module.hours ?? 0), 0) || fullStudent.totalHours;
+  const derivedCompletedHours = refreshedProgress.reduce(
+    (sum, item) => (item.completed ? sum + (item.hours ?? 0) : sum),
+    0,
+  );
 
   const schedule =
     (fullStudent.accessLevel === "FULL" || fullStudent.accessLevel === "ALUMNI") && activeBatchId
@@ -235,8 +241,8 @@ export async function GET() {
       batchId: activeBatchId,
       paymentStatus: fullStudent.paymentStatus,
       accessLevel: fullStudent.accessLevel,
-      completedHours: fullStudent.completedHours,
-      totalHours: fullStudent.totalHours,
+      completedHours: derivedCompletedHours || fullStudent.completedHours,
+      totalHours: derivedTotalHours,
       phone: fullStudent.phone,
       nationality: fullStudent.nationality,
       dietaryRequirements: fullStudent.dietaryRequirements,

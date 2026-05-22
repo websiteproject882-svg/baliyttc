@@ -5,7 +5,7 @@ import {
   StickyNote, Bell, Award, MessageSquare, BookOpen, ExternalLink, Plane, LifeBuoy, Megaphone, Video
 } from "lucide-react";
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/session";
+import { getStudentSession } from "@/lib/session";
 import { PWAStatus } from "@/components/student/PWAStatus";
 
 export default async function AppLayout({
@@ -15,7 +15,7 @@ export default async function AppLayout({
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  const session = await getSession();
+  const session = await getStudentSession();
 
   if (!session?.userId) {
     redirect(`/${params.locale}/login`);

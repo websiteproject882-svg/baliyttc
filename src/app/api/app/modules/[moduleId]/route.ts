@@ -29,17 +29,34 @@ export async function PATCH(
 
     const currentStudent = await prisma.student.findUnique({
       where: { id: student.id },
-      select: { batch: { select: { courseId: true } } },
+      select: {
+        batchId: true,
+        enrollments: {
+          where: { paymentStatus: { in: ["DEPOSIT_PAID", "FULL_PAID"] } },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { batchId: true },
+        },
+      },
     });
 
-    if (!currentStudent?.batch?.courseId) {
+    const activeBatchId = currentStudent?.batchId || currentStudent?.enrollments[0]?.batchId || null;
+    const activeBatch = activeBatchId
+      ? await prisma.batch.findUnique({
+          where: { id: activeBatchId },
+          select: { courseId: true },
+        })
+      : null;
+    const courseId = activeBatch?.courseId || null;
+
+    if (!courseId) {
       return NextResponse.json({ error: "Student batch is not assigned" }, { status: 400 });
     }
 
     const module = await prisma.module.findFirst({
       where: {
         id: params.moduleId,
-        courseId: currentStudent.batch.courseId,
+        courseId,
       },
       select: {
         id: true,
@@ -103,7 +120,7 @@ export async function PATCH(
     });
 
     const modules = await prisma.module.findMany({
-      where: { courseId: currentStudent.batch.courseId },
+      where: { courseId },
       select: {
         id: true,
         hours: true,

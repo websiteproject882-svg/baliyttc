@@ -23,10 +23,31 @@ const allowedEmojiByInput: Record<string, string> = {
   "🔥": "🔥",
 };
 
+const reactionCodeToEmoji: Record<string, string> = {
+  PRAY: "🙏",
+  LOVE: "❤️",
+  LIKE: "👍",
+  CELEBRATE: "🎉",
+  FIRE: "🔥",
+  "🙏": "🙏",
+  "❤️": "❤️",
+  "👍": "👍",
+  "🎉": "🎉",
+  "🔥": "🔥",
+};
+
 const replySchema = z.object({
   announcementId: z.string().min(1),
   content: z.string().trim().min(1).max(500),
 });
+
+const reactionEmojiByCode: Record<string, string> = {
+  PRAY: "\u{1F64F}",
+  LOVE: "\u2764\uFE0F",
+  LIKE: "\u{1F44D}",
+  CELEBRATE: "\u{1F389}",
+  FIRE: "\u{1F525}",
+};
 
 function canViewAnnouncement(params: {
   announcement: { batchId: string | null; type: "GENERAL" | "BATCH" | "URGENT"; publishedAt: Date | null };
@@ -113,7 +134,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const data = reactionSchema.parse(await request.json());
-    const emoji = allowedEmojiByInput[data.emoji];
+    const emoji = reactionEmojiByCode[data.emoji] || reactionCodeToEmoji[data.emoji] || allowedEmojiByInput[data.emoji];
     if (!emoji) {
       return NextResponse.json({ error: "Unsupported reaction" }, { status: 400 });
     }
