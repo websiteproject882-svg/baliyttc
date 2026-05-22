@@ -2,6 +2,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 
 export const SITE_SETTINGS_KEY = "site_settings";
+export const PAYMENT_PROVIDERS = ["paypal", "razorpay", "bank_transfer"] as const;
 
 export const siteSettingsSchema = z.object({
   general: z.object({
@@ -23,7 +24,18 @@ export const siteSettingsSchema = z.object({
     razorpayCurrency: z.literal("INR"),
     eurToInrRate: z.number().positive().max(500),
     usdToInrRate: z.number().positive().max(500),
-    providerOrder: z.array(z.enum(["paypal", "razorpay", "bank_transfer"])).min(1),
+    providerOrder: z
+      .array(z.enum(PAYMENT_PROVIDERS))
+      .length(PAYMENT_PROVIDERS.length, "Payment provider order must include every provider once")
+      .superRefine((providers, context) => {
+        const uniqueProviders = new Set(providers);
+        if (uniqueProviders.size !== providers.length) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Payment provider order cannot contain duplicates",
+          });
+        }
+      }),
   }),
   notifications: z.object({
     emailOnEnrollment: z.boolean(),

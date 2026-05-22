@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireSameOrigin, requireSuperAdmin, writeAuditLog } from "@/lib/authz";
 import { getPaymentProviderReadiness } from "@/lib/payments/readiness";
-import { jsonWithRequestId } from "@/lib/security";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { getSiteSettings, saveSiteSettings, siteSettingsSchema } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    console.error("PATCH admin settings error:", error);
-    return NextResponse.json({ error: "Failed to save settings" }, { status: 500 });
+    logApiError("admin.settings", error, request);
+    return jsonWithRequestId({ error: "Failed to save settings" }, { status: 500 }, request);
   }
 }
