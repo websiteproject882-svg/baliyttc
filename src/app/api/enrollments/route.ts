@@ -7,6 +7,7 @@ import { sendEnrollmentConfirmation, sendAdminEnrollmentNotification } from "@/l
 import { sendEnrollmentConfirmationWhatsApp, sendWelcomeWhatsApp } from "@/lib/whatsapp";
 import { resolveEnrollmentPricing } from "@/lib/payments/enrollment-pricing";
 import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
+import { getSiteSettings } from "@/lib/site-settings";
 
 const enrollmentSchema = z.object({
   name: z.string().min(2),
@@ -128,6 +129,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const data = enrollmentSchema.parse(body);
+    const settings = await getSiteSettings();
+    const currency = settings.payments.displayCurrencyPrimary;
     const pricing = await resolveEnrollmentPricing({
       courseSlug: data.course,
       batchId: data.batchId,
@@ -184,7 +187,7 @@ export async function POST(request: NextRequest) {
         paymentType: data.paymentType,
         paymentStatus: "PENDING",
         amount: finalAmount,
-        currency: data.currency,
+        currency,
         couponCode: pricing.appliedCouponCode || data.couponCode,
         discount: pricing.discount,
         referralSource: data.referralSource,
@@ -226,7 +229,7 @@ export async function POST(request: NextRequest) {
         course: courseName,
         batch: batchName || "TBD",
         amount: finalAmount,
-        currency: data.currency,
+        currency,
         paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
       }).catch(console.error);
     } else {
