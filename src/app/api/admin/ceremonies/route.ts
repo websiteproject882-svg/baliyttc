@@ -77,6 +77,43 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PATCH(request: NextRequest) {
+  const { user, response } = await requireAdminUser();
+  if (response) return response;
+
+  try {
+    const body = await request.json();
+    const { id, name, date, batchIds } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Ceremony ID required" }, { status: 400 });
+    }
+
+    const ceremony = await prisma.scheduleEntry.update({
+      where: { id },
+      data: {
+        ...(date ? { date: new Date(date) } : {}),
+        ...(name ? { notes: name } : {}),
+        ...(batchIds !== undefined ? { batchId: batchIds?.[0] || null } : {}),
+      },
+    });
+
+    await writeAuditLog({
+      actorUserId: user!.id,
+      action: "ceremony.updated",
+      entity: "scheduleEntry",
+      entityId: ceremony.id,
+      newValue: { name, date, batchIds },
+      request,
+    });
+
+    return NextResponse.json({ success: true, ceremony });
+  } catch (error) {
+    console.error("Ceremony update error:", error);
+    return NextResponse.json({ error: "Failed to update ceremony" }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   const { user, response } = await requireAdminUser();
   if (response) return response;

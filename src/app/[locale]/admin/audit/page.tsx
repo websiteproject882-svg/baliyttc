@@ -1,32 +1,27 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  ClipboardList, Search, Filter, Download, Eye, ChevronLeft, ChevronRight,
-  User, Settings, CreditCard, Users, BookOpen, Calendar, Bell, Shield
-} from "lucide-react";
+import { ClipboardList, Search, Download, Eye, ChevronLeft, ChevronRight, User, Settings, CreditCard, Users, BookOpen, Calendar, Bell, Shield } from "lucide-react";
 
 interface AuditLogEntry {
   id: string;
   action: string;
   entity: string;
   entityId: string;
-  description: string;
+  oldValue?: unknown;
+  newValue?: unknown;
+  ipAddress?: string | null;
+  userAgent?: string | null;
   createdAt: string;
   user: {
     email: string;
     displayName: string | null;
   };
-  changes?: {
-    field: string;
-    oldValue: unknown;
-    newValue: unknown;
-  }[];
 }
 
 const actionConfig: Record<string, { color: string; icon: React.ElementType; label: string }> = {
@@ -35,9 +30,11 @@ const actionConfig: Record<string, { color: string; icon: React.ElementType; lab
   "payment.completed": { color: "bg-green-100 text-green-700", icon: CreditCard, label: "Payment Completed" },
   "payment.failed": { color: "bg-red-100 text-red-700", icon: CreditCard, label: "Payment Failed" },
   "student.access_granted": { color: "bg-green-100 text-green-700", icon: Shield, label: "Access Granted" },
+  "student.access_updated": { color: "bg-green-100 text-green-700", icon: Shield, label: "Access Updated" },
   "student.created": { color: "bg-blue-100 text-blue-700", icon: Users, label: "Student Created" },
   "batch.created": { color: "bg-purple-100 text-purple-700", icon: Calendar, label: "Batch Created" },
-  "announcement.sent": { color: "bg-amber-100 text-amber-700", icon: Bell, label: "Announcement Sent" },
+  "announcement.created": { color: "bg-amber-100 text-amber-700", icon: Bell, label: "Announcement Created" },
+  "notification.created": { color: "bg-amber-100 text-amber-700", icon: Bell, label: "Notification Created" },
   "user.login": { color: "bg-gray-100 text-gray-700", icon: User, label: "User Login" },
   "staff.created": { color: "bg-blue-100 text-blue-700", icon: Shield, label: "Staff Added" },
   "settings.updated": { color: "bg-amber-100 text-amber-700", icon: Settings, label: "Settings Updated" },
@@ -46,6 +43,7 @@ const actionConfig: Record<string, { color: string; icon: React.ElementType; lab
 export default function AuditLogPage() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterEntity, setFilterEntity] = useState("all");
   const [page, setPage] = useState(1);
@@ -55,21 +53,18 @@ export default function AuditLogPage() {
   useEffect(() => {
     const fetchLogs = async () => {
       setLoading(true);
+      setError(null);
       try {
         const response = await fetch("/api/admin/audit");
         const data = await response.json();
-        setLogs(data.logs || []);
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to fetch audit logs");
+        }
+        setLogs(Array.isArray(data.logs) ? data.logs : []);
       } catch (err) {
         console.error("Failed to fetch audit logs:", err);
-        // Demo data
-        const demoLogs: AuditLogEntry[] = [
-          { id: "1", action: "enrollment.created", entity: "enrollment", entityId: "enr-001", description: "New enrollment created for Sarah Johnson", createdAt: new Date().toISOString(), user: { email: "admin@baliyttc.com", displayName: "Admin User" } },
-          { id: "2", action: "payment.completed", entity: "payment", entityId: "pay-001", description: "Payment of $1499 completed", createdAt: new Date(Date.now() - 3600000).toISOString(), user: { email: "admin@baliyttc.com", displayName: "Admin User" } },
-          { id: "3", action: "student.access_granted", entity: "student", entityId: "std-001", description: "Full access granted to Emma Wilson", createdAt: new Date(Date.now() - 7200000).toISOString(), user: { email: "admin@baliyttc.com", displayName: "Admin User" } },
-          { id: "4", action: "batch.created", entity: "batch", entityId: "batch-001", description: "New batch created: Sep 2026 Batch", createdAt: new Date(Date.now() - 86400000).toISOString(), user: { email: "admin@baliyttc.com", displayName: "Admin User" } },
-          { id: "5", action: "announcement.sent", entity: "announcement", entityId: "ann-001", description: "Welcome announcement sent to all students", createdAt: new Date(Date.now() - 172800000).toISOString(), user: { email: "admin@baliyttc.com", displayName: "Admin User" } },
-        ];
-        setLogs(demoLogs);
+        setLogs([]);
+        setError(err instanceof Error ? err.message : "Failed to fetch audit logs");
       } finally {
         setLoading(false);
       }
@@ -77,26 +72,27 @@ export default function AuditLogPage() {
     void fetchLogs();
   }, []);
 
-  const filteredLogs = logs.filter(log => {
-    const matchSearch = !search ||
-      log.description.toLowerCase().includes(search.toLowerCase()) ||
-      log.user.email.toLowerCase().includes(search.toLowerCase());
+  const filteredLogs = logs.filter((log) => {
+    const description = `${log.action} ${log.entity} ${log.entityId}`;
+    const matchSearch = !search || description.toLowerCase().includes(search.toLowerCase()) || log.user.email.toLowerCase().includes(search.toLowerCase());
     const matchEntity = filterEntity === "all" || log.entity === filterEntity;
     return matchSearch && matchEntity;
   });
 
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
   const paginatedLogs = filteredLogs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-
-  const entities = Array.from(new Set(logs.map(l => l.entity)));
+  const entities = Array.from(new Set(logs.map((log) => log.entity)));
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleString("en-US", {
-      month: "short", day: "numeric", year: "numeric",
-      hour: "numeric", minute: "2-digit"
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
     });
 
-  if (loading) {
+  if (loading && logs.length === 0) {
     return (
       <div className="p-6 space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -121,7 +117,12 @@ export default function AuditLogPage() {
       </div>
 
       <div className="p-6 space-y-6">
-        {/* Stats */}
+        {error && (
+          <Card className="border border-red-200 bg-red-50 shadow-sm">
+            <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
@@ -131,31 +132,24 @@ export default function AuditLogPage() {
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-blue-600">
-                {logs.filter(l => l.action.includes("created") || l.action.includes("updated")).length}
-              </p>
+              <p className="text-3xl font-bold text-blue-600">{logs.filter((log) => log.action.includes("created") || log.action.includes("updated")).length}</p>
               <p className="text-sm text-gray-500">Edits</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-green-600">
-                {logs.filter(l => l.action.includes("payment")).length}
-              </p>
+              <p className="text-3xl font-bold text-green-600">{logs.filter((log) => log.action.includes("payment")).length}</p>
               <p className="text-sm text-gray-500">Payments</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-purple-600">
-                {logs.filter(l => l.action.includes("access")).length}
-              </p>
+              <p className="text-3xl font-bold text-purple-600">{logs.filter((log) => log.action.includes("access")).length}</p>
               <p className="text-sm text-gray-500">Access Changes</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <div className="flex flex-wrap gap-4">
@@ -165,7 +159,10 @@ export default function AuditLogPage() {
                   <Input
                     placeholder="Search logs..."
                     value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
                     className="pl-10"
                   />
                 </div>
@@ -173,18 +170,22 @@ export default function AuditLogPage() {
               <select
                 className="rounded-lg border px-3 py-2 text-sm"
                 value={filterEntity}
-                onChange={(e) => { setFilterEntity(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setFilterEntity(e.target.value);
+                  setPage(1);
+                }}
               >
                 <option value="all">All Entities</option>
-                {entities.map(entity => (
-                  <option key={entity} value={entity}>{entity.charAt(0).toUpperCase() + entity.slice(1)}</option>
+                {entities.map((entity) => (
+                  <option key={entity} value={entity}>
+                    {entity.charAt(0).toUpperCase() + entity.slice(1)}
+                  </option>
                 ))}
               </select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Logs Table */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-0">
             {paginatedLogs.length === 0 ? (
@@ -208,7 +209,6 @@ export default function AuditLogPage() {
                       {paginatedLogs.map((log) => {
                         const config = actionConfig[log.action] || { color: "bg-gray-100 text-gray-700", icon: ClipboardList, label: log.action };
                         const Icon = config.icon;
-
                         return (
                           <tr key={log.id} className="border-b hover:bg-gray-50 transition-colors">
                             <td className="py-4 px-4">
@@ -218,7 +218,7 @@ export default function AuditLogPage() {
                                 </div>
                                 <div>
                                   <p className="text-sm font-medium text-gray-900">{config.label}</p>
-                                  <p className="text-xs text-gray-500">{log.description}</p>
+                                  <p className="text-xs text-gray-500">{log.entity} / {log.entityId}</p>
                                 </div>
                               </div>
                             </td>
@@ -248,30 +248,17 @@ export default function AuditLogPage() {
                   </table>
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between p-4 border-t">
                     <p className="text-sm text-gray-500">
                       Showing {(page - 1) * itemsPerPage + 1} to {Math.min(page * itemsPerPage, filteredLogs.length)} of {filteredLogs.length}
                     </p>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1}>
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
-                      <span className="text-sm text-gray-600 px-2">
-                        Page {page} of {totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                        disabled={page === totalPages}
-                      >
+                      <span className="text-sm text-gray-600 px-2">Page {page} of {totalPages}</span>
+                      <Button variant="outline" size="sm" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages}>
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -283,7 +270,6 @@ export default function AuditLogPage() {
         </Card>
       </div>
 
-      {/* Detail Dialog */}
       <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -311,13 +297,21 @@ export default function AuditLogPage() {
               </div>
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-xs text-gray-500">User</p>
-                <p className="text-sm font-medium">{selectedLog.user.displayName}</p>
+                <p className="text-sm font-medium">{selectedLog.user.displayName || "System"}</p>
                 <p className="text-xs text-gray-500">{selectedLog.user.email}</p>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-500 mb-2">Description</p>
-                <p className="text-sm">{selectedLog.description}</p>
-              </div>
+              {selectedLog.oldValue !== undefined && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-2">Old Value</p>
+                  <pre className="text-xs whitespace-pre-wrap break-all">{JSON.stringify(selectedLog.oldValue, null, 2)}</pre>
+                </div>
+              )}
+              {selectedLog.newValue !== undefined && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-2">New Value</p>
+                  <pre className="text-xs whitespace-pre-wrap break-all">{JSON.stringify(selectedLog.newValue, null, 2)}</pre>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
