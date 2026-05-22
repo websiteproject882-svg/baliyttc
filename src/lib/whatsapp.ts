@@ -45,13 +45,15 @@ function formatPhoneNumber(phone: string): string {
 }
 
 export async function sendWhatsAppMessage(message: WhatsAppMessage): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  // Demo mode if not configured
   if (!isWhatsAppConfigured()) {
-    console.log("[WhatsApp Demo] Would send:", {
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, error: "WhatsApp provider is not configured" };
+    }
+    console.log("[WhatsApp Dev] Would send:", {
       to: message.to,
       template: message.template,
     });
-    return { success: true, messageId: "demo_" + Date.now() };
+    return { success: true, messageId: "dev_" + Date.now() };
   }
 
   try {

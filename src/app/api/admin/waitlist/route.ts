@@ -51,6 +51,12 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updateData: Record<string, unknown> = { status: data.status };
+    if (data.notes !== undefined) {
+      updateData.notes = data.notes;
+    }
+    if (data.status === "NOTIFIED") {
+      updateData.notifiedAt = new Date();
+    }
     if (data.status === "CONVERTED") {
       updateData.convertedAt = new Date();
     }

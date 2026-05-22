@@ -20,8 +20,11 @@ interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions) {
   if (!isEmailConfigured()) {
-    console.log("[Email Demo] Would send email:", options.subject);
-    console.log("[Email Demo] To:", options.to);
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, error: "RESEND_API_KEY is not configured" };
+    }
+    console.log("[Email Dev] Would send email:", options.subject);
+    console.log("[Email Dev] To:", options.to);
     return { success: true, demo: true };
   }
 

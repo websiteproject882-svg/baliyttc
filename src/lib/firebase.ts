@@ -38,7 +38,10 @@ if (typeof window !== "undefined" && isFirebaseConfigured()) {
   auth = getAuth(app);
 }
 
-// Demo users for testing (only used when Firebase is not configured)
+const canUseLocalAuthFallback = () =>
+  process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
+
+// Test users for the explicit /api/auth/test-login flow.
 export const TEST_USERS = [
   { email: "admin@baliyttc.com", password: "admin123", role: "SUPER_ADMIN", name: "Admin User" },
   { email: "student@test.com", password: "student123", role: "STUDENT", name: "Test Student" },
@@ -62,7 +65,7 @@ export interface LoginResult {
 
 // Auth functions
 export async function loginWithEmail(email: string, password: string) {
-  // Demo mode - create a real server session through the test-login route.
+  // No Firebase configured: use the explicit test-login route to create a server session.
   if (!isFirebaseConfigured()) {
     const response = await fetch("/api/auth/test-login", {
       method: "POST",
@@ -155,8 +158,10 @@ export async function verifyTwoFactorLogin(challengeToken: string, code: string)
 }
 
 export async function registerWithEmail(email: string, password: string, name: string) {
-  // Demo mode
   if (!isFirebaseConfigured()) {
+    if (!canUseLocalAuthFallback()) {
+      throw new Error("Firebase auth is not configured");
+    }
     await new Promise((resolve) => setTimeout(resolve, 500));
     return {
       user: {
@@ -175,20 +180,16 @@ export async function registerWithEmail(email: string, password: string, name: s
 }
 
 export async function logout() {
-  if (!isFirebaseConfigured()) {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return;
+  if (auth) {
+    await signOut(auth);
   }
 
-  if (!auth) throw new Error("Auth not initialized");
-  await signOut(auth);
   await fetch("/api/auth/logout", { method: "POST" });
 }
 
 export function onAuthChange(callback: (user: User | null) => void) {
   if (!auth) {
-    // Demo mode - check localStorage
-    if (typeof window !== "undefined") {
+    if (canUseLocalAuthFallback() && typeof window !== "undefined") {
       const stored = localStorage.getItem("baliyttc_user");
       if (stored) {
         callback(JSON.parse(stored).user);
@@ -201,15 +202,15 @@ export function onAuthChange(callback: (user: User | null) => void) {
   return onAuthStateChanged(auth, callback);
 }
 
-// Demo auth helpers
+// Local auth helpers are development-only. Production auth must come from a server session.
 export function setDemoUser(user: { uid: string; email: string; displayName: string }, role: string) {
-  if (typeof window !== "undefined") {
+  if (canUseLocalAuthFallback() && typeof window !== "undefined") {
     localStorage.setItem("baliyttc_user", JSON.stringify({ user, role }));
   }
 }
 
 export function getDemoUser() {
-  if (typeof window !== "undefined") {
+  if (canUseLocalAuthFallback() && typeof window !== "undefined") {
     const stored = localStorage.getItem("baliyttc_user");
     if (stored) {
       return JSON.parse(stored);

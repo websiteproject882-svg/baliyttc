@@ -1,7 +1,7 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { applySecurityHeaders } from '@/lib/security';
-import { decrypt } from '@/lib/session';
+import { verifySessionToken } from '@/lib/session-edge';
 import { defaultLocale, locales } from '@/i18n/routing';
 
 const intlMiddleware = createMiddleware({
@@ -41,7 +41,7 @@ async function requireSession(
     return redirectToLogin(request, locale, authType === 'student' ? undefined : authType);
   }
 
-  const decrypted = await decrypt(session);
+  const decrypted = await verifySessionToken(session);
   if (!decrypted || decrypted.authType !== authType) {
     return redirectToLogin(request, locale, authType === 'student' ? undefined : authType);
   }

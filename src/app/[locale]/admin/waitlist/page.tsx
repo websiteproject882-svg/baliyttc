@@ -50,29 +50,46 @@ export default function WaitlistPage() {
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<WaitlistEntry | null>(null);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [waitlistRes, coursesRes] = await Promise.all([
+        fetch("/api/admin/waitlist"),
+        fetch("/api/admin/courses"),
+      ]);
+      const [waitlistData, coursesData] = await Promise.all([
+        waitlistRes.json(),
+        coursesRes.json(),
+      ]);
+      if (!waitlistRes.ok) throw new Error(waitlistData.error || "Failed to fetch waitlist");
+      if (!coursesRes.ok) throw new Error(coursesData.error || "Failed to fetch courses");
+      setWaitlist(waitlistData.waitlist || []);
+      setCourses(coursesData.courses || []);
+    } catch (err) {
+      console.error("Failed to fetch waitlist:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch waitlist");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [waitlistRes, coursesRes] = await Promise.all([
-          fetch("/api/admin/waitlist"),
-          fetch("/api/admin/courses"),
-        ]);
-        const [waitlistData, coursesData] = await Promise.all([
-          waitlistRes.json(),
-          coursesRes.json(),
-        ]);
-        setWaitlist(waitlistData.waitlist || []);
-        setCourses(coursesData.courses || []);
-      } catch (err) {
-        console.error("Failed to fetch waitlist:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     void fetchData();
   }, []);
+
+  const updateStatus = async (entry: WaitlistEntry, status: WaitlistEntry["status"]) => {
+    const response = await fetch("/api/admin/waitlist", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: entry.id, status }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to update waitlist entry");
+    await fetchData();
+  };
 
   const handleNotify = (entry: WaitlistEntry) => {
     setSelectedEntry(entry);
@@ -82,13 +99,13 @@ export default function WaitlistPage() {
   const sendNotification = async () => {
     if (!selectedEntry) return;
     setSending(true);
+    setError(null);
     try {
-      // In production, this would call the communication API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setWaitlist(waitlist.map(w =>
-        w.id === selectedEntry.id ? { ...w, status: "NOTIFIED" as const, notifiedAt: new Date().toISOString() } : w
-      ));
+      await updateStatus(selectedEntry, "NOTIFIED");
       setNotifyDialogOpen(false);
+    } catch (err) {
+      console.error("Failed to notify waitlist entry:", err);
+      setError(err instanceof Error ? err.message : "Failed to notify waitlist entry");
     } finally {
       setSending(false);
     }
@@ -96,16 +113,24 @@ export default function WaitlistPage() {
 
   const handleConvert = async (entry: WaitlistEntry) => {
     if (!confirm(`Convert ${entry.name} to enrollment?`)) return;
-    setWaitlist(waitlist.map(w =>
-      w.id === entry.id ? { ...w, status: "CONVERTED" as const, convertedAt: new Date().toISOString() } : w
-    ));
+    setError(null);
+    try {
+      await updateStatus(entry, "CONVERTED");
+    } catch (err) {
+      console.error("Failed to convert waitlist entry:", err);
+      setError(err instanceof Error ? err.message : "Failed to convert waitlist entry");
+    }
   };
 
   const handleDecline = async (entry: WaitlistEntry) => {
     if (!confirm(`Decline ${entry.name}'s waitlist application?`)) return;
-    setWaitlist(waitlist.map(w =>
-      w.id === entry.id ? { ...w, status: "DECLINED" as const } : w
-    ));
+    setError(null);
+    try {
+      await updateStatus(entry, "DECLINED");
+    } catch (err) {
+      console.error("Failed to decline waitlist entry:", err);
+      setError(err instanceof Error ? err.message : "Failed to decline waitlist entry");
+    }
   };
 
   const filteredWaitlist = waitlist.filter(w => {
@@ -149,6 +174,12 @@ export default function WaitlistPage() {
           {waitlist.length} total entries
         </Badge>
       </div>
+
+      {error && (
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

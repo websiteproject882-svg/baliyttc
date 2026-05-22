@@ -31,6 +31,7 @@ export default function SocialProofPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStats();
@@ -38,14 +39,19 @@ export default function SocialProofPage() {
 
   const fetchStats = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch("/api/admin/social-proof");
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch stats");
+      }
       if (data.stats) {
         setStats(data.stats);
       }
     } catch (err) {
       console.error("Failed to fetch stats:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch stats");
     } finally {
       setLoading(false);
     }
@@ -53,11 +59,23 @@ export default function SocialProofPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    setError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // In production, save to database
+      const response = await fetch("/api/admin/social-proof", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(stats),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save stats");
+      }
+      if (data.stats) setStats(data.stats);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save stats:", err);
+      setError(err instanceof Error ? err.message : "Failed to save stats");
     } finally {
       setSaving(false);
     }
@@ -91,7 +109,7 @@ export default function SocialProofPage() {
           <Button onClick={() => void handleSave()} disabled={saving}>
             {saving ? (
               <span className="flex items-center gap-2">
-                <span className="animate-spin">⟳</span> Saving...
+                <span className="animate-spin">...</span> Saving...
               </span>
             ) : saved ? (
               <span className="flex items-center gap-2 text-green-600">
@@ -108,6 +126,12 @@ export default function SocialProofPage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {error && (
+          <Card className="border border-red-200 bg-red-50 shadow-sm">
+            <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+          </Card>
+        )}
+
         {/* Preview Card */}
         <Card className="border-0 shadow-sm bg-gradient-to-r from-orange-500 to-amber-500 text-white">
           <CardContent className="p-8">
@@ -199,7 +223,7 @@ export default function SocialProofPage() {
                 onChange={(e) => setStats({ ...stats, averageRating: parseFloat(e.target.value) || 0 })}
                 className="text-2xl font-bold"
               />
-              <p className="text-xs text-gray-500 mt-2">Display format: 4.9 ⭐</p>
+              <p className="text-xs text-gray-500 mt-2">Display format: 4.9 stars</p>
             </CardContent>
           </Card>
 

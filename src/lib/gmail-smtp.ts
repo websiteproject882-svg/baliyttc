@@ -39,8 +39,11 @@ export const isGmailConfigured = () => {
 
 export async function sendGmailEmail(options: SendEmailOptions): Promise<{ success: boolean; error?: string; demo?: boolean }> {
   if (!isGmailConfigured()) {
-    console.log("[Gmail Demo] Would send email:", options.subject);
-    console.log("[Gmail Demo] To:", options.to);
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, error: "Gmail SMTP is not configured" };
+    }
+    console.log("[Gmail Dev] Would send email:", options.subject);
+    console.log("[Gmail Dev] To:", options.to);
     return { success: true, demo: true };
   }
 
