@@ -59,13 +59,15 @@ export default async function middleware(request: NextRequest) {
   }
 
   const { locale, pathWithoutLocale } = getLocalizedPath(request.nextUrl.pathname);
+  const isAdminLogin = pathWithoutLocale === '/admin/login';
+  const isStaffLogin = pathWithoutLocale === '/staff/login';
 
-  if (pathWithoutLocale.startsWith('/admin')) {
+  if (pathWithoutLocale.startsWith('/admin') && !isAdminLogin) {
     const response = await requireSession(request, 'admin_session', 'admin', locale);
     if (response) return applySecurityHeaders(response);
   }
 
-  if (pathWithoutLocale.startsWith('/staff')) {
+  if (pathWithoutLocale.startsWith('/staff') && !isStaffLogin) {
     const response = await requireSession(request, 'staff_session', 'staff', locale);
     if (response) return applySecurityHeaders(response);
   }
