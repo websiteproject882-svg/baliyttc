@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 
 // Note: Ceremonies are stored in the ScheduleEntry table with ceremonyBlocked flag
 // This API manages ceremony dates which block class in student schedules
+
+const ceremonySchema = z.object({
+  name: z.string().min(1).max(160),
+  date: z.string().datetime(),
+  description: z.string().max(1000).optional(),
+  type: z.string().max(80).optional(),
+  noClass: z.boolean().default(true),
+  batchIds: z.array(z.string().min(1)).min(1),
+});
+
+const ceremonyUpdateSchema = ceremonySchema.partial().extend({
+  id: z.string().min(1),
+  batchIds: z.array(z.string().min(1)).min(1).optional(),
+});
 
 export async function GET() {
   try {
@@ -39,18 +55,17 @@ export async function POST(request: NextRequest) {
   if (response) return response;
 
   try {
-    const body = await request.json();
-    const { name, date, description, type, noClass, batchIds } = body;
+    const { name, date, description, type, noClass, batchIds } = ceremonySchema.parse(await request.json());
 
     // Create a schedule entry for the ceremony
     const ceremony = await prisma.scheduleEntry.create({
       data: {
         date: new Date(date),
         dayNumber: 0, // Special day
-        activities: JSON.stringify([]),
+        activities: [] as Prisma.InputJsonValue,
         ceremonyBlocked: true,
         notes: name,
-        batchId: batchIds?.[0] || null,
+        batchId: batchIds[0],
       },
     });
 
@@ -75,6 +90,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("Ceremony create error:", error);
     return NextResponse.json({ error: "Failed to create ceremony" }, { status: 500 });
   }
@@ -88,20 +106,15 @@ export async function PATCH(request: NextRequest) {
   if (response) return response;
 
   try {
-    const body = await request.json();
-    const { id, name, date, batchIds } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "Ceremony ID required" }, { status: 400 });
-    }
+    const { id, name, date, batchIds } = ceremonyUpdateSchema.parse(await request.json());
+    const updateData: Prisma.ScheduleEntryUncheckedUpdateInput = {};
+    if (date) updateData.date = new Date(date);
+    if (name) updateData.notes = name;
+    if (batchIds !== undefined) updateData.batchId = batchIds[0];
 
     const ceremony = await prisma.scheduleEntry.update({
       where: { id },
-      data: {
-        ...(date ? { date: new Date(date) } : {}),
-        ...(name ? { notes: name } : {}),
-        ...(batchIds !== undefined ? { batchId: batchIds?.[0] || null } : {}),
-      },
+      data: updateData,
     });
 
     await writeAuditLog({
@@ -115,6 +128,9 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, ceremony });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("Ceremony update error:", error);
     return NextResponse.json({ error: "Failed to update ceremony" }, { status: 500 });
   }
