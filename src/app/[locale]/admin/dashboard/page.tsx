@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -323,12 +323,7 @@ export default function AdminDashboard() {
     isActive: true,
   });
 
-  // Fetch data on mount
-  useEffect(() => {
-    fetchData();
-  }, [auditFilters.action, auditFilters.actor, auditFilters.entity]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -393,7 +388,12 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [auditFilters.action, auditFilters.actor, auditFilters.entity]);
+
+  // Fetch data on mount and when audit filters change.
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const filteredEnrollments = enrollments.filter(e =>
     e.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -2324,7 +2324,9 @@ export default function AdminDashboard() {
                   <label className="text-sm font-medium text-gray-700">WhatsApp Number</label>
                   <Input defaultValue="6281999333327" className="mt-1" />
                 </div>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white">Save Changes</Button>
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white" asChild>
+                  <a href="settings">Open Full Settings</a>
+                </Button>
               </CardContent>
             </Card>
           </div>

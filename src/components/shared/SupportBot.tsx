@@ -187,7 +187,7 @@ export default function SupportBot() {
         content: response.greeting,
       }]);
     }
-  }, [isOpen, lang]);
+  }, [isOpen, lang, messages.length]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

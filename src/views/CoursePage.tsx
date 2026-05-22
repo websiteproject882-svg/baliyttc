@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -745,13 +745,7 @@ const CoursePage = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (slug) {
-      fetchCourse();
-    }
-  }, [slug]);
-
-  const fetchCourse = async () => {
+  const fetchCourse = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/courses?slug=${slug}&locale=${params?.locale || "en"}`);
@@ -767,7 +761,13 @@ const CoursePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params?.locale, router, slug]);
+
+  useEffect(() => {
+    if (slug) {
+      void fetchCourse();
+    }
+  }, [fetchCourse, slug]);
 
   if (loading) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Loader2, Save, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,7 @@ export default function StudentNotesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const saveNotes = async (value = notes) => {
+  const saveNotes = useCallback(async (value = notes) => {
     setSaving(true);
     try {
       await fetch("/api/app/notes", {
@@ -37,7 +37,7 @@ export default function StudentNotesPage() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [notes]);
 
   useEffect(() => {
     if (loading || notes === loadedNotes) return;
@@ -45,7 +45,7 @@ export default function StudentNotesPage() {
       void saveNotes(notes);
     }, 900);
     return () => window.clearTimeout(timer);
-  }, [loading, loadedNotes, notes]);
+  }, [loading, loadedNotes, notes, saveNotes]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">

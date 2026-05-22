@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -202,14 +202,7 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
     referralSource: "",
   });
 
-  useEffect(() => {
-    if (open) {
-      fetchCourses();
-      fetchPaymentStatus();
-    }
-  }, [open]);
-
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     setLoadingBatches(true);
     try {
       const res = await fetch("/api/courses?includeBatches=true");
@@ -220,9 +213,9 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
     } finally {
       setLoadingBatches(false);
     }
-  };
+  }, []);
 
-  const fetchPaymentStatus = async () => {
+  const fetchPaymentStatus = useCallback(async () => {
     try {
       const response = await fetch("/api/payments/status");
       const result = await response.json();
@@ -245,7 +238,14 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
       console.error("Failed to fetch payment provider status:", error);
       setData((current) => ({ ...current, paymentProvider: "BANK_TRANSFER" }));
     }
-  };
+  }, [data.paymentProvider]);
+
+  useEffect(() => {
+    if (open) {
+      fetchCourses();
+      fetchPaymentStatus();
+    }
+  }, [fetchCourses, fetchPaymentStatus, open]);
 
   const selectedCourse = courses.find((c) => c.slug === data.course);
   const selectedBatch = selectedCourse?.batches.find((b) => b.id === data.batchId);

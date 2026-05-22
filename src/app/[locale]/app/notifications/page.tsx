@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Bell, CheckCircle2, Loader2, Mail, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,23 +25,23 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    void loadNotifications();
-  }, []);
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch("/api/app/notifications");
       const result = await response.json();
       if (response.ok) {
         setItems(result.notifications || []);
-        setPreferences(result.preferences || preferences);
+        setPreferences((current) => result.preferences || current);
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void loadNotifications();
+  }, [loadNotifications]);
 
   const updatePreference = async (key: "emailNotificationsEnabled" | "browserPushEnabled", value: boolean) => {
     setPreferences((current) => ({ ...current, [key]: value }));
