@@ -17,6 +17,9 @@ const galleryImageUpdateSchema = galleryImageSchema.partial().extend({
 });
 
 export async function GET() {
+  const { response } = await requireAdminUser();
+  if (response) return response;
+
   try {
     const images = await prisma.galleryImage.findMany({
       orderBy: { order: "asc" },

@@ -22,6 +22,9 @@ const ceremonyUpdateSchema = ceremonySchema.partial().extend({
 });
 
 export async function GET() {
+  const { response } = await requireAdminUser();
+  if (response) return response;
+
   try {
     // Get ceremonies from schedule entries
     const ceremonies = await prisma.scheduleEntry.findMany({

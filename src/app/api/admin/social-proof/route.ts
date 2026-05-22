@@ -16,6 +16,9 @@ const socialProofSchema = z.object({
 });
 
 export async function GET() {
+  const { response } = await requireAdminUser();
+  if (response) return response;
+
   try {
     const [
       totalGraduates,
