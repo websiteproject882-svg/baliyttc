@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
@@ -6,6 +6,7 @@ import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz
 import { markPaymentComplete, statusForPaymentType } from "@/lib/payments/complete";
 import { refundPayPalCapture } from "@/lib/payments/paypal";
 import { refundRazorpayPayment } from "@/lib/payments/razorpay-refunds";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export async function PATCH(
     });
 
     if (!payment) {
-      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Payment not found" }, { status: 404 }, request);
     }
 
     if (data.action === "mark_paid") {
@@ -60,7 +61,7 @@ export async function PATCH(
         request,
       });
 
-      return NextResponse.json({ success: true });
+      return jsonWithRequestId({ success: true }, undefined, request);
     }
 
     if (data.action === "mark_failed") {
@@ -93,7 +94,7 @@ export async function PATCH(
         request,
       });
 
-      return NextResponse.json({ success: true });
+      return jsonWithRequestId({ success: true }, undefined, request);
     }
 
     const refundAmount = data.amount || payment.amount;
@@ -101,7 +102,7 @@ export async function PATCH(
 
     if (payment.method === "RAZORPAY") {
       if (!payment.razorpayPaymentId) {
-        return NextResponse.json({ error: "Missing Razorpay payment id" }, { status: 400 });
+        return jsonWithRequestId({ error: "Missing Razorpay payment id" }, { status: 400 }, request);
       }
       providerRefund = await refundRazorpayPayment({
         paymentId: payment.razorpayPaymentId,
@@ -112,7 +113,7 @@ export async function PATCH(
 
     if (payment.method === "PAYPAL") {
       if (!payment.paypalCaptureId) {
-        return NextResponse.json({ error: "Missing PayPal capture id" }, { status: 400 });
+        return jsonWithRequestId({ error: "Missing PayPal capture id" }, { status: 400 }, request);
       }
       providerRefund = await refundPayPalCapture({
         captureId: payment.paypalCaptureId,
@@ -154,13 +155,13 @@ export async function PATCH(
       request,
     });
 
-    return NextResponse.json({ success: true, providerRefund });
+    return jsonWithRequestId({ success: true, providerRefund }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
 
-    console.error("Admin payment action error:", error);
-    return NextResponse.json({ error: "Payment action failed" }, { status: 500 });
+    logApiError("admin.payments.action", error, request, { paymentId: params.paymentId });
+    return jsonWithRequestId({ error: "Payment action failed" }, { status: 500 }, request);
   }
 }
