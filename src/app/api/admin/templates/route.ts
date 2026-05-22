@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, writeAuditLog } from "@/lib/authz";
+import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 
 // Email templates are stored in the database for admin editing
 // This API provides CRUD operations for templates
 
+const templateSchema = z.object({
+  id: z.string().min(1).optional(),
+  name: z.string().min(1).max(160),
+  subject: z.string().min(1).max(240),
+  content: z.string().max(50000),
+});
+
 export async function GET() {
+  const { response } = await requireAdminUser();
+  if (response) return response;
+
   try {
     // Get templates from blog posts with template type
     const templates = await prisma.blogPost.findMany({
@@ -56,12 +67,14 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   const { user, response } = await requireAdminUser();
   if (response) return response;
 
   try {
-    const body = await request.json();
-    const { id, name, subject, content } = body;
+    const { id, name, subject, content } = templateSchema.parse(await request.json());
 
     const template = await prisma.blogPost.upsert({
       where: { id: id || `template_${Date.now()}` },
@@ -104,6 +117,9 @@ export async function PUT(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("Template update error:", error);
     return NextResponse.json({ error: "Failed to update template" }, { status: 500 });
   }

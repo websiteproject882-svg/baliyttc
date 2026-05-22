@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+
+const galleryImageSchema = z.object({
+  url: z.string().url(),
+  alt: z.string().max(300).optional(),
+  caption: z.string().max(500).nullable().optional(),
+  type: z.enum(["PROFESSIONAL", "STUDENT"]).default("PROFESSIONAL"),
+  status: z.enum(["PENDING", "APPROVED", "REJECTED", "ACTIVE"]).default("ACTIVE"),
+});
+
+const galleryImageUpdateSchema = galleryImageSchema.partial().extend({
+  id: z.string().min(1),
+  order: z.number().int().min(0).optional(),
+});
 
 export async function GET() {
   try {
@@ -22,16 +36,15 @@ export async function POST(request: NextRequest) {
   if (response) return response;
 
   try {
-    const body = await request.json();
-    const { url, alt, caption, type, featured, status } = body;
+    const { url, alt, caption, type, status } = galleryImageSchema.parse(await request.json());
 
     const image = await prisma.galleryImage.create({
       data: {
         url,
         alt: alt || url,
         caption,
-        type: (type as "PROFESSIONAL" | "STUDENT") || "PROFESSIONAL",
-        status: (status as "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE") || "ACTIVE",
+        type,
+        status,
       },
     });
 
@@ -46,6 +59,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ image });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("Gallery create error:", error);
     return NextResponse.json({ error: "Failed to create gallery image" }, { status: 500 });
   }
@@ -59,8 +75,7 @@ export async function PATCH(request: NextRequest) {
   if (response) return response;
 
   try {
-    const body = await request.json();
-    const { id, url, alt, caption, type, status, order } = body;
+    const { id, url, alt, caption, type, status, order } = galleryImageUpdateSchema.parse(await request.json());
 
     const updateData: Record<string, unknown> = {};
     if (url !== undefined) updateData.url = url;
@@ -86,6 +101,9 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ image });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
     console.error("Gallery update error:", error);
     return NextResponse.json({ error: "Failed to update gallery image" }, { status: 500 });
   }
