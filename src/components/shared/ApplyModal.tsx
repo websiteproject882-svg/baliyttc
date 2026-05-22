@@ -25,6 +25,7 @@ interface Batch {
   endDate: string;
   priceRegular: number;
   priceEarlyBird?: number;
+  earlyBirdDeadline?: string | null;
   enrolled: number;
   capacity: number;
   accommodation: { type: string; price: number; mandatory: boolean }[];
@@ -93,6 +94,14 @@ const accommodationOptions = [
   { value: "SHARED", label: "Shared Twin Room", desc: "Included in course fee", icon: Users, price: 0 },
   { value: "PRIVATE", label: "Private Room", desc: "Private room upgrade", icon: Home, price: 400 },
 ];
+
+function isEarlyBirdActive(batch?: Batch) {
+  return Boolean(
+    batch?.priceEarlyBird &&
+      batch.earlyBirdDeadline &&
+      new Date(batch.earlyBirdDeadline) > new Date(),
+  );
+}
 
 const providerValueMap = {
   paypal: "PAYPAL",
@@ -236,7 +245,11 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
   const selectedCourse = courses.find((c) => c.slug === data.course);
   const selectedBatch = selectedCourse?.batches.find((b) => b.id === data.batchId);
   const accommodationPrice = accommodationOptions.find((a) => a.value === data.accommodation)?.price || 0;
-  const basePrice = selectedBatch?.priceRegular || selectedCourse?.priceFrom || 999;
+  const basePrice = selectedBatch
+    ? isEarlyBirdActive(selectedBatch)
+      ? selectedBatch.priceEarlyBird || selectedBatch.priceRegular
+      : selectedBatch.priceRegular
+    : selectedCourse?.priceFrom || 999;
   const pricing = calculatePrice({ coursePrice: basePrice, accommodationPrice });
   const totalPrice = Math.max(0, pricing.finalPrice - couponDiscount);
   const depositAmount = totalPrice > 0 ? Math.min(totalPrice, Math.max(200, Math.round(totalPrice * 0.2))) : 0;
@@ -563,7 +576,11 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
                                     </div>
                                     <div className="text-right">
                                       <p className="font-bold text-gray-900">{formatCurrency(batch.priceRegular, paymentCurrency)}</p>
-                                      {batch.priceEarlyBird && new Date(batch.priceEarlyBird) > new Date() && <p className="text-xs text-green-600">Early bird: {formatCurrency(batch.priceEarlyBird, paymentCurrency)}</p>}
+                                      {isEarlyBirdActive(batch) && (
+                                        <p className="text-xs text-green-600">
+                                          Early bird: {formatCurrency(batch.priceEarlyBird || batch.priceRegular, paymentCurrency)}
+                                        </p>
+                                      )}
                                     </div>
                                   </div>
                                 </button>
