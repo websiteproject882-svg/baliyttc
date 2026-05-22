@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin } from "@/lib/authz";
+import { getClientIp, jsonWithRequestId, rateLimit } from "@/lib/security";
 
 const validateSchema = z.object({
   code: z.string().min(1),
@@ -13,6 +14,20 @@ export async function POST(request: NextRequest) {
   if (sameOriginResponse) return sameOriginResponse;
 
   try {
+    const limit = rateLimit({
+      key: `public:coupons:${getClientIp(request)}`,
+      limit: 30,
+      windowMs: 60 * 60 * 1000,
+    });
+
+    if (!limit.allowed) {
+      return jsonWithRequestId(
+        { valid: false, error: "Too many coupon checks. Try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil((limit.resetAt - Date.now()) / 1000)) } },
+        request,
+      );
+    }
+
     const body = await request.json();
     const { code, amount } = validateSchema.parse(body);
 

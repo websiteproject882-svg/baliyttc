@@ -6,7 +6,7 @@ import { createPayPalOrder, isPayPalConfigured } from "@/lib/payments/paypal";
 import { getRazorpayClient, getRazorpayKeyId, isRazorpayConfigured } from "@/lib/payments/razorpay";
 import { resolveStoredEnrollmentAmount } from "@/lib/payments/enrollment-pricing";
 import { getBankTransferInstructions } from "@/lib/payments/bank-transfer";
-import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
 import { requireSameOrigin } from "@/lib/authz";
 
@@ -28,6 +28,20 @@ export async function POST(request: NextRequest) {
   if (sameOriginResponse) return sameOriginResponse;
 
   try {
+    const limit = rateLimit({
+      key: `public:payments:create:${getClientIp(request)}`,
+      limit: 12,
+      windowMs: 60 * 60 * 1000,
+    });
+
+    if (!limit.allowed) {
+      return jsonWithRequestId(
+        { error: "Too many payment attempts. Try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil((limit.resetAt - Date.now()) / 1000)) } },
+        request,
+      );
+    }
+
     const body = await request.json();
     const data = paymentCreateSchema.parse(body);
     const storedEnrollment = data.enrollmentId
