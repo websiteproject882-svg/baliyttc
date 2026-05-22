@@ -1,5 +1,8 @@
 name: CI - Lint, Type Check, Build & Test
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches: [main, develop]
@@ -13,7 +16,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +46,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     
     steps:
       - uses: actions/checkout@v4
@@ -83,7 +86,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     
     steps:
       - uses: actions/checkout@v4
