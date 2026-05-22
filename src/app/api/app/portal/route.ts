@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireStudentUser } from "@/lib/authz";
 import { getCertificateEligibility } from "@/lib/certificate-eligibility";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +16,14 @@ const DEFAULT_TASKS = [
   { taskKey: "join_whatsapp", taskTitle: "Join the batch WhatsApp group" },
 ];
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { user, student, response } = await requireStudentUser();
   if (!user || !student || response) {
     return response;
   }
 
-  const fullStudent = await prisma.student.findUnique({
+  try {
+    const fullStudent = await prisma.student.findUnique({
     where: { id: student.id },
     include: {
       user: {
@@ -56,9 +58,9 @@ export async function GET() {
     },
   });
 
-  if (!fullStudent) {
-    return NextResponse.json({ error: "Student not found" }, { status: 404 });
-  }
+    if (!fullStudent) {
+      return jsonWithRequestId({ error: "Student not found" }, { status: 404 }, request);
+    }
 
   const paidEnrollment = fullStudent.enrollments.find((enrollment) =>
     ["DEPOSIT_PAID", "FULL_PAID"].includes(enrollment.paymentStatus),
@@ -232,7 +234,7 @@ export async function GET() {
     : [];
   const enrollmentBatchById = new Map(enrollmentBatches.map((batch) => [batch.id, batch]));
 
-  return NextResponse.json({
+    return jsonWithRequestId({
     student: {
       id: fullStudent.id,
       email: fullStudent.user.email,
@@ -312,5 +314,9 @@ export async function GET() {
       readAt: item.receipts[0]?.readAt || null,
     })),
     unreadNotifications: notifications.filter((item) => !item.receipts[0]?.readAt).length,
-  });
+    }, undefined, request);
+  } catch (error) {
+    logApiError("app.portal", error, request, { studentId: student.id });
+    return jsonWithRequestId({ error: "Failed to load student portal" }, { status: 500 }, request);
+  }
 }
