@@ -1,30 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSameOrigin, requireSuperAdmin, writeAuditLog } from "@/lib/authz";
+import { getPaymentProviderReadiness } from "@/lib/payments/readiness";
 import { jsonWithRequestId } from "@/lib/security";
 import { getSiteSettings, saveSiteSettings, siteSettingsSchema } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
-function hasEnv(keys: string[]) {
-  return keys.every((key) => Boolean(process.env[key]?.trim()));
-}
-
 function providerReadiness() {
-  return {
-    paypal: {
-      envReady: hasEnv(["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "NEXT_PUBLIC_PAYPAL_CLIENT_ID"]),
-      requiredEnv: ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "NEXT_PUBLIC_PAYPAL_CLIENT_ID"],
-    },
-    razorpay: {
-      envReady: hasEnv(["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "NEXT_PUBLIC_RAZORPAY_KEY_ID"]),
-      requiredEnv: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "NEXT_PUBLIC_RAZORPAY_KEY_ID"],
-    },
-    bankTransfer: {
-      envReady: true,
-      requiredEnv: [],
-    },
-  };
+  return getPaymentProviderReadiness();
 }
 
 export async function GET(request: NextRequest) {
