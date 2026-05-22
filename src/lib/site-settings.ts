@@ -3,6 +3,26 @@ import prisma from "@/lib/prisma";
 
 export const SITE_SETTINGS_KEY = "site_settings";
 export const PAYMENT_PROVIDERS = ["paypal", "razorpay", "bank_transfer"] as const;
+type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+export function normalizePaymentProviderOrder(value: unknown): PaymentProvider[] {
+  const validProviders = new Set<PaymentProvider>(PAYMENT_PROVIDERS);
+  const providers = Array.isArray(value) ? value : [];
+  const normalized = providers.filter(
+    (provider): provider is PaymentProvider =>
+      typeof provider === "string" && validProviders.has(provider as PaymentProvider),
+  );
+  const uniqueProviders = Array.from(new Set(normalized));
+
+  return [
+    ...uniqueProviders,
+    ...PAYMENT_PROVIDERS.filter((provider) => !uniqueProviders.includes(provider)),
+  ];
+}
 
 export const siteSettingsSchema = z.object({
   general: z.object({
@@ -98,18 +118,28 @@ export const defaultSiteSettings: SiteSettings = {
 };
 
 function deepMergeSettings(value: unknown): SiteSettings {
-  const parsed = siteSettingsSchema.partial().safeParse(value);
-  const partial = parsed.success ? parsed.data : {};
+  const partial = isRecord(value) ? value : {};
+  const general = isRecord(partial.general) ? partial.general : {};
+  const payments = isRecord(partial.payments) ? partial.payments : {};
+  const notifications = isRecord(partial.notifications) ? partial.notifications : {};
+  const reviews = isRecord(partial.reviews) ? partial.reviews : {};
+  const assets = isRecord(partial.assets) ? partial.assets : {};
 
-  return siteSettingsSchema.parse({
+  const candidate = {
     ...defaultSiteSettings,
     ...partial,
-    general: { ...defaultSiteSettings.general, ...partial.general },
-    payments: { ...defaultSiteSettings.payments, ...partial.payments },
-    notifications: { ...defaultSiteSettings.notifications, ...partial.notifications },
-    reviews: { ...defaultSiteSettings.reviews, ...partial.reviews },
-    assets: { ...defaultSiteSettings.assets, ...partial.assets },
-  });
+    general: { ...defaultSiteSettings.general, ...general },
+    payments: {
+      ...defaultSiteSettings.payments,
+      ...payments,
+      providerOrder: normalizePaymentProviderOrder(payments.providerOrder),
+    },
+    notifications: { ...defaultSiteSettings.notifications, ...notifications },
+    reviews: { ...defaultSiteSettings.reviews, ...reviews },
+    assets: { ...defaultSiteSettings.assets, ...assets },
+  };
+
+  return siteSettingsSchema.parse(candidate);
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {

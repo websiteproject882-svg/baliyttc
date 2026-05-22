@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, PATCH } from "../app/api/admin/settings/route";
-import { defaultSiteSettings, siteSettingsSchema } from "../lib/site-settings";
+import { defaultSiteSettings, normalizePaymentProviderOrder, siteSettingsSchema } from "../lib/site-settings";
 
 const mocks = vi.hoisted(() => ({
   requireSuperAdmin: vi.fn(),
@@ -104,6 +104,20 @@ describe("site settings schema", () => {
         },
       }).success,
     ).toBe(false);
+  });
+
+  it("normalizes legacy payment provider order values without losing known providers", () => {
+    expect(normalizePaymentProviderOrder(["razorpay", "paypal", "razorpay", "legacy"])).toEqual([
+      "razorpay",
+      "paypal",
+      "bank_transfer",
+    ]);
+    expect(normalizePaymentProviderOrder(["bank_transfer"])).toEqual([
+      "bank_transfer",
+      "paypal",
+      "razorpay",
+    ]);
+    expect(normalizePaymentProviderOrder(null)).toEqual(["paypal", "razorpay", "bank_transfer"]);
   });
 });
 
