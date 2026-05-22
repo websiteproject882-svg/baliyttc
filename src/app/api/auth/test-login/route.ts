@@ -121,10 +121,6 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
     console.error("test login error:", error);
-    return jsonWithRequestId(
-      { error: error instanceof Error ? error.message : "Failed to login" },
-      { status: 500 },
-      request,
-    );
+    return jsonWithRequestId({ error: "Failed to login" }, { status: 500 }, request);
   }
 }
