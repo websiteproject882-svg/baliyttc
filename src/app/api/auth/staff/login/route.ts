@@ -4,11 +4,14 @@ import { auth } from '@/lib/firebase-admin';
 import { createSession, createTwoFactorChallenge, AuthType } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { getRoleHomePath } from '@/lib/rbac';
-import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit } from '@/lib/security';
+import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
 
 const STAFF_ROLES = ['TEACHER', 'SEO_EDITOR', 'FINANCE_MANAGER', 'COURSE_MANAGER'] as const;
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const limit = rateLimit({
       key: `auth:staff:login:${getClientIp(request)}`,

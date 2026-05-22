@@ -3,11 +3,14 @@ import prisma from "@/lib/prisma";
 import { createSession, decrypt, AuthType } from "@/lib/session";
 import { getRoleHomePath } from "@/lib/rbac";
 import { verifyTotpToken } from "@/lib/totp";
-import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
+import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const limit = rateLimit({
       key: `auth:2fa:${getClientIp(request)}`,

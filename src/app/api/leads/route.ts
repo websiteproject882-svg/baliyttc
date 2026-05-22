@@ -66,6 +66,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const limit = rateLimit({
       key: `public:leads:${getClientIp(request)}`,

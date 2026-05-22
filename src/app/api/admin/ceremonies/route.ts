@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, writeAuditLog } from "@/lib/authz";
+import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 
 // Note: Ceremonies are stored in the ScheduleEntry table with ceremonyBlocked flag
 // This API manages ceremony dates which block class in student schedules
@@ -32,6 +32,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   const { user, response } = await requireAdminUser();
   if (response) return response;
 
@@ -78,6 +81,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   const { user, response } = await requireAdminUser();
   if (response) return response;
 
@@ -115,6 +121,9 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   const { user, response } = await requireAdminUser();
   if (response) return response;
 

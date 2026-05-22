@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { markPaymentComplete } from "@/lib/payments/complete";
 import { verifyRazorpayPaymentSignature } from "@/lib/payments/razorpay";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { requireSameOrigin } from "@/lib/authz";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string(),
@@ -12,6 +13,9 @@ const verifySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const data = verifySchema.parse(await request.json());
     const valid = verifyRazorpayPaymentSignature({

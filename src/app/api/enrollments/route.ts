@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser } from "@/lib/authz";
+import { requireAdminUser, requireSameOrigin } from "@/lib/authz";
 import { sendGmailEmail, sendEnrollmentConfirmationEmail, sendAdminNotificationEmail, isGmailConfigured } from "@/lib/gmail-smtp";
 import { sendEnrollmentConfirmation, sendAdminEnrollmentNotification } from "@/lib/resend";
 import { sendEnrollmentConfirmationWhatsApp, sendWelcomeWhatsApp } from "@/lib/whatsapp";
@@ -108,6 +108,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const limit = rateLimit({
       key: `public:enrollments:${getClientIp(request)}`,

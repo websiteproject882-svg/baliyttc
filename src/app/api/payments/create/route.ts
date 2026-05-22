@@ -8,6 +8,7 @@ import { resolveStoredEnrollmentAmount } from "@/lib/payments/enrollment-pricing
 import { getBankTransferInstructions } from "@/lib/payments/bank-transfer";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
+import { requireSameOrigin } from "@/lib/authz";
 
 const paymentCreateSchema = z.object({
   enrollmentId: z.string().optional(),
@@ -23,6 +24,9 @@ const paymentCreateSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const body = await request.json();
     const data = paymentCreateSchema.parse(body);

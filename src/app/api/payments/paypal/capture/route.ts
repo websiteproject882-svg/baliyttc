@@ -4,12 +4,16 @@ import prisma from "@/lib/prisma";
 import { markPaymentComplete } from "@/lib/payments/complete";
 import { capturePayPalOrder } from "@/lib/payments/paypal";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { requireSameOrigin } from "@/lib/authz";
 
 const captureSchema = z.object({
   orderId: z.string(),
 });
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const data = captureSchema.parse(await request.json());
     const capture = await capturePayPalOrder(data.orderId);

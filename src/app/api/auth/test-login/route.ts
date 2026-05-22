@@ -3,7 +3,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { getRoleHomePath, isAdminPanelRole, type AppRole } from "@/lib/rbac";
-import { getClientIp, jsonWithRequestId, rateLimit } from "@/lib/security";
+import { getClientIp, jsonWithRequestId, rateLimit, requireSameOrigin } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +41,9 @@ function expectedPassword(email: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   if (process.env.ENABLE_TEST_LOGIN !== "true") {
     return jsonWithRequestId({ error: "Test login is disabled" }, { status: 404 }, request);
   }

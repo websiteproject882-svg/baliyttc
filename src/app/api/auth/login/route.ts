@@ -4,7 +4,7 @@ import { auth } from '@/lib/firebase-admin';
 import { createSession, createTwoFactorChallenge, AuthType } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { PERMISSIONS, getRoleHomePath, isAdminPanelRole, type AppRole } from '@/lib/rbac';
-import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit } from '@/lib/security';
+import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
 
 const accessRank = {
   NONE: 0,
@@ -20,6 +20,9 @@ function accessFromPaymentStatus(status: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const limit = rateLimit({
       key: `auth:login:${getClientIp(request)}`,

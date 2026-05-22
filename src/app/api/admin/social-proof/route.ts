@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, writeAuditLog } from "@/lib/authz";
+import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 
 const SETTINGS_KEY = "social_proof_overrides";
 
@@ -66,6 +66,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   const { user, response } = await requireAdminUser();
   if (response) return response;
 

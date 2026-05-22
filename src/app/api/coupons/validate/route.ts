@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { requireSameOrigin } from "@/lib/authz";
 
 const validateSchema = z.object({
   code: z.string().min(1),
@@ -8,6 +9,9 @@ const validateSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const sameOriginResponse = requireSameOrigin(request);
+  if (sameOriginResponse) return sameOriginResponse;
+
   try {
     const body = await request.json();
     const { code, amount } = validateSchema.parse(body);
