@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!enrollment) {
-      return NextResponse.json({ error: "Enrollment not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Enrollment not found" }, { status: 404 }, request);
     }
 
     const targetPaymentStatus = paymentStatusForAccess(data.accessLevel);
@@ -94,17 +95,17 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       success: true,
       enrollment: updatedEnrollment,
       student: updatedStudent,
-    });
+    }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
 
-    console.error("PATCH admin student access error:", error);
-    return NextResponse.json({ error: "Failed to update student access" }, { status: 500 });
+    logApiError("admin.students.access", error, request);
+    return jsonWithRequestId({ error: "Failed to update student access" }, { status: 500 }, request);
   }
 }
