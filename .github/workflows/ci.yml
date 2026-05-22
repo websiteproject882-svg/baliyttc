@@ -57,13 +57,21 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          # Use demo credentials for build-time checks
+          # Use non-secret demo credentials for build-time checks.
+          # Real production values live in Vercel/Railway/VPS environment variables.
+          NEXT_PUBLIC_BASE_URL: https://baliyytc.vercel.app
+          SESSION_SECRET: ci-session-secret-12345678901234567890
+          CRON_SECRET: ci-cron-secret-1234567890
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
           NEXT_PUBLIC_FIREBASE_API_KEY: demo-api-key
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: demo.firebaseapp.com
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-project
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: demo.appspot.com
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "123456789"
           NEXT_PUBLIC_FIREBASE_APP_ID: "1:123456789:web:abcdef"
+          FIREBASE_PROJECT_ID: demo-project
+          FIREBASE_CLIENT_EMAIL: firebase-adminsdk-ci@demo-project.iam.gserviceaccount.com
+          FIREBASE_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nci-placeholder\n-----END PRIVATE KEY-----"
 
   test:
     name: Tests

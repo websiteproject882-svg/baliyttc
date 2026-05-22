@@ -107,13 +107,14 @@ Disable test login before final client handoff unless it is explicitly needed fo
 
 ```bash
 npm run typecheck
+npm run lint
 npm test
 npm run build
 npm run db:migrate:deploy
 npm run db:seed
 ```
 
-`npm run lint` is not currently configured; Next.js opens an interactive ESLint setup prompt.
+CI runs lint, typecheck, tests, and build on `main`/`develop` pushes and pull requests. The CI build uses non-secret demo env values only; real runtime secrets must be set in Vercel, Railway, or the VPS `.env.production`.
 
 ## Admin And Operations
 
@@ -127,7 +128,16 @@ npm run db:seed
 
 1. Copy `.env.production.example` to `.env.production` on the VPS.
 2. Fill client-owned secrets.
-3. Start services:
+3. Generate production build/runtime secrets:
+
+```bash
+openssl rand -base64 32
+openssl rand -base64 48
+```
+
+Use these for `SESSION_SECRET` and `CRON_SECRET`.
+
+4. Start services:
 
 ```bash
 docker compose -f docker-compose.vps.yml up -d --build
@@ -142,10 +152,11 @@ The compose file provides:
 
 Use Cloudflare DNS/proxy once the VPS SSL and health check are verified.
 
+For Vercel/Railway staging, use Railway's public PostgreSQL URL in `DATABASE_URL` (`*.proxy.rlwy.net`). Railway's internal hostname (`*.railway.internal`) only works from Railway services and will fail from Vercel/local machines.
+
 ## Handoff Notes
 
 - Client should own GitHub, Vercel, Firebase, database, Cloudflare, Gmail/Workspace, Razorpay, PayPal, and any future email provider accounts.
 - Developer accounts should be collaborators only.
 - Rotate any secrets that were shared in chat/screenshots before final production.
 - Keep `.env`, `.env.local`, and `.env.production` out of git.
-
