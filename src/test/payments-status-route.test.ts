@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getSiteSettings: vi.fn(),
   getPaymentProviderReadiness: vi.fn(),
   getCurrentUser: vi.fn(),
+  logApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/site-settings", () => ({
@@ -26,6 +27,7 @@ vi.mock("@/lib/security", () => ({
     response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
     return response;
   },
+  logApiError: mocks.logApiError,
 }));
 
 const paymentSettings = {
@@ -178,6 +180,22 @@ describe("payment status route", () => {
         enabled: false,
         unavailableReason: "Bank transfer is disabled by admin.",
       }),
+    );
+  });
+
+  it("logs failures without exposing internals", async () => {
+    mocks.getSiteSettings.mockRejectedValue(new Error("database down"));
+
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(response.headers.get("X-Request-Id")).toBe("req_payments_status");
+    expect(body.error).toBe("Failed to load payment status");
+    expect(mocks.logApiError).toHaveBeenCalledWith(
+      "payments.status",
+      expect.any(Error),
+      expect.any(NextRequest),
     );
   });
 });
