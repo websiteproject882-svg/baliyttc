@@ -98,6 +98,18 @@ function request(method: "GET" | "POST" | "PATCH" | "PUT", body?: Record<string,
   });
 }
 
+function rawRequest(method: "POST" | "PATCH" | "PUT", body: string) {
+  return new NextRequest("https://example.com/api/admin/staff", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_staff",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -252,6 +264,18 @@ describe("admin staff route", () => {
     expect(mocks.staffCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed staff invite JSON before user lookup", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_staff");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.userFindUnique).not.toHaveBeenCalled();
+    expect(mocks.staffCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("updates staff roles, status, profile name, and audit log", async () => {
     const response = await PATCH(request("PATCH", {
       id: "staff_1",
@@ -333,6 +357,19 @@ describe("admin staff route", () => {
     expect(mocks.staffUpdate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed staff update JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_staff");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.staffFindUnique).not.toHaveBeenCalled();
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
+    expect(mocks.userUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("validates toggle payloads", async () => {
     const response = await PUT(request("PUT", { staffId: "staff_1", enabled: "yes" }));
     const body = await response?.json();
@@ -340,6 +377,18 @@ describe("admin staff route", () => {
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.staffUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed staff toggle JSON before lookup", async () => {
+    const response = await PUT(rawRequest("PUT", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_staff");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.staffFindUnique).not.toHaveBeenCalled();
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("prevents disabling the last active super admin", async () => {

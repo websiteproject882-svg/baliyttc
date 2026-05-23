@@ -102,7 +102,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = createStaffSchema.parse(await request.json());
+    const parsed = createStaffSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
 
     const existing = await prisma.user.findUnique({
       where: { email: data.email },
@@ -219,7 +224,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const data = updateStaffSchema.parse(await request.json());
+    const parsed = updateStaffSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const existing = await prisma.staff.findUnique({
       where: { id: data.id },
       include: {
@@ -314,7 +324,12 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const { staffId, enabled } = toggleStaffSchema.parse(await request.json());
+    const parsed = toggleStaffSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { staffId, enabled } = parsed.data;
 
     const existing = await prisma.staff.findUnique({
       where: { id: staffId },
