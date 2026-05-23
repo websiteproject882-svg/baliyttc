@@ -26,6 +26,31 @@ const toggleStaffSchema = z.object({
   enabled: z.boolean(),
 });
 
+async function wouldRemoveLastActiveSuperAdmin(params: {
+  currentRole: StaffRole;
+  currentStatus: StaffStatus;
+  nextRole?: StaffRole;
+  nextStatus?: StaffStatus;
+}) {
+  if (params.currentRole !== StaffRole.SUPER_ADMIN || params.currentStatus !== StaffStatus.ACTIVE) {
+    return false;
+  }
+
+  const nextRole = params.nextRole ?? params.currentRole;
+  const nextStatus = params.nextStatus ?? params.currentStatus;
+  const remainsActiveSuperAdmin = nextRole === StaffRole.SUPER_ADMIN && nextStatus === StaffStatus.ACTIVE;
+
+  if (remainsActiveSuperAdmin) {
+    return false;
+  }
+
+  const superAdminCount = await prisma.staff.count({
+    where: { role: StaffRole.SUPER_ADMIN, status: StaffStatus.ACTIVE },
+  });
+
+  return superAdminCount <= 1;
+}
+
 export async function GET(request: NextRequest) {
   const { response } = await requireSuperAdmin();
   if (response) {
@@ -87,6 +112,21 @@ export async function POST(request: NextRequest) {
     let staffRecord;
 
     if (existing?.staff) {
+      if (
+        await wouldRemoveLastActiveSuperAdmin({
+          currentRole: existing.staff.role,
+          currentStatus: existing.staff.status,
+          nextRole: data.role,
+          nextStatus: StaffStatus.PENDING,
+        })
+      ) {
+        return jsonWithRequestId(
+          { error: "Cannot remove the last active admin account" },
+          { status: 400 },
+          request,
+        );
+      }
+
       staffRecord = await prisma.staff.update({
         where: { id: existing.staff.id },
         data: {
@@ -189,6 +229,21 @@ export async function PATCH(request: NextRequest) {
 
     if (!existing) {
       return jsonWithRequestId({ error: "Staff member not found" }, { status: 404 }, request);
+    }
+
+    if (
+      await wouldRemoveLastActiveSuperAdmin({
+        currentRole: existing.role,
+        currentStatus: existing.status,
+        nextRole: data.role,
+        nextStatus: data.status,
+      })
+    ) {
+      return jsonWithRequestId(
+        { error: "Cannot remove the last active admin account" },
+        { status: 400 },
+        request,
+      );
     }
 
     const updated = await prisma.staff.update({

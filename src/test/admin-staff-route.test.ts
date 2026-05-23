@@ -217,6 +217,28 @@ describe("admin staff route", () => {
     expect(mocks.staffCreate).not.toHaveBeenCalled();
   });
 
+  it("prevents reinviting the last active super admin into a non-owner role", async () => {
+    mocks.userFindUnique.mockResolvedValue({
+      ...user,
+      staff: { id: "staff_owner", role: "SUPER_ADMIN", status: "ACTIVE" },
+    });
+    mocks.staffCount.mockResolvedValue(1);
+
+    const response = await POST(request("POST", {
+      email: "owner@example.com",
+      name: "Owner One",
+      role: "SEO_EDITOR",
+    }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Cannot remove the last active admin account");
+    expect(mocks.staffCount).toHaveBeenCalledWith({
+      where: { role: "SUPER_ADMIN", status: "ACTIVE" },
+    });
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
+  });
+
   it("validates invite payloads", async () => {
     const response = await POST(request("POST", {
       email: "not-an-email",
@@ -274,6 +296,40 @@ describe("admin staff route", () => {
 
     expect(response?.status).toBe(404);
     expect(body.error).toBe("Staff member not found");
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
+  });
+
+  it("prevents downgrading the last active super admin", async () => {
+    mocks.staffFindUnique.mockResolvedValue({ ...staff, role: "SUPER_ADMIN", status: "ACTIVE" });
+    mocks.staffCount.mockResolvedValue(1);
+
+    const response = await PATCH(request("PATCH", {
+      id: "staff_1",
+      role: "COURSE_MANAGER",
+    }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Cannot remove the last active admin account");
+    expect(mocks.staffCount).toHaveBeenCalledWith({
+      where: { role: "SUPER_ADMIN", status: "ACTIVE" },
+    });
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
+    expect(mocks.userUpdate).not.toHaveBeenCalled();
+  });
+
+  it("prevents deactivating the last active super admin via profile update", async () => {
+    mocks.staffFindUnique.mockResolvedValue({ ...staff, role: "SUPER_ADMIN", status: "ACTIVE" });
+    mocks.staffCount.mockResolvedValue(1);
+
+    const response = await PATCH(request("PATCH", {
+      id: "staff_1",
+      status: "INACTIVE",
+    }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Cannot remove the last active admin account");
     expect(mocks.staffUpdate).not.toHaveBeenCalled();
   });
 
