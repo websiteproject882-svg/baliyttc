@@ -35,6 +35,18 @@ function request(method: "GET" | "POST", body?: unknown, headers?: Record<string
   });
 }
 
+function rawRequest(body: string, headers?: Record<string, string>) {
+  return new NextRequest("https://example.com/api/cron/communications", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-request-id": "req_cron",
+      ...headers,
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   process.env = { ...originalEnv, CRON_SECRET: "cron-secret-123456" };
@@ -88,6 +100,26 @@ describe("communications cron route", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.runCommunicationCampaign).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed JSON without running default campaigns", async () => {
+    const response = await POST(rawRequest("{not-valid-json", { "x-cron-secret": "cron-secret-123456" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_cron");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.runCommunicationCampaign).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
+  it("runs the default campaign set for authenticated empty POST cron calls", async () => {
+    const response = await POST(rawRequest("", { "x-cron-secret": "cron-secret-123456" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.runCommunicationCampaign).toHaveBeenCalledTimes(3);
+    expect(body.results).toHaveLength(3);
   });
 
   it("logs unexpected campaign failures", async () => {

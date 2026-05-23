@@ -31,7 +31,7 @@ function safeSecretEquals(received: string | null | undefined, expected: string)
   return timingSafeEqual(Buffer.from(received), Buffer.from(expected));
 }
 
-async function runCron(request: NextRequest, payload: z.infer<typeof cronSchema>) {
+async function runCron(request: NextRequest, payload: unknown) {
   if (!isAuthorized(request)) {
     return jsonWithRequestId({ error: "Unauthorized" }, { status: 401 }, request);
   }
@@ -61,11 +61,28 @@ async function runCron(request: NextRequest, payload: z.infer<typeof cronSchema>
   }
 }
 
+async function readCronPayload(request: NextRequest) {
+  const text = await request.text();
+  if (!text.trim()) {
+    return { ok: true as const, payload: {} };
+  }
+
+  try {
+    return { ok: true as const, payload: JSON.parse(text) as unknown };
+  } catch {
+    return { ok: false as const };
+  }
+}
+
 export async function GET(request: NextRequest) {
   return runCron(request, {});
 }
 
 export async function POST(request: NextRequest) {
-  const payload = await request.json().catch(() => ({}));
-  return runCron(request, payload);
+  const body = await readCronPayload(request);
+  if (!body.ok) {
+    return jsonWithRequestId({ error: "Validation failed", details: [] }, { status: 400 }, request);
+  }
+
+  return runCron(request, body.payload);
 }
