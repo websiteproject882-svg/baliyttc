@@ -26,6 +26,11 @@ vi.mock("@/lib/certificate", () => ({
   generateCertificatePDF: mocks.generateCertificatePDF,
 }));
 
+vi.mock("@/lib/certificate-access", async () => {
+  const actual = await vi.importActual<typeof import("../lib/certificate-access")>("../lib/certificate-access");
+  return actual;
+});
+
 vi.mock("@/lib/site-settings", () => ({
   getSiteSettings: mocks.getSiteSettings,
 }));
@@ -182,5 +187,23 @@ describe("certificate download route", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.generateCertificatePDF).toHaveBeenCalled();
+  });
+
+  it("respects stored staff permissions before downloading another student's certificate", async () => {
+    mocks.getCurrentUser.mockResolvedValue({
+      id: "admin_1",
+      email: "admin@example.com",
+      displayName: "Admin",
+      role: "STUDENT_MANAGER",
+      staffId: "staff_1",
+      permissions: ["students.view"],
+    });
+
+    const response = await get();
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body).toEqual({ error: "Forbidden" });
+    expect(mocks.generateCertificatePDF).not.toHaveBeenCalled();
   });
 });

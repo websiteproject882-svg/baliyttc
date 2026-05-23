@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { generateCertificatePDF } from "@/lib/certificate";
+import { canManageStudentCertificates } from "@/lib/certificate-access";
 import { getCurrentUser } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -31,7 +32,7 @@ export async function GET(
     }
 
     const isOwner = certificate.student.userId === currentUser.id;
-    const isPrivileged = ["ADMIN", "SUPER_ADMIN", "STUDENT_MANAGER"].includes(currentUser.role);
+    const isPrivileged = canManageStudentCertificates(currentUser);
     if (!isOwner && !isPrivileged) {
       return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
     }

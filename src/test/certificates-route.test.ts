@@ -52,6 +52,11 @@ vi.mock("@/lib/certificate", () => ({
   generateCertificateId: mocks.generateCertificateId,
 }));
 
+vi.mock("@/lib/certificate-access", async () => {
+  const actual = await vi.importActual<typeof import("../lib/certificate-access")>("../lib/certificate-access");
+  return actual;
+});
+
 vi.mock("@/lib/security", () => ({
   jsonWithRequestId: (body: unknown, init: ResponseInit | undefined, request: NextRequest) => {
     const response = Response.json(body, init);
@@ -185,6 +190,21 @@ describe("certificates route", () => {
       where: { user: { email: "student@example.com" } },
       include: { user: true, certificates: true },
     });
+  });
+
+  it("respects stored staff permissions when listing another student's certificates", async () => {
+    mocks.getCurrentUser.mockResolvedValue({
+      ...adminUser,
+      staffId: "staff_1",
+      permissions: ["students.view"],
+    });
+
+    const response = await GET(getRequest("?email=student@example.com"));
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body).toEqual({ error: "Forbidden" });
+    expect(mocks.certificateFindMany).not.toHaveBeenCalled();
   });
 
   it("requires certificate issue permission before creating a certificate", async () => {
