@@ -89,7 +89,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = batchSchema.parse(await request.json());
+    const parsed = batchSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const batch = await prisma.batch.create({
       data: {
         courseId: data.courseId,
@@ -141,7 +146,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const { id, accommodation, ...data } = updateSchema.parse(await request.json());
+    const parsed = updateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, accommodation, ...data } = parsed.data;
     const existing = await prisma.batch.findUnique({
       where: { id },
       include: { accommodation: true },
