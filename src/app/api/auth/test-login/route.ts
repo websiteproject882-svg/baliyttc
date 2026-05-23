@@ -66,7 +66,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, password, portal } = schema.parse(await request.json());
+    const parsed = schema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { email, password, portal } = parsed.data;
     const normalizedEmail = email;
     const expectedPasswords = expectedPassword(normalizedEmail);
 

@@ -61,6 +61,19 @@ function request(body: unknown) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/auth/test-login", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+      "x-request-id": "req_test_login",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   process.env = { ...originalEnv };
@@ -127,6 +140,20 @@ describe("test login route", () => {
     expect(body.error).toBe("Validation failed");
     expect(mocks.userFindUnique).not.toHaveBeenCalled();
     expect(mocks.createSession).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed JSON before lookup", async () => {
+    const { POST } = await loadRoute();
+
+    const response = await POST(rawRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_test_login");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.userFindUnique).not.toHaveBeenCalled();
+    expect(mocks.createSession).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("returns retry metadata when rate limited", async () => {
