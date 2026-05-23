@@ -99,7 +99,7 @@ export function jsonWithRequestId(
   request: NextRequest | string,
 ) {
   const response = NextResponse.json(body, init);
-  return withRequestId(response, request);
+  return applySecurityHeaders(withRequestId(response, request));
 }
 
 export function applyDeprecationHeaders(
