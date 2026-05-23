@@ -10,6 +10,9 @@ const moduleProgressSchema = z.object({
   completed: z.boolean().optional(),
   notes: z.string().max(5000).optional(),
 });
+const moduleParamsSchema = z.object({
+  moduleId: z.string().trim().min(1).max(120),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -26,6 +29,11 @@ export async function PATCH(
   }
 
   try {
+    const parsedParams = moduleParamsSchema.safeParse(params);
+    if (!parsedParams.success) {
+      return jsonWithRequestId({ error: "Invalid module id" }, { status: 400 }, request);
+    }
+
     const rawPayload = await request.json().catch(() => null);
     const result = moduleProgressSchema.safeParse(rawPayload);
     if (!result.success) {
@@ -62,7 +70,7 @@ export async function PATCH(
 
     const module = await prisma.module.findFirst({
       where: {
-        id: params.moduleId,
+        id: parsedParams.data.moduleId,
         courseId,
       },
       select: {

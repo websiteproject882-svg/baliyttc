@@ -9,6 +9,9 @@ export const dynamic = "force-dynamic";
 const taskUpdateSchema = z.object({
   completed: z.boolean(),
 });
+const taskParamsSchema = z.object({
+  taskKey: z.string().trim().min(1).max(120),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -25,6 +28,11 @@ export async function PATCH(
   }
 
   try {
+    const parsedParams = taskParamsSchema.safeParse(params);
+    if (!parsedParams.success) {
+      return jsonWithRequestId({ error: "Invalid task key" }, { status: 400 }, request);
+    }
+
     const payload = await request.json().catch(() => null);
     const result = taskUpdateSchema.safeParse(payload);
     if (!result.success) {
@@ -36,7 +44,7 @@ export async function PATCH(
       where: {
         studentId_taskKey: {
           studentId: student.id,
-          taskKey: params.taskKey,
+          taskKey: parsedParams.data.taskKey,
         },
       },
     });
@@ -49,7 +57,7 @@ export async function PATCH(
       where: {
         studentId_taskKey: {
           studentId: student.id,
-          taskKey: params.taskKey,
+          taskKey: parsedParams.data.taskKey,
         },
       },
       data: {

@@ -230,6 +230,18 @@ describe("student progress routes", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects invalid module ids before reading progress data", async () => {
+    const response = await patchModuleProgress(moduleRequest({ completed: true }), {
+      params: { moduleId: "x".repeat(121) },
+    });
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body).toEqual({ error: "Invalid module id" });
+    expect(mocks.studentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.moduleProgressUpsert).not.toHaveBeenCalled();
+  });
+
   it("requires pre-arrival access for task updates and returns 404 for missing tasks", async () => {
     mocks.taskProgressFindUnique.mockResolvedValue(null);
 
@@ -256,6 +268,18 @@ describe("student progress routes", () => {
     expect(mocks.taskProgressFindUnique).not.toHaveBeenCalled();
     expect(mocks.taskProgressUpdate).not.toHaveBeenCalled();
     expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid task keys before reading task data", async () => {
+    const response = await patchTaskProgress(taskRequest({ completed: true }), {
+      params: { taskKey: "x".repeat(121) },
+    });
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body).toEqual({ error: "Invalid task key" });
+    expect(mocks.taskProgressFindUnique).not.toHaveBeenCalled();
+    expect(mocks.taskProgressUpdate).not.toHaveBeenCalled();
   });
 
   it("updates task completion and writes an audit log", async () => {
