@@ -1,0 +1,38 @@
+import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
+
+const MAX_LIMIT = 50;
+const DEFAULT_LIMIT = 12;
+
+function getLimit(request: NextRequest) {
+  const rawLimit = Number(request.nextUrl.searchParams.get("limit") || DEFAULT_LIMIT);
+  if (!Number.isFinite(rawLimit)) return DEFAULT_LIMIT;
+  return Math.min(Math.max(Math.trunc(rawLimit), 1), MAX_LIMIT);
+}
+
+export async function GET(request: NextRequest) {
+  const locale = request.nextUrl.searchParams.get("locale") || "en";
+
+  try {
+    const faqs = await prisma.fAQ.findMany({
+      where: {
+        locale,
+        isActive: true,
+      },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      take: getLimit(request),
+      select: {
+        id: true,
+        question: true,
+        answer: true,
+        category: true,
+      },
+    });
+
+    return jsonWithRequestId({ faqs }, undefined, request);
+  } catch (error) {
+    logApiError("faq.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch FAQs" }, { status: 500 }, request);
+  }
+}

@@ -6,16 +6,54 @@ import { Reveal } from "@/components/shared/Reveal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle, Mail, MessageCircle, Search, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+
+type PublicFaq = {
+  id?: string;
+  q: string;
+  a: string;
+};
 
 export const FAQ = () => {
   const t = useTranslations("FAQ");
+  const locale = useLocale();
   const translatedFaqs = t.raw("items") as Array<{ q: string; a: string }>;
-  const faqs = translatedFaqs?.length ? translatedFaqs : STATIC_FAQS;
+  const translatedFaqsKey = JSON.stringify(translatedFaqs ?? []);
+  const fallbackFaqs = useMemo<PublicFaq[]>(() => {
+    const localizedFaqs = JSON.parse(translatedFaqsKey) as PublicFaq[];
+    return localizedFaqs.length ? localizedFaqs : STATIC_FAQS;
+  }, [translatedFaqsKey]);
+  const [faqs, setFaqs] = useState<PublicFaq[]>(fallbackFaqs);
   const site = STATIC_SITE;
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFaqs() {
+      try {
+        const response = await fetch(`/api/faq?locale=${encodeURIComponent(locale)}&limit=12`);
+        if (!response.ok) return;
+        const data = (await response.json()) as {
+          faqs?: Array<{ id: string; question: string; answer: string }>;
+        };
+        if (!cancelled && data.faqs?.length) {
+          setFaqs(data.faqs.map((faq) => ({ id: faq.id, q: faq.question, a: faq.answer })));
+        }
+      } catch {
+        // Keep localized fallback FAQs when admin-backed FAQs are unavailable.
+      }
+    }
+
+    setFaqs(fallbackFaqs);
+    loadFaqs();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fallbackFaqs, locale]);
 
   const filteredFaqs = useMemo(() => {
     if (!searchQuery.trim()) return faqs;
@@ -122,7 +160,7 @@ export const FAQ = () => {
               <Accordion type="single" collapsible className="space-y-3">
                 {filteredFaqs.map((faq, index) => (
                   <AccordionItem
-                    key={faq.q}
+                    key={faq.id || faq.q}
                     value={`q${index}`}
                     className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-premium-sm transition-all duration-300 hover:shadow-premium-md"
                   >
