@@ -1,8 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import AdminSidebar from "./AdminSidebar";
-import { getCurrentUser } from "@/lib/authz";
-import { isAdminPanelRole } from "@/lib/rbac";
+import { requireAdminUser } from "@/lib/authz";
 
 export default async function AdminLayout({
   children,
@@ -11,13 +10,9 @@ export default async function AdminLayout({
   children: ReactNode;
   params: { locale: string };
 }) {
-  const user = await getCurrentUser();
+  const { user } = await requireAdminUser();
 
   if (!user) {
-    return <>{children}</>;
-  }
-
-  if (!isAdminPanelRole(user.role) && user.role !== "ADMIN") {
     redirect(`/${params.locale}/login`);
   }
 
