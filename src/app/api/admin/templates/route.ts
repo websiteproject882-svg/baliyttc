@@ -80,7 +80,12 @@ export async function PUT(request: NextRequest) {
   if (response) return response;
 
   try {
-    const { id, name, subject, content } = templateSchema.parse(await request.json());
+    const parsed = templateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, name, subject, content } = parsed.data;
 
     const template = await prisma.blogPost.upsert({
       where: { id: id || `template_${Date.now()}` },

@@ -65,6 +65,18 @@ function request(method: "GET" | "PUT", body?: Record<string, unknown>) {
   });
 }
 
+function rawRequest(method: "PUT", body: string) {
+  return new NextRequest("https://example.com/api/admin/templates", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_templates",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     id: "template_1",
@@ -173,6 +185,18 @@ describe("admin templates route", () => {
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.blogUpsert).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed template update JSON before writes", async () => {
+    const response = await PUT(rawRequest("PUT", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_templates");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogUpsert).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("logs list failures without leaking internals", async () => {
