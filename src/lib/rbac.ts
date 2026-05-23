@@ -29,6 +29,10 @@ export type StaffRole = (typeof STAFF_ROLES)[number];
 export type UserRole = (typeof USER_ROLES)[number];
 export type AppRole = StaffRole | UserRole;
 
+export const STAFF_PORTAL_ROLES = STAFF_ROLES.filter(
+  (role) => role !== "SUPER_ADMIN" && role !== "STUDENT_MANAGER",
+) as Array<Exclude<StaffRole, "SUPER_ADMIN" | "STUDENT_MANAGER">>;
+
 export const PERMISSIONS: Record<string, string[]> = {
   SUPER_ADMIN: ["*"], // All permissions
   STUDENT_MANAGER: [

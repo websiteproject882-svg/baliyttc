@@ -53,6 +53,7 @@ vi.mock("@/lib/rbac", () => ({
   },
   isAdminPanelRole: (role: string) =>
     ["SUPER_ADMIN", "STUDENT_MANAGER", "SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER"].includes(role),
+  STAFF_PORTAL_ROLES: ["SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER", "TEACHER"],
 }));
 
 vi.mock("@/lib/security", async () => vi.importActual("../lib/security"));

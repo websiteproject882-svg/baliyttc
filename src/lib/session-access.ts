@@ -1,9 +1,7 @@
-import { ADMIN_PANEL_ROLES, STAFF_ROLES } from "./rbac";
+import { ADMIN_PANEL_ROLES, STAFF_PORTAL_ROLES } from "./rbac";
 
 const STUDENT_SESSION_ROLES = new Set<string>(["STUDENT"]);
-const STAFF_SESSION_ROLES = new Set<string>(
-  STAFF_ROLES.filter((role) => role !== "SUPER_ADMIN" && role !== "STUDENT_MANAGER"),
-);
+const STAFF_SESSION_ROLES = new Set<string>(STAFF_PORTAL_ROLES);
 export const ADMIN_PANEL_SESSION_ROLES = new Set<string>([...ADMIN_PANEL_ROLES, "ADMIN"]);
 
 export function isSessionAllowedForAuthType(

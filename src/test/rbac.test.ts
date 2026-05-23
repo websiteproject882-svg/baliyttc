@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRoleHomePath, hasPermission, isAdminPanelRole, isStaffRole } from "../lib/rbac";
+import { getRoleHomePath, hasPermission, isAdminPanelRole, isStaffRole, STAFF_PORTAL_ROLES } from "../lib/rbac";
 
 describe("rbac helpers", () => {
   it("recognizes admin panel roles", () => {
@@ -11,6 +11,12 @@ describe("rbac helpers", () => {
   it("recognizes staff roles", () => {
     expect(isStaffRole("TEACHER")).toBe(true);
     expect(isStaffRole("STUDENT")).toBe(false);
+  });
+
+  it("keeps staff portal roles separate from admin-panel-only roles", () => {
+    expect(STAFF_PORTAL_ROLES).toEqual(["SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER", "TEACHER"]);
+    expect(STAFF_PORTAL_ROLES).not.toContain("SUPER_ADMIN");
+    expect(STAFF_PORTAL_ROLES).not.toContain("STUDENT_MANAGER");
   });
 
   it("maps role home paths correctly", () => {

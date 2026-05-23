@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession, getAdminSession, getStaffSession, getStudentSession, AuthType } from "@/lib/session";
-import { getPermissions, hasPermission, isAdminPanelRole, type AppRole } from "@/lib/rbac";
+import { getPermissions, hasPermission, isAdminPanelRole, STAFF_PORTAL_ROLES, type AppRole } from "@/lib/rbac";
 import { createApiErrorResponse } from "@/lib/security";
 export { requireSameOrigin } from "@/lib/security";
 
@@ -184,8 +184,7 @@ export async function requireStaffUser() {
     return { user: null, response: jsonError("Unauthorized", 401) };
   }
 
-  const staffRoles: ExpandedAppRole[] = ['TEACHER', 'SEO_EDITOR', 'FINANCE_MANAGER', 'COURSE_MANAGER'];
-  if (!staffRoles.includes(user.role)) {
+  if (!STAFF_PORTAL_ROLES.includes(user.role as (typeof STAFF_PORTAL_ROLES)[number])) {
     return { user: null, response: jsonError("Forbidden", 403) };
   }
 
