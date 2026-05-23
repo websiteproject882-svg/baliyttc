@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    const parsed = createCertificateSchema.safeParse(await request.json());
+    const parsed = createCertificateSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) {
       return jsonWithRequestId(
         { error: "studentId and courseSlug are required" },

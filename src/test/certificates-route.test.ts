@@ -115,6 +115,14 @@ function postRequest(body: Record<string, unknown>) {
   });
 }
 
+function rawPostRequest(body: string) {
+  return new NextRequest("https://example.com/api/certificates", {
+    method: "POST",
+    headers: { "x-request-id": "req_certificates" },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.getCurrentUser.mockResolvedValue(studentUser);
@@ -238,6 +246,18 @@ describe("certificates route", () => {
     expect(response.status).toBe(400);
     expect(response.headers.get("X-Request-Id")).toBe("req_certificates");
     expect(body).toEqual({ error: "studentId and courseSlug are required" });
+  });
+
+  it("rejects malformed certificate create JSON before lookup", async () => {
+    const response = await POST(rawPostRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_certificates");
+    expect(body).toEqual({ error: "studentId and courseSlug are required" });
+    expect(mocks.studentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.certificateCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("rejects oversized certificate create fields before lookup", async () => {
