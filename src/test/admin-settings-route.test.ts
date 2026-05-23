@@ -62,6 +62,19 @@ function request(method: "GET" | "PATCH", body?: unknown) {
   });
 }
 
+function rawRequest(method: "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/settings", {
+    method,
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+      "x-request-id": "req_settings_test",
+    },
+    body,
+  });
+}
+
 async function json(response: Response) {
   return response.json();
 }
@@ -180,6 +193,18 @@ describe("admin settings route", () => {
     expect(response.status).toBe(400);
     expect((await json(response)).error).toBe("Invalid settings payload");
     expect(mocks.saveSiteSettings).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed settings JSON before loading current settings", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_settings_test");
+    expect((await json(response)).error).toBe("Invalid settings payload");
+    expect(mocks.getSiteSettings).not.toHaveBeenCalled();
+    expect(mocks.saveSiteSettings).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("rejects insecure public asset and review URLs", async () => {

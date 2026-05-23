@@ -27,10 +27,17 @@ export async function PATCH(request: NextRequest) {
   if (!user || response) return response;
 
   try {
-    const body = await request.json();
-    const parsed = siteSettingsSchema.parse(body);
+    const parsed = siteSettingsSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId(
+        { error: "Invalid settings payload", details: parsed.error.flatten() },
+        { status: 400 },
+        request,
+      );
+    }
+
     const before = await getSiteSettings();
-    const settings = await saveSiteSettings(parsed);
+    const settings = await saveSiteSettings(parsed.data);
 
     await writeAuditLog({
       actorUserId: user.id,
