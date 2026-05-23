@@ -112,7 +112,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const payload = smokeSchema.parse(await request.json());
+    const parsed = smokeSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const payload = parsed.data;
 
     if (payload.provider === "email") {
       const result = await sendEmail({
