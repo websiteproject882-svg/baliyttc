@@ -9,13 +9,19 @@ import { applyDeprecationHeaders, getClientIp, jsonWithRequestId, LEGACY_API_SUN
 // after the 2026-08-31 sunset in favor of /api/admin/leads.
 
 const leadSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  source: z.string().default("website"),
-  course: z.string().optional(),
-  message: z.string().optional(),
+  name: z.string().trim().min(1).max(120),
+  email: z.string().trim().email().max(254).transform((email) => email.toLowerCase()),
+  phone: z.string().trim().max(40).optional(),
+  source: z.string().trim().min(1).max(80).default("website"),
+  course: z.string().trim().max(160).optional(),
+  message: z.string().trim().max(3000).optional(),
 });
+
+function getPositiveInt(value: string | null, fallback: number, max: number) {
+  const parsed = Number(value || fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.trunc(parsed), 1), max);
+}
 
 function withLeadsDeprecation(request: NextRequest, response: NextResponse) {
   logLegacyRouteAccess(request, {
@@ -38,8 +44,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = getPositiveInt(searchParams.get("page"), 1, 10_000);
+    const limit = getPositiveInt(searchParams.get("limit"), 20, 100);
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
@@ -98,7 +104,20 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return withLeadsDeprecation(request, jsonWithRequestId({ success: true, lead }, undefined, request));
+    return withLeadsDeprecation(
+      request,
+      jsonWithRequestId(
+        {
+          success: true,
+          lead: {
+            id: lead.id,
+            status: lead.status,
+          },
+        },
+        undefined,
+        request,
+      ),
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
