@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { GET } from "../app/api/admin/analytics/route";
 
 const mocks = vi.hoisted(() => ({
-  requireAdminUser: vi.fn(),
+  requirePermission: vi.fn(),
   enrollmentCount: vi.fn(),
   enrollmentAggregate: vi.fn(),
   enrollmentFindMany: vi.fn(),
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requireAdminUser: mocks.requireAdminUser,
+  requirePermission: mocks.requirePermission,
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -71,7 +71,7 @@ function request(url = "https://example.com/api/admin/analytics") {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.requireAdminUser.mockResolvedValue({ user: admin, response: null });
+  mocks.requirePermission.mockResolvedValue({ user: admin, response: null });
   mocks.enrollmentCount.mockResolvedValueOnce(12).mockResolvedValueOnce(4);
   mocks.studentCount
     .mockResolvedValueOnce(8)
@@ -128,6 +128,7 @@ describe("admin analytics route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("analytics.revenue");
     expect(response?.headers.get("X-Request-Id")).toBe("req_admin_analytics");
     expect(body.stats).toEqual({
       totalEnrollments: 12,
