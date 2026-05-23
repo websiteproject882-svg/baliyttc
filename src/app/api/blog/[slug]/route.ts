@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PostStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
 import { findStaticBlogPost } from "@/data/blog";
 
+const publicPostWhere = (slug: string, locale: string) => ({
+  slug_locale: { slug, locale },
+  status: PostStatus.PUBLISHED,
+  OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }],
+});
+
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const { searchParams } = new URL(request.url);
     const locale = normalizeLocale(searchParams.get("locale"));
-    const post = await prisma.blogPost.findUnique({
-      where: { slug_locale: { slug: params.slug, locale } },
+    const post = await prisma.blogPost.findFirst({
+      where: publicPostWhere(params.slug, locale),
     }) || (locale !== defaultLocale
-      ? await prisma.blogPost.findUnique({
-          where: { slug_locale: { slug: params.slug, locale: defaultLocale } },
+      ? await prisma.blogPost.findFirst({
+          where: publicPostWhere(params.slug, defaultLocale),
         })
       : null);
 
