@@ -58,7 +58,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { title, content, type, batchId } = announcementSchema.parse(await request.json());
+    const parsed = announcementSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { title, content, type, batchId } = parsed.data;
 
     const announcement = await prisma.announcement.create({
       data: {

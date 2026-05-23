@@ -72,6 +72,19 @@ function request(method: "GET" | "POST" | "DELETE", body?: unknown, url = "https
   });
 }
 
+function rawRequest(method: "POST", body: string) {
+  return new NextRequest("https://example.com/api/teacher/announcements", {
+    method,
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+      "x-request-id": "req_teacher_announcements",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireAuthenticatedUser.mockResolvedValue({ user: teacher, response: null });
@@ -137,6 +150,18 @@ describe("teacher announcements route", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.announcementCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed create JSON before writing", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_teacher_announcements");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.announcementCreate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("only lets teachers delete their own announcements", async () => {
