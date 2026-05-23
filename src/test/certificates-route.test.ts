@@ -169,6 +169,18 @@ describe("certificates route", () => {
     });
   });
 
+  it("defaults certificate listing to the current student profile", async () => {
+    const response = await GET(getRequest(""));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.studentFindUnique).toHaveBeenCalledWith({
+      where: { userId: "user_1" },
+      include: { user: true, certificates: true },
+    });
+    expect(body.certificates).toEqual([{ id: "certificate_1", certificateId: "CERT-1" }]);
+  });
+
   it("blocks non-owner students from listing another student's certificates", async () => {
     mocks.getCurrentUser.mockResolvedValue({ ...studentUser, id: "other_user" });
 

@@ -15,7 +15,7 @@ function allowedAudiences(accessLevel: "NONE" | "PRE_ARRIVAL" | "FULL" | "ALUMNI
 function isSafeRedirectUrl(url: string) {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
+    return parsed.protocol === "https:";
   } catch {
     return url.startsWith("/");
   }

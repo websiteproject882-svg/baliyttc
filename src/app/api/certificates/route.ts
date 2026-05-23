@@ -35,6 +35,14 @@ export async function GET(request: NextRequest) {
           certificates: true,
         },
       });
+    } else {
+      student = await prisma.student.findUnique({
+        where: { userId: currentUser.id },
+        include: {
+          user: true,
+          certificates: true,
+        },
+      });
     }
 
     if (!student) {
