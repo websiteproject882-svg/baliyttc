@@ -75,6 +75,18 @@ function request(method: "GET" | "POST" | "PATCH" | "DELETE", body?: Record<stri
   });
 }
 
+function rawRequest(method: "POST" | "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/notifications", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_notifications",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     title: "Welcome",
@@ -164,6 +176,18 @@ describe("admin notifications route", () => {
     expect(mocks.notificationCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed notification create JSON before writes", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_notifications");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.notificationCreate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("updates existing notifications and writes an audit log", async () => {
     const response = await PATCH(request("PATCH", payload({ id: "notification_1", title: "Updated" })));
     const body = await response?.json();
@@ -195,6 +219,18 @@ describe("admin notifications route", () => {
     expect(response?.status).toBe(404);
     expect(body.error).toBe("Notification not found");
     expect(mocks.notificationUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed notification update JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_notifications");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.notificationFindUnique).not.toHaveBeenCalled();
+    expect(mocks.notificationUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("deletes notifications and writes an audit log", async () => {
