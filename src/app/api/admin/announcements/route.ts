@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { AnnouncementType } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -17,18 +18,23 @@ const announcementUpdateSchema = announcementSchema.extend({
   id: z.string(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("announcements.view");
   if (response) {
     return response;
   }
 
-  const announcements = await prisma.announcement.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
+  try {
+    const announcements = await prisma.announcement.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
 
-  return NextResponse.json({ announcements });
+    return jsonWithRequestId({ announcements }, undefined, request);
+  } catch (error) {
+    logApiError("admin.announcements.list", error, request);
+    return jsonWithRequestId({ error: "Failed to load announcements" }, { status: 500 }, request);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -64,13 +70,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, announcement });
+    return jsonWithRequestId({ success: true, announcement }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST admin announcement error:", error);
-    return NextResponse.json({ error: "Failed to create announcement" }, { status: 500 });
+    logApiError("admin.announcements.create", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to create announcement" }, { status: 500 }, request);
   }
 }
 
@@ -92,7 +98,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Announcement not found" }, { status: 404 }, request);
     }
 
     const announcement = await prisma.announcement.update({
@@ -116,13 +122,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, announcement });
+    return jsonWithRequestId({ success: true, announcement }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH admin announcement error:", error);
-    return NextResponse.json({ error: "Failed to update announcement" }, { status: 500 });
+    logApiError("admin.announcements.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update announcement" }, { status: 500 }, request);
   }
 }
 
@@ -141,27 +147,32 @@ export async function DELETE(request: NextRequest) {
   const id = searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json({ error: "Announcement id is required" }, { status: 400 });
+    return jsonWithRequestId({ error: "Announcement id is required" }, { status: 400 }, request);
   }
 
-  const existing = await prisma.announcement.findUnique({
-    where: { id },
-  });
+  try {
+    const existing = await prisma.announcement.findUnique({
+      where: { id },
+    });
 
-  if (!existing) {
-    return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
+    if (!existing) {
+      return jsonWithRequestId({ error: "Announcement not found" }, { status: 404 }, request);
+    }
+
+    await prisma.announcement.delete({ where: { id } });
+
+    await writeAuditLog({
+      actorUserId: user.id,
+      action: "announcement.deleted",
+      entity: "announcement",
+      entityId: id,
+      oldValue: existing,
+      request,
+    });
+
+    return jsonWithRequestId({ success: true }, undefined, request);
+  } catch (error) {
+    logApiError("admin.announcements.delete", error, request, { announcementId: id, userId: user.id });
+    return jsonWithRequestId({ error: "Failed to delete announcement" }, { status: 500 }, request);
   }
-
-  await prisma.announcement.delete({ where: { id } });
-
-  await writeAuditLog({
-    actorUserId: user.id,
-    action: "announcement.deleted",
-    entity: "announcement",
-    entityId: id,
-    oldValue: existing,
-    request,
-  });
-
-  return NextResponse.json({ success: true });
 }
