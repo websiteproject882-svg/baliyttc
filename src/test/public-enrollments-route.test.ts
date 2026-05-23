@@ -235,4 +235,18 @@ describe("public enrollment creation", () => {
     expect(mocks.logApiError).toHaveBeenCalledWith("enrollments.student-email", expect.any(Error), expect.any(NextRequest));
     expect(mocks.logApiError).toHaveBeenCalledWith("enrollments.student-whatsapp", expect.any(Error), expect.any(NextRequest));
   });
+
+  it("logs notification providers that return success false", async () => {
+    mocks.sendEnrollmentConfirmation.mockResolvedValue({ success: false, error: "smtp rejected" });
+    mocks.sendEnrollmentConfirmationWhatsApp.mockResolvedValue({ success: false, error: "template missing" });
+
+    const response = await POST(request(basePayload));
+    const body = await response.json();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(mocks.logApiError).toHaveBeenCalledWith("enrollments.student-email", "smtp rejected", expect.any(NextRequest));
+    expect(mocks.logApiError).toHaveBeenCalledWith("enrollments.student-whatsapp", "template missing", expect.any(NextRequest));
+  });
 });

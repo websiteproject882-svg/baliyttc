@@ -241,6 +241,25 @@ describe("payment completion", () => {
     });
   });
 
+  it("logs payment notification providers that return success false", async () => {
+    mocks.paymentFindUnique.mockResolvedValue(pendingPayment());
+    mocks.sendPaymentConfirmation.mockResolvedValue({ success: false, error: "smtp rejected" });
+    mocks.sendPaymentConfirmationWhatsApp.mockResolvedValue({ success: false, error: "template missing" });
+
+    const result = await markPaymentComplete({ paymentId: "payment_1", paymentType: "deposit" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(result.status).toBe("DEPOSIT_PAID");
+    expect(mocks.logBackgroundError).toHaveBeenCalledWith("payments.confirmation-email", "smtp rejected", {
+      paymentId: "payment_1",
+      enrollmentId: "enrollment_1",
+    });
+    expect(mocks.logBackgroundError).toHaveBeenCalledWith("payments.confirmation-whatsapp", "template missing", {
+      paymentId: "payment_1",
+      enrollmentId: "enrollment_1",
+    });
+  });
+
   it("throws when payment record is missing", async () => {
     mocks.paymentFindUnique.mockResolvedValue(null);
 

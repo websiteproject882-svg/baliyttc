@@ -18,6 +18,25 @@ function isPaidStatus(status: PaymentStatus) {
   return status === "DEPOSIT_PAID" || status === "FULL_PAID";
 }
 
+type NotificationResult = {
+  success?: boolean;
+  error?: unknown;
+};
+
+function trackPaymentNotification(
+  promise: Promise<NotificationResult | unknown>,
+  context: string,
+  extra: Record<string, unknown>,
+) {
+  promise
+    .then((result) => {
+      if (result && typeof result === "object" && "success" in result && (result as NotificationResult).success === false) {
+        logBackgroundError(context, (result as NotificationResult).error || "Notification provider returned success=false", extra);
+      }
+    })
+    .catch((error) => logBackgroundError(context, error, extra));
+}
+
 export function getStoredPaymentType(payment: { providerPayload?: unknown; enrollment: { paymentType: string } }) {
   const providerPayload = payment.providerPayload;
   if (providerPayload && typeof providerPayload === "object" && !Array.isArray(providerPayload)) {
@@ -113,34 +132,29 @@ export async function markPaymentComplete(params: {
   });
 
   const settings = await getSiteSettings();
+  const notificationContext = {
+    paymentId: payment.id,
+    enrollmentId: payment.enrollmentId,
+  };
+
   if (settings.notifications.emailOnPayment) {
-    sendPaymentConfirmation({
+    trackPaymentNotification(sendPaymentConfirmation({
       name: existingPayment.enrollment.name,
       email: existingPayment.enrollment.email,
       amount: payment.amount,
       currency: payment.currency,
       course: course?.name || existingPayment.enrollment.courseSlug,
       paymentType: (params.paymentType || existingPayment.enrollment.paymentType).toLowerCase() === "deposit" ? "deposit" : "full",
-    }).catch((error) =>
-      logBackgroundError("payments.confirmation-email", error, {
-        paymentId: payment.id,
-        enrollmentId: payment.enrollmentId,
-      }),
-    );
+    }), "payments.confirmation-email", notificationContext);
   }
 
   if (settings.notifications.whatsappOnPayment) {
-    sendPaymentConfirmationWhatsApp({
+    trackPaymentNotification(sendPaymentConfirmationWhatsApp({
       name: existingPayment.enrollment.name,
       phone: existingPayment.enrollment.phone,
       amount: String(payment.amount),
       course: course?.name || existingPayment.enrollment.courseSlug,
-    }).catch((error) =>
-      logBackgroundError("payments.confirmation-whatsapp", error, {
-        paymentId: payment.id,
-        enrollmentId: payment.enrollmentId,
-      }),
-    );
+    }), "payments.confirmation-whatsapp", notificationContext);
   }
 
   return payment;

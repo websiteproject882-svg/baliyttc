@@ -47,6 +47,25 @@ type PublicEnrollment = {
   accessLevel: string;
 };
 
+type NotificationResult = {
+  success?: boolean;
+  error?: unknown;
+};
+
+function trackNotification(
+  promise: Promise<NotificationResult | unknown>,
+  context: string,
+  request: NextRequest,
+) {
+  promise
+    .then((result) => {
+      if (result && typeof result === "object" && "success" in result && (result as NotificationResult).success === false) {
+        logApiError(context, (result as NotificationResult).error || "Notification provider returned success=false", request);
+      }
+    })
+    .catch((error) => logApiError(context, error, request));
+}
+
 function toPublicEnrollment(enrollment: PublicEnrollment) {
   return {
     id: enrollment.id,
@@ -314,7 +333,7 @@ export async function POST(request: NextRequest) {
     // Send confirmation email to student (async, don't wait)
     // Use Gmail if configured, otherwise use Resend
     if (isGmailConfigured()) {
-      sendEnrollmentConfirmationEmail({
+      trackNotification(sendEnrollmentConfirmationEmail({
         name: data.name,
         email: data.email,
         course: courseName,
@@ -322,9 +341,9 @@ export async function POST(request: NextRequest) {
         amount: finalAmount,
         currency,
         paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
-      }).catch((error) => logApiError("enrollments.student-email", error, request));
+      }), "enrollments.student-email", request);
     } else {
-      sendEnrollmentConfirmation({
+      trackNotification(sendEnrollmentConfirmation({
         name: data.name,
         email: data.email,
         course: courseName,
@@ -332,20 +351,20 @@ export async function POST(request: NextRequest) {
         amount: finalAmount,
         currency,
         paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
-      }).catch((error) => logApiError("enrollments.student-email", error, request));
+      }), "enrollments.student-email", request);
     }
 
     // Send admin notification (async, don't wait)
     if (settings.notifications.emailOnEnrollment) {
       if (isGmailConfigured()) {
-        sendAdminNotificationEmail({
+        trackNotification(sendAdminNotificationEmail({
           type: "enrollment",
           name: data.name,
           email: data.email,
           course: `${courseName} - ${batchName || "TBD"}`,
-        }).catch((error) => logApiError("enrollments.admin-email", error, request));
+        }), "enrollments.admin-email", request);
       } else {
-        sendAdminEnrollmentNotification({
+        trackNotification(sendAdminEnrollmentNotification({
           name: data.name,
           email: data.email,
           phone: data.phone,
@@ -354,25 +373,25 @@ export async function POST(request: NextRequest) {
           amount: finalAmount,
           currency,
           paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
-        }).catch((error) => logApiError("enrollments.admin-email", error, request));
+        }), "enrollments.admin-email", request);
       }
     }
 
     // Send WhatsApp notification to student (async, don't wait)
-    sendEnrollmentConfirmationWhatsApp({
+    trackNotification(sendEnrollmentConfirmationWhatsApp({
       name: data.name,
       phone: data.phone,
       course: courseName,
       batch: batchName,
-    }).catch((error) => logApiError("enrollments.student-whatsapp", error, request));
+    }), "enrollments.student-whatsapp", request);
 
     // Send welcome WhatsApp to admin (async, don't wait)
     if (settings.notifications.whatsappOnEnrollment) {
-      sendWelcomeWhatsApp({
+      trackNotification(sendWelcomeWhatsApp({
         name: data.name,
         phone: data.phone,
         course: courseName,
-      }).catch((error) => logApiError("enrollments.admin-whatsapp", error, request));
+      }), "enrollments.admin-whatsapp", request);
     }
 
     return jsonWithRequestId({
