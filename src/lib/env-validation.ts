@@ -106,6 +106,14 @@ export function validateRuntimeEnv(): ValidationResult {
     errors.push("CRON_SECRET must be at least 16 characters when configured");
   }
 
+  if (
+    inProduction &&
+    process.env.ENABLE_TEST_LOGIN === "true" &&
+    process.env.ALLOW_PRODUCTION_TEST_LOGIN !== "true"
+  ) {
+    errors.push("ENABLE_TEST_LOGIN cannot be true in production unless ALLOW_PRODUCTION_TEST_LOGIN is explicitly true");
+  }
+
   if (process.env.NEXT_PUBLIC_BASE_URL) {
     try {
       const baseUrl = new URL(process.env.NEXT_PUBLIC_BASE_URL);

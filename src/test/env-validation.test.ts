@@ -45,4 +45,37 @@ describe("env validation", () => {
     expect(result.ok).toBe(false);
     expect(result.errors.some((item) => item.includes("Razorpay is partially configured"))).toBe(true);
   });
+
+  it("fails when production test login is enabled without the explicit override", () => {
+    process.env = { ...process.env, NODE_ENV: "production" };
+    process.env.NEXT_PUBLIC_BASE_URL = "https://baliyytc.vercel.app";
+    process.env.SESSION_SECRET = "12345678901234567890123456789012";
+    process.env.DATABASE_URL = "postgres://db";
+    process.env.FIREBASE_PROJECT_ID = "firebase-project";
+    process.env.FIREBASE_CLIENT_EMAIL = "firebase@example.com";
+    process.env.FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----";
+    process.env.ENABLE_TEST_LOGIN = "true";
+    process.env.ALLOW_PRODUCTION_TEST_LOGIN = "false";
+
+    const result = validateRuntimeEnv();
+
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((item) => item.includes("ENABLE_TEST_LOGIN cannot be true"))).toBe(true);
+  });
+
+  it("allows production test login only when the explicit override is present", () => {
+    process.env = { ...process.env, NODE_ENV: "production" };
+    process.env.NEXT_PUBLIC_BASE_URL = "https://baliyytc.vercel.app";
+    process.env.SESSION_SECRET = "12345678901234567890123456789012";
+    process.env.DATABASE_URL = "postgres://db";
+    process.env.FIREBASE_PROJECT_ID = "firebase-project";
+    process.env.FIREBASE_CLIENT_EMAIL = "firebase@example.com";
+    process.env.FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----";
+    process.env.ENABLE_TEST_LOGIN = "true";
+    process.env.ALLOW_PRODUCTION_TEST_LOGIN = "true";
+
+    const result = validateRuntimeEnv();
+
+    expect(result.errors.some((item) => item.includes("ENABLE_TEST_LOGIN cannot be true"))).toBe(false);
+  });
 });
