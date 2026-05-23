@@ -145,8 +145,16 @@ beforeEach(() => {
       typeof overrideRow.value.averageRating === "number" &&
       overrideRow.value.averageRating >= 0 &&
       overrideRow.value.averageRating <= 5;
+    const displayStats = isValidOverride ? overrideRow.value : stats;
     return {
-      stats: isValidOverride ? overrideRow.value : stats,
+      stats: {
+        ...displayStats,
+        averageRating: displayStats.averageRating >= 4 ? displayStats.averageRating : stats.averageRating,
+        totalReviews: displayStats.totalReviews >= 10 ? displayStats.totalReviews : stats.totalReviews,
+        countries: displayStats.countries >= 5 ? displayStats.countries : stats.countries,
+        trainingHours: displayStats.trainingHours >= 1000 ? displayStats.trainingHours : stats.trainingHours,
+        certifiedTeachers: displayStats.certifiedTeachers >= 100 ? displayStats.certifiedTeachers : stats.certifiedTeachers,
+      },
       computedStats,
     };
   });

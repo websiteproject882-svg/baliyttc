@@ -39,14 +39,34 @@ export async function getComputedSocialProofStats(): Promise<SocialProofStats> {
   };
 }
 
+function normalizeDisplayStats(stats: SocialProofStats): SocialProofStats {
+  return {
+    totalGraduates:
+      stats.totalGraduates >= 100 ? stats.totalGraduates : fallbackSocialProofStats.totalGraduates,
+    yearsExperience:
+      stats.yearsExperience > 0 ? stats.yearsExperience : fallbackSocialProofStats.yearsExperience,
+    averageRating:
+      stats.averageRating >= 4 ? stats.averageRating : fallbackSocialProofStats.averageRating,
+    totalReviews:
+      stats.totalReviews >= 10 ? stats.totalReviews : fallbackSocialProofStats.totalReviews,
+    countries:
+      stats.countries >= 5 ? stats.countries : fallbackSocialProofStats.countries,
+    trainingHours:
+      stats.trainingHours >= 1000 ? stats.trainingHours : fallbackSocialProofStats.trainingHours,
+    certifiedTeachers:
+      stats.certifiedTeachers >= 100 ? stats.certifiedTeachers : fallbackSocialProofStats.certifiedTeachers,
+  };
+}
+
 export async function getSocialProofStats() {
   const [computedStats, overrideRow] = await Promise.all([
     getComputedSocialProofStats(),
     prisma.siteSetting.findUnique({ where: { key: SOCIAL_PROOF_SETTINGS_KEY } }),
   ]);
   const parsedOverrides = socialProofSchema.safeParse(overrideRow?.value);
+  const displayStats = parsedOverrides.success ? parsedOverrides.data : fallbackSocialProofStats;
   return {
-    stats: parsedOverrides.success ? parsedOverrides.data : fallbackSocialProofStats,
+    stats: normalizeDisplayStats(displayStats),
     computedStats,
   };
 }
