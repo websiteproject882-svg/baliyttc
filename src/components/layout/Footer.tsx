@@ -6,9 +6,9 @@ import { BalieytcLogo } from "@/components/shared/BalieytcLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { SITE } from "@/data/site";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 const footerLinks = [
   {
@@ -34,6 +34,7 @@ const footerLinks = [
 export const Footer = () => {
   const t = useTranslations("Navigation");
   const tFooter = useTranslations("Footer");
+  const siteSettings = usePublicSiteSettings();
   const [email, setEmail] = useState("");
 
   // Social media links - update these with real URLs
@@ -61,10 +62,17 @@ export const Footer = () => {
           {/* Brand col */}
           <div className="lg:col-span-4">
             <div className="mb-5 flex items-center gap-3">
-              <BalieytcLogo className="h-12 w-12" showText={false} />
+              <BalieytcLogo
+                className="h-12 w-12"
+                showText={false}
+                logoUrl={siteSettings.logoUrl}
+                siteName={siteSettings.general.schoolName}
+              />
               <div>
-                <p className="font-serif text-xl font-bold text-white">{SITE.name}</p>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500">{tFooter("tagline")}</p>
+                <p className="font-serif text-xl font-bold text-white">{siteSettings.general.schoolName}</p>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500">
+                  {siteSettings.general.tagline || tFooter("tagline")}
+                </p>
               </div>
             </div>
             <p className="text-gray-400 mb-6">{tFooter("description")}</p>
@@ -106,11 +114,13 @@ export const Footer = () => {
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5 text-brand shrink-0" />
-                  <span>{SITE.location}</span>
+                  <span>{siteSettings.general.address}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-brand shrink-0" />
-                  <a href={`mailto:${SITE.email}`} className="hover:text-white transition-colors">{SITE.email}</a>
+                  <a href={`mailto:${siteSettings.general.email}`} className="hover:text-white transition-colors">
+                    {siteSettings.general.email}
+                  </a>
                 </li>
               </ul>
             </div>
@@ -140,7 +150,7 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} {SITE.name}. {tFooter("rights")}
+            &copy; {new Date().getFullYear()} {siteSettings.general.schoolName}. {tFooter("rights")}
           </p>
           <div className="flex gap-6 text-sm">
             <Link href="/terms" className="text-gray-500 hover:text-white transition-colors">{tFooter("terms")}</Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { FAQS as STATIC_FAQS, SITE as STATIC_SITE } from "@/data/site";
+import { FAQS as STATIC_FAQS } from "@/data/site";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/shared/Reveal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -8,6 +8,7 @@ import { HelpCircle, Mail, MessageCircle, Search, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 type PublicFaq = {
   id?: string;
@@ -18,6 +19,7 @@ type PublicFaq = {
 export const FAQ = () => {
   const t = useTranslations("FAQ");
   const locale = useLocale();
+  const siteSettings = usePublicSiteSettings();
   const translatedFaqs = t.raw("items") as Array<{ q: string; a: string }>;
   const translatedFaqsKey = JSON.stringify(translatedFaqs ?? []);
   const fallbackFaqs = useMemo<PublicFaq[]>(() => {
@@ -25,7 +27,6 @@ export const FAQ = () => {
     return localizedFaqs.length ? localizedFaqs : STATIC_FAQS;
   }, [translatedFaqsKey]);
   const [faqs, setFaqs] = useState<PublicFaq[]>(fallbackFaqs);
-  const site = STATIC_SITE;
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
@@ -114,7 +115,7 @@ export const FAQ = () => {
 
           <div className="mt-8 space-y-4">
             <motion.a
-              href={`mailto:${site.email}`}
+              href={`mailto:${siteSettings.general.email}`}
               whileHover={{ y: -3, scale: 1.01 }}
               className="group flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-premium-sm transition-all duration-300 hover:border-sage/30 hover:shadow-premium-md"
             >
@@ -123,12 +124,12 @@ export const FAQ = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-charcoal">{t("emailButton")}</p>
-                <p className="mt-0.5 text-xs text-ink-muted">{site.email}</p>
+                <p className="mt-0.5 text-xs text-ink-muted">{siteSettings.general.email}</p>
               </div>
             </motion.a>
 
             <motion.a
-              href={`https://wa.me/${site.whatsapp}`}
+              href={`https://wa.me/${siteSettings.whatsappNumber}`}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ y: -3, scale: 1.01 }}
@@ -139,7 +140,7 @@ export const FAQ = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-charcoal">{t("whatsappButton")}</p>
-                <p className="mt-0.5 text-xs text-ink-muted">{site.phone}</p>
+                <p className="mt-0.5 text-xs text-ink-muted">{siteSettings.general.phone}</p>
               </div>
             </motion.a>
           </div>
@@ -198,7 +199,7 @@ export const FAQ = () => {
             </div>
             <p className="mb-4 text-sm text-ink-soft">{t("contactDesc")}</p>
             <a
-              href={`mailto:${site.email}`}
+              href={`mailto:${siteSettings.general.email}`}
               className="inline-flex items-center gap-2 rounded-xl bg-charcoal px-5 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:bg-sage hover:shadow-lg"
             >
               <Mail className="h-4 w-4" />

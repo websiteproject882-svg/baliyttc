@@ -3,16 +3,17 @@ interface BalieytcLogoProps {
   className?: string;
   showText?: boolean;
   textClassName?: string;
+  logoUrl?: string;
+  siteName?: string;
 }
 
 export const BalieytcLogo = ({
   className = "h-12 w-12",
   showText = true,
   textClassName = "",
+  logoUrl = "/images/brand/logo-512.png",
+  siteName = "Bali YTTC",
 }: BalieytcLogoProps) => {
-  const logoUrl = "/images/brand/logo-512.png";
-  const siteName = "Bali YTTC";
-
   return (
     <div className="flex items-center gap-3">
       <img

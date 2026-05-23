@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
-import { SITE } from "@/data/site";
+import { X, Send, Loader2 } from "lucide-react";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 interface WhatsAppChatProps {
   className?: string;
@@ -13,9 +13,10 @@ export function WhatsAppChat({ className = "" }: WhatsAppChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const siteSettings = usePublicSiteSettings();
 
-  const whatsappNumber = SITE.whatsapp;
-  const defaultMessage = "Hi! I'd like to know more about Bali YTTC";
+  const whatsappNumber = siteSettings.whatsappNumber;
+  const defaultMessage = `Hi! I'd like to know more about ${siteSettings.general.schoolName}`;
 
   const handleSend = () => {
     if (!message.trim()) return;
@@ -102,7 +103,7 @@ export function WhatsAppChat({ className = "" }: WhatsAppChatProps) {
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-semibold">Bali YTTC Support</h3>
+                <h3 className="text-white font-semibold">{siteSettings.general.schoolName} Support</h3>
                 <p className="text-white/80 text-xs flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-green-300 animate-pulse" />
                   Typically replies instantly
@@ -119,7 +120,7 @@ export function WhatsAppChat({ className = "" }: WhatsAppChatProps) {
             {/* Welcome Message */}
             <div className="p-4 bg-green-50 border-b border-green-100">
               <p className="text-sm text-gray-700">
-                Welcome to Bali YTTC! How can we help you today?
+                Welcome to {siteSettings.general.schoolName}! How can we help you today?
               </p>
             </div>
 

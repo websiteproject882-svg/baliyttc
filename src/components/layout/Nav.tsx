@@ -6,10 +6,22 @@ import { ChevronDown, Menu, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname as useLocation } from "@/i18n/routing";
 import { ApplyModal } from "@/components/shared/ApplyModal";
-import { SITE } from "@/data/site";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
-const menuColumns = [
+type MenuLink = {
+  label: string;
+  to?: string;
+  href?: string;
+  strong?: boolean;
+};
+
+type MenuColumn = {
+  title: string;
+  links: MenuLink[];
+};
+
+const menuColumns: MenuColumn[] = [
   {
     title: "Trainings",
     links: [
@@ -38,7 +50,6 @@ const menuColumns = [
       { label: "Visa Information", to: "/visa" },
       { label: "FAQ", to: "/#faq" },
       { label: "Contact Us", to: "/contact" },
-      { label: SITE.email, href: `mailto:${SITE.email}` },
     ],
   },
   {
@@ -55,6 +66,7 @@ const menuColumns = [
 
 export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
   const t = useTranslations("Navigation");
+  const siteSettings = usePublicSiteSettings();
   const locale = useLocale();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -108,6 +120,18 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
     { label: t("videos"), description: "Campus and alumni video journals", to: "/videos" },
   ];
 
+  const mobileMenuColumns = menuColumns.map((column) =>
+    column.title === "Plan Your Trip"
+      ? {
+          ...column,
+          links: [
+            ...column.links,
+            { label: siteSettings.general.email, href: `mailto:${siteSettings.general.email}` },
+          ],
+        }
+      : column,
+  );
+
   const localizedMenuHref = (to = "/") => (to.startsWith("/") ? `/${locale}${to}` : to);
 
   return (
@@ -137,17 +161,17 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
             <Link
               href="/"
               className={`group absolute left-1/2 top-1/2 z-10 flex h-12 -translate-x-1/2 -translate-y-1/2 shrink-0 items-center gap-2 rounded-full border px-3 pr-4 transition-all duration-300 hover:-translate-y-[52%] ${logoClass}`}
-              aria-label="Bali YTTC home"
+              aria-label={`${siteSettings.general.schoolName} home`}
             >
               <img
-                src="/images/brand/logo-512.png"
-                alt="Bali YTTC"
+                src={siteSettings.logoUrl}
+                alt={siteSettings.general.schoolName}
                 className="h-9 w-9 flex-shrink-0 rounded-full object-contain"
                 loading="eager"
                 decoding="async"
               />
               <span className="hidden whitespace-nowrap font-serif text-[1.25rem] font-semibold leading-none tracking-normal sm:block">
-                Bali YTTC
+                {siteSettings.general.schoolName}
               </span>
             </Link>
 
@@ -252,7 +276,7 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
             className="fixed inset-x-0 z-40 overflow-y-auto border-t border-gray-100 bg-white shadow-2xl"
           >
             <div className="container-wide grid gap-8 py-10 md:grid-cols-4 md:gap-12 md:py-14">
-              {menuColumns.map((column) => (
+              {mobileMenuColumns.map((column) => (
                 <div key={column.title}>
                   <p className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-400">
                     {column.title}
@@ -277,7 +301,7 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
                         );
                       }
                       return (
-                        <a key={link.label} href={localizedMenuHref(link.to)} onClick={() => setMenuOpen(false)} className={cls}>
+                        <a key={link.label} href={localizedMenuHref(link.to || "/")} onClick={() => setMenuOpen(false)} className={cls}>
                           {link.label}
                         </a>
                       );
@@ -291,8 +315,8 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
               <div className="container-wide flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs font-medium text-gray-500">
                   {t("needHelp")}{" "}
-                  <a href={`tel:${SITE.phone}`} className="font-bold text-[#F04E23] transition-colors hover:text-[#D03D12]">
-                    {SITE.phone}
+                  <a href={`tel:${siteSettings.general.phone}`} className="font-bold text-[#F04E23] transition-colors hover:text-[#D03D12]">
+                    {siteSettings.general.phone}
                   </a>
                 </p>
                 <ApplyModal

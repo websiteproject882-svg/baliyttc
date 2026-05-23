@@ -3,9 +3,13 @@ import { SITE } from "@/data/site";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/shared/Reveal";
 import { MapPin, Phone, Mail, ExternalLink } from "lucide-react";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
-export const LocationMap = () => (
-  <section id="location" className="py-28 md:py-36 bg-sand">
+export const LocationMap = () => {
+  const siteSettings = usePublicSiteSettings();
+
+  return (
+    <section id="location" className="py-28 md:py-36 bg-sand">
     <div className="container-edit">
       <SectionHeading
         eyebrow="Find us in Ubud"
@@ -33,21 +37,21 @@ export const LocationMap = () => (
                 <MapPin className="w-5 h-5 text-terra mt-0.5 shrink-0" />
                 <div>
                   <p className="text-warm-dark font-medium">Address</p>
-                  <p className="text-sm text-ink-soft mt-1">{SITE.location}</p>
+                  <p className="text-sm text-ink-soft mt-1">{siteSettings.general.address}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Phone className="w-5 h-5 text-terra mt-0.5 shrink-0" />
                 <div>
                   <p className="text-warm-dark font-medium">Phone</p>
-                  <p className="text-sm text-ink-soft mt-1">{SITE.phone}</p>
+                  <p className="text-sm text-ink-soft mt-1">{siteSettings.general.phone}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Mail className="w-5 h-5 text-terra mt-0.5 shrink-0" />
                 <div>
                   <p className="text-warm-dark font-medium">Email</p>
-                  <p className="text-sm text-ink-soft mt-1">{SITE.email}</p>
+                  <p className="text-sm text-ink-soft mt-1">{siteSettings.general.email}</p>
                 </div>
               </div>
             </div>
@@ -62,5 +66,6 @@ export const LocationMap = () => (
       </div>
     </div>
   </section>
-);
+  );
+};
 
