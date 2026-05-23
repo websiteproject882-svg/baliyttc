@@ -28,6 +28,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
+function cleanHttpsUrl(value: unknown) {
+  if (value === "") return "";
+  if (typeof value !== "string") return undefined;
+  return httpsUrl.safeParse(value).success ? value : "";
+}
+
+function cleanHttpsOrRelativeUrl(value: unknown) {
+  if (value === "") return "";
+  if (typeof value !== "string") return undefined;
+  return httpsOrRelativeUrl.safeParse(value).success ? value : "";
+}
+
 export function normalizePaymentProviderOrder(value: unknown): PaymentProvider[] {
   const validProviders = new Set<PaymentProvider>(PAYMENT_PROVIDERS);
   const providers = Array.isArray(value) ? value : [];
@@ -158,8 +170,24 @@ function deepMergeSettings(value: unknown): SiteSettings {
       providerOrder: normalizePaymentProviderOrder(payments.providerOrder),
     },
     notifications: { ...defaultSiteSettings.notifications, ...notifications },
-    reviews: { ...defaultSiteSettings.reviews, ...reviews },
-    assets: { ...defaultSiteSettings.assets, ...assets },
+    reviews: {
+      ...defaultSiteSettings.reviews,
+      ...reviews,
+      googleReviewUrl: cleanHttpsUrl(reviews.googleReviewUrl) ?? defaultSiteSettings.reviews.googleReviewUrl,
+      tripadvisorReviewUrl:
+        cleanHttpsUrl(reviews.tripadvisorReviewUrl) ?? defaultSiteSettings.reviews.tripadvisorReviewUrl,
+    },
+    assets: {
+      ...defaultSiteSettings.assets,
+      ...assets,
+      logoUrl: cleanHttpsOrRelativeUrl(assets.logoUrl) ?? defaultSiteSettings.assets.logoUrl,
+      courseManualUrl:
+        cleanHttpsOrRelativeUrl(assets.courseManualUrl) ?? defaultSiteSettings.assets.courseManualUrl,
+      certificateTemplateUrl:
+        cleanHttpsOrRelativeUrl(assets.certificateTemplateUrl) ?? defaultSiteSettings.assets.certificateTemplateUrl,
+      mapsEmbedUrl: cleanHttpsUrl(assets.mapsEmbedUrl) ?? defaultSiteSettings.assets.mapsEmbedUrl,
+      mapsLinkUrl: cleanHttpsUrl(assets.mapsLinkUrl) ?? defaultSiteSettings.assets.mapsLinkUrl,
+    },
   };
 
   return siteSettingsSchema.parse(candidate);
