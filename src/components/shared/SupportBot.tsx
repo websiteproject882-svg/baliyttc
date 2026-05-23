@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Send, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SITE } from "@/data/site";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 interface FAQ {
   keywords: string[];
@@ -164,6 +164,7 @@ interface Message {
 }
 
 export default function SupportBot() {
+  const siteSettings = usePublicSiteSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -356,7 +357,7 @@ export default function SupportBot() {
               </div>
               <div className="flex justify-center mt-2">
                 <a
-                  href={`https://wa.me/${SITE.whatsapp}`}
+                  href={`https://wa.me/${siteSettings.whatsappNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-[#F04E23] hover:underline flex items-center gap-1"

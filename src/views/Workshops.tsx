@@ -5,7 +5,8 @@ import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
-import { IMG, SITE } from "@/data/site";
+import { IMG } from "@/data/site";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 import { Check, Calendar, Clock, Users, Sparkles, Volume2, Accessibility, Palette, Star, ArrowRight } from "lucide-react";
 
 const workshops = [
@@ -167,6 +168,7 @@ const fallbackTestimonials = [
 ];
 
 const Workshops = () => {
+  const siteSettings = usePublicSiteSettings();
   const [testimonials, setTestimonials] = useState(fallbackTestimonials);
 
   useEffect(() => {
@@ -495,7 +497,7 @@ const Workshops = () => {
                   </Button>
                 }
               />
-              <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer">
+              <a href={`https://wa.me/${siteSettings.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
                 <Button size="lg" variant="outline" className="h-14 border-cream/30 bg-transparent px-10 text-cream hover:bg-cream/10 hover:text-cream">
                   Chat With Us on WhatsApp
                 </Button>

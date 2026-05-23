@@ -4,7 +4,8 @@ import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
-import { IMG, SITE } from "@/data/site";
+import { IMG } from "@/data/site";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 import { Check, Clock, Plane, FileText, Shield, HelpCircle, ChevronRight, Globe, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const visaTypes = [
@@ -152,6 +153,8 @@ const faqs = [
 ];
 
 const VisaInfo = () => {
+  const siteSettings = usePublicSiteSettings();
+
   return (
     <>
       {/* Hero */}
@@ -184,7 +187,7 @@ const VisaInfo = () => {
                   View Visa Options
                 </Button>
               </a>
-              <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer">
+              <a href={`https://wa.me/${siteSettings.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" className="h-12 border-cream/30 bg-transparent px-8 text-cream hover:bg-cream/10 hover:text-cream">
                   Ask About Your Visa
                 </Button>
@@ -481,7 +484,7 @@ const VisaInfo = () => {
               Our team has helped thousands of students from Europe and around the world navigate the Bali visa process. We're here to help — just send us a message.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer">
+              <a href={`https://wa.me/${siteSettings.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
                 <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white h-14 px-10">
                   Chat on WhatsApp
                 </Button>
