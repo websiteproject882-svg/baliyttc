@@ -7,7 +7,7 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { requireSameOrigin } from "@/lib/authz";
 
 const captureSchema = z.object({
-  orderId: z.string(),
+  orderId: z.string().trim().min(1).max(120),
 });
 
 function toMinorUnits(value: number) {

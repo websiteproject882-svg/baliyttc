@@ -7,9 +7,9 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { requireSameOrigin } from "@/lib/authz";
 
 const verifySchema = z.object({
-  razorpay_order_id: z.string(),
-  razorpay_payment_id: z.string(),
-  razorpay_signature: z.string(),
+  razorpay_order_id: z.string().trim().min(1).max(120),
+  razorpay_payment_id: z.string().trim().min(1).max(120),
+  razorpay_signature: z.string().trim().min(1).max(512),
 });
 
 export async function POST(request: NextRequest) {

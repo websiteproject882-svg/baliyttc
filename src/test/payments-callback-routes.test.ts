@@ -136,6 +136,17 @@ describe("payment callback routes", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized Razorpay verification payloads before provider checks", async () => {
+    const response = await verifyRazorpayPayment(razorpayRequest({ razorpay_order_id: "x".repeat(121) }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.verifyRazorpayPaymentSignature).not.toHaveBeenCalled();
+    expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+  });
+
   it("returns 404 when Razorpay callback cannot find a payment", async () => {
     mocks.paymentFindFirst.mockResolvedValue(null);
 
@@ -200,6 +211,17 @@ describe("payment callback routes", () => {
     expect(mocks.capturePayPalOrder).not.toHaveBeenCalled();
     expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
     expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized PayPal order ids before provider calls", async () => {
+    const response = await capturePayPalPayment(paypalRequest({ orderId: "x".repeat(121) }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.capturePayPalOrder).not.toHaveBeenCalled();
+    expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
   });
 
   it("returns 404 when PayPal capture succeeds but local payment is missing", async () => {
