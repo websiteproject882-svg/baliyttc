@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { defaultLocale } from "@/i18n/routing";
+import { normalizeLocale } from "@/lib/localized-content";
 
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 12;
@@ -12,10 +14,11 @@ function getLimit(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const locale = request.nextUrl.searchParams.get("locale") || "en";
+  const locale = normalizeLocale(request.nextUrl.searchParams.get("locale"));
 
   try {
-    const faqs = await prisma.fAQ.findMany({
+    let effectiveLocale = locale;
+    let faqs = await prisma.fAQ.findMany({
       where: {
         locale,
         isActive: true,
@@ -30,7 +33,25 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return jsonWithRequestId({ faqs }, undefined, request);
+    if (faqs.length === 0 && locale !== defaultLocale) {
+      effectiveLocale = defaultLocale;
+      faqs = await prisma.fAQ.findMany({
+        where: {
+          locale: defaultLocale,
+          isActive: true,
+        },
+        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+        take: getLimit(request),
+        select: {
+          id: true,
+          question: true,
+          answer: true,
+          category: true,
+        },
+      });
+    }
+
+    return jsonWithRequestId({ faqs, locale: effectiveLocale }, undefined, request);
   } catch (error) {
     logApiError("faq.list", error, request);
     return jsonWithRequestId({ error: "Failed to fetch FAQs" }, { status: 500 }, request);

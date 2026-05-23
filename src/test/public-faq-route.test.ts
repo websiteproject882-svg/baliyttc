@@ -24,6 +24,16 @@ vi.mock("@/lib/security", () => ({
   logApiError: mocks.logApiError,
 }));
 
+vi.mock("@/i18n/routing", () => ({
+  defaultLocale: "en",
+  locales: ["en", "id", "es"],
+}));
+
+vi.mock("@/lib/localized-content", async () => {
+  const actual = await vi.importActual<typeof import("../lib/localized-content")>("../lib/localized-content");
+  return actual;
+});
+
 const faq = {
   id: "faq_1",
   question: "What should I pack?",
@@ -52,7 +62,7 @@ describe("public FAQ route", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("X-Request-Id")).toBe("req_public_faq");
-    expect(body.faqs).toEqual([faq]);
+    expect(body).toEqual({ faqs: [faq], locale: "id" });
     expect(mocks.faqFindMany).toHaveBeenCalledWith({
       where: {
         locale: "id",
@@ -73,6 +83,39 @@ describe("public FAQ route", () => {
     await GET(request("https://example.com/api/faq?limit=500"));
 
     expect(mocks.faqFindMany).toHaveBeenCalledWith(expect.objectContaining({ take: 50 }));
+  });
+
+  it("normalizes unsupported locales to English", async () => {
+    await GET(request("https://example.com/api/faq?locale=bad-locale"));
+
+    expect(mocks.faqFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          locale: "en",
+          isActive: true,
+        },
+      }),
+    );
+  });
+
+  it("falls back to English when a supported locale has no FAQ entries", async () => {
+    mocks.faqFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([{ ...faq, id: "faq_en" }]);
+
+    const response = await GET(request("https://example.com/api/faq?locale=id&limit=8"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ faqs: [{ ...faq, id: "faq_en" }], locale: "en" });
+    expect(mocks.faqFindMany).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        where: {
+          locale: "en",
+          isActive: true,
+        },
+        take: 8,
+      }),
+    );
   });
 
   it("logs failures without leaking internals", async () => {
