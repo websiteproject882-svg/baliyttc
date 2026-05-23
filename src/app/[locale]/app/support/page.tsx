@@ -4,7 +4,7 @@ import { useState } from "react";
 import { HelpCircle, Mail, MessageSquare, Phone, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SITE } from "@/data/site";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 const helpTopics = [
   {
@@ -27,8 +27,9 @@ const helpTopics = [
 
 export default function StudentSupportPage() {
   const [message, setMessage] = useState("");
-  const mailto = `mailto:${SITE.email}?subject=Student%20Portal%20Support&body=${encodeURIComponent(message)}`;
-  const whatsappUrl = `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(message || "Hi Bali YTTC, I need help with my student portal.")}`;
+  const siteSettings = usePublicSiteSettings();
+  const mailto = `mailto:${siteSettings.general.email}?subject=Student%20Portal%20Support&body=${encodeURIComponent(message)}`;
+  const whatsappUrl = `https://wa.me/${siteSettings.whatsappNumber}?text=${encodeURIComponent(message || `Hi ${siteSettings.general.schoolName}, I need help with my student portal.`)}`;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -66,11 +67,11 @@ export default function StudentSupportPage() {
             <div className="space-y-2 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
               <p className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-orange-500" />
-                {SITE.email}
+                {siteSettings.general.email}
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-orange-500" />
-                {SITE.phone}
+                {siteSettings.general.phone}
               </p>
             </div>
             <textarea

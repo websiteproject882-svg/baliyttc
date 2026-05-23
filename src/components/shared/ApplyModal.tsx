@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
-import { SITE } from "@/data/site";
-import { Check, CheckCircle, Zap, Shield, Loader2, Users, Home } from "lucide-react";
+import { CheckCircle, Zap, Shield, Loader2, Users, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculatePrice, formatCurrency } from "@/lib/payments/pricing";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 interface Props {
   trigger: React.ReactNode;
@@ -177,6 +177,7 @@ function getPaymentProviderOptions(
 
 export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
   const pathname = usePathname();
+  const siteSettings = usePublicSiteSettings();
   const [step, setStep] = useState(1);
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -338,7 +339,7 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
         order_id: params.order.id,
         amount: params.order.amount,
         currency: params.order.currency,
-        name: SITE.name,
+        name: siteSettings.general.schoolName,
         description: `${data.paymentType === "DEPOSIT" ? "Deposit" : "Full payment"} for ${selectedCourse?.name || "Yoga Training"}`,
         prefill: {
           name: data.name,
@@ -504,7 +505,7 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }}>
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
               </motion.div>
-              <h2 className="font-serif text-3xl text-gray-900 mb-3">Welcome to {SITE.name}!</h2>
+              <h2 className="font-serif text-3xl text-gray-900 mb-3">Welcome to {siteSettings.general.schoolName}!</h2>
               <p className="text-gray-700 mb-6">Your application has been submitted successfully.</p>
               <div className="bg-green-50 rounded-xl p-4 text-left">
                 <p className="text-sm font-semibold text-gray-700 mb-2">Application Summary:</p>
