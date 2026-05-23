@@ -13,12 +13,14 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRoleHomePath } from "@/lib/rbac";
 import { isFirebaseConfigured, sendPortalPasswordReset } from "@/lib/firebase";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 export default function LoginPage() {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params.locale || "en";
   const { login, verifyTwoFactor } = useAuth();
+  const siteSettings = usePublicSiteSettings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
@@ -324,7 +326,7 @@ export default function LoginPage() {
           {/* Help Text */}
           <p className="text-center text-sm text-gray-500 mt-6">
             Need help?{" "}
-            <a href="mailto:info@baliyttc.com" className="text-amber-600 hover:text-amber-700">
+            <a href={`mailto:${siteSettings.general.email}`} className="text-amber-600 hover:text-amber-700">
               Contact Support
             </a>
           </p>
