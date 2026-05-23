@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -43,24 +45,40 @@ interface MonthlyEnrollment {
   createdAt: Date;
 }
 
+const periodSchema = z
+  .enum(["day", "week", "month", "year", "7d", "30d", "90d", "1y", "all"])
+  .default("month");
+
+type AnalyticsPeriod = z.infer<typeof periodSchema>;
+
+function getStartDate(period: AnalyticsPeriod, now: Date) {
+  const ranges: Record<AnalyticsPeriod, Date> = {
+    day: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+    week: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+    month: new Date(now.getFullYear(), now.getMonth(), 1),
+    year: new Date(now.getFullYear(), 0, 1),
+    "7d": new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+    "30d": new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+    "90d": new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
+    "1y": new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()),
+    all: new Date(0),
+  };
+
+  return ranges[period];
+}
+
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminUser();
-  if (response) {
+  const { user, response } = await requireAdminUser();
+  if (!user || response) {
     return response;
   }
 
   try {
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get("period") || "month";
+    const period = periodSchema.parse(searchParams.get("period") || undefined);
 
     const now = new Date();
-    const ranges: Record<string, Date> = {
-      day: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-      week: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-      month: new Date(now.getFullYear(), now.getMonth(), 1),
-      year: new Date(now.getFullYear(), 0, 1),
-    };
-    const startDate = ranges[period] || ranges.month;
+    const startDate = getStartDate(period, now);
 
     const [
       totalEnrollments,
@@ -75,6 +93,10 @@ export async function GET(request: NextRequest) {
       topBatches,
       leadsStats,
       waitlistStats,
+      noneAccessCount,
+      preArrivalAccessCount,
+      fullAccessCount,
+      alumniAccessCount,
     ] = await Promise.all([
       prisma.enrollment.count(),
       prisma.student.count({
@@ -120,6 +142,10 @@ export async function GET(request: NextRequest) {
       }),
       prisma.lead.groupBy({ by: ["status"], _count: true }),
       prisma.waitlist.groupBy({ by: ["status"], _count: true }),
+      prisma.student.count({ where: { accessLevel: "NONE" } }),
+      prisma.student.count({ where: { accessLevel: "PRE_ARRIVAL" } }),
+      prisma.student.count({ where: { accessLevel: "FULL" } }),
+      prisma.student.count({ where: { accessLevel: "ALUMNI" } }),
     ]);
 
     const monthlyRevenue: Record<string, number> = {};
@@ -156,7 +182,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       stats: {
         totalEnrollments,
         totalStudents,
@@ -201,10 +227,10 @@ export async function GET(request: NextRequest) {
         enrollmentByStatus.map((s: EnrollmentStatus) => [s.paymentStatus, s._count]),
       ),
       accessLevelBreakdown: {
-        NONE: await prisma.student.count({ where: { accessLevel: "NONE" } }),
-        PRE_ARRIVAL: await prisma.student.count({ where: { accessLevel: "PRE_ARRIVAL" } }),
-        FULL: await prisma.student.count({ where: { accessLevel: "FULL" } }),
-        ALUMNI: await prisma.student.count({ where: { accessLevel: "ALUMNI" } }),
+        NONE: noneAccessCount,
+        PRE_ARRIVAL: preArrivalAccessCount,
+        FULL: fullAccessCount,
+        ALUMNI: alumniAccessCount,
       },
       recentEnrollments: recentEnrollments.map((enrollment) => ({
         id: enrollment.id,
@@ -219,15 +245,18 @@ export async function GET(request: NextRequest) {
         name: b.name,
         enrolled: b.enrolled,
         capacity: b.capacity,
-        utilization: Math.round((b.enrolled / b.capacity) * 100),
+        utilization: b.capacity > 0 ? Math.round((b.enrolled / b.capacity) * 100) : 0,
         status: b.status,
       })),
       topBatches,
       leads: leadsStats.map((l: StatCount) => ({ status: l.status, count: l._count })),
       waitlist: waitlistStats.map((w: StatCount) => ({ status: w.status, count: w._count })),
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("Analytics error:", error);
-    return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
+    }
+    logApiError("admin.analytics.summary", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to fetch analytics" }, { status: 500 }, request);
   }
 }

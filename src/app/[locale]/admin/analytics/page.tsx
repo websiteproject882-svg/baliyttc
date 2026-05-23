@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,10 +42,10 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
   const [showValues, setShowValues] = useState(true);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/analytics");
+      const response = await fetch(`/api/admin/analytics?period=${encodeURIComponent(timeRange)}`);
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Failed to fetch analytics");
@@ -87,11 +87,11 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
 
   useEffect(() => {
     void fetchAnalytics();
-  }, [timeRange]);
+  }, [fetchAnalytics]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(showValues ? amount : 0);
