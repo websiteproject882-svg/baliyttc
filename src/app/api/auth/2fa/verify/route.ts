@@ -2,13 +2,11 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { createSession, decrypt } from "@/lib/session";
-import { getRoleHomePath } from "@/lib/rbac";
+import { getRoleHomePath, isStaffRole } from "@/lib/rbac";
 import { verifyTotpToken } from "@/lib/totp";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
-
-const STAFF_PORTAL_ROLES = new Set(["TEACHER", "SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER"]);
 
 const verifyTwoFactorSchema = z.object({
   challengeToken: z.string().trim().min(1),
@@ -67,7 +65,7 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ error: "Admin privileges required" }, { status: 403 }, request);
     }
 
-    if (authType === "staff" && !STAFF_PORTAL_ROLES.has(user.staff.role)) {
+    if (authType === "staff" && (!isStaffRole(user.staff.role) || user.staff.role === "SUPER_ADMIN")) {
       return jsonWithRequestId({ error: "Valid staff role required" }, { status: 403 }, request);
     }
 

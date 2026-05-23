@@ -4,14 +4,12 @@ import { z } from 'zod';
 import { auth } from '@/lib/firebase-admin';
 import { createSession, createTwoFactorChallenge, AuthType } from '@/lib/session';
 import prisma from '@/lib/prisma';
-import { getRoleHomePath } from '@/lib/rbac';
+import { getRoleHomePath, isStaffRole } from '@/lib/rbac';
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
 
 const loginSchema = z.object({
   idToken: z.string().trim().min(1).max(20_000),
 });
-
-const STAFF_ROLES = ['TEACHER', 'SEO_EDITOR', 'FINANCE_MANAGER', 'COURSE_MANAGER'] as const;
 
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
@@ -96,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if role is allowed for staff portal
-    if (!STAFF_ROLES.includes(user.staff.role as typeof STAFF_ROLES[number])) {
+    if (!isStaffRole(user.staff.role)) {
       return jsonWithRequestId(
         { error: 'Access denied. Valid staff role required.' },
         { status: 403 },

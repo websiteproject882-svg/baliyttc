@@ -50,8 +50,9 @@ vi.mock("@/lib/security", () => ({
 }));
 
 vi.mock("@/lib/rbac", () => ({
-  getRoleHomePath: (role: string) => (role === "SUPER_ADMIN" ? "/en/admin" : "/en/staff/dashboard"),
-  isAdminPanelRole: () => true,
+  getRoleHomePath: (role: string) => (role === "TEACHER" ? "/en/app/teacher/dashboard" : "/en/admin/overview"),
+  isStaffRole: (role: string) =>
+    ["SUPER_ADMIN", "STUDENT_MANAGER", "SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER", "TEACHER"].includes(role),
 }));
 
 const adminUser = {
@@ -76,6 +77,20 @@ const staffUser = {
     role: "TEACHER",
     status: "ACTIVE",
     permissions: ["students.view"],
+    totpEnabled: false,
+    totpSecret: null,
+  },
+};
+
+const studentManagerUser = {
+  id: "user_manager",
+  uid: "old_uid",
+  email: "manager@example.com",
+  staff: {
+    id: "staff_manager",
+    role: "STUDENT_MANAGER",
+    status: "ACTIVE",
+    permissions: ["students.view", "students.approve"],
     totpEnabled: false,
     totpSecret: null,
   },
@@ -152,6 +167,30 @@ describe("admin and staff Firebase login", () => {
       },
     });
     expect(mocks.createSession).toHaveBeenCalledWith("user_staff", "TEACHER", "teacher@example.com", "staff");
+  });
+
+  it("allows student managers through staff login and sends them to admin overview", async () => {
+    mocks.verifyIdToken.mockResolvedValue({
+      uid: "new_uid",
+      email: "manager@example.com",
+      name: "Student Manager",
+      picture: null,
+    });
+    mocks.userFindUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(studentManagerUser);
+
+    const response = await staffLogin(request("https://example.com/api/auth/staff/login"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual(expect.objectContaining({
+      success: true,
+      role: "STUDENT_MANAGER",
+      authType: "staff",
+      redirectTo: "/en/admin/overview",
+    }));
+    expect(mocks.createSession).toHaveBeenCalledWith("user_manager", "STUDENT_MANAGER", "manager@example.com", "staff");
   });
 
   it("blocks admin login when uid and email belong to different users", async () => {

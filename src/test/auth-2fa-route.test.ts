@@ -35,6 +35,8 @@ vi.mock("@/lib/totp", () => ({
 
 vi.mock("@/lib/rbac", () => ({
   getRoleHomePath: (role: string) => (role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/overview"),
+  isStaffRole: (role: string) =>
+    ["SUPER_ADMIN", "STUDENT_MANAGER", "SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER", "TEACHER"].includes(role),
 }));
 
 vi.mock("@/lib/security", () => ({
@@ -232,6 +234,34 @@ describe("2FA verification route", () => {
       redirectTo: "/app/teacher/dashboard",
     });
     expect(mocks.createSession).toHaveBeenCalledWith("user_1", "TEACHER", "teacher@example.com", "staff");
+  });
+
+  it("allows student manager staff challenges and redirects to admin overview", async () => {
+    mocks.decrypt.mockResolvedValue({ purpose: "2fa", userId: "user_1", role: "STUDENT_MANAGER", authType: "staff" });
+    mocks.userFindUnique.mockResolvedValue({
+      id: "user_1",
+      email: "manager@example.com",
+      staff: {
+        id: "staff_1",
+        role: "STUDENT_MANAGER",
+        status: "ACTIVE",
+        totpEnabled: true,
+        totpSecret: "secret",
+      },
+    });
+    mocks.verifyTotpToken.mockReturnValue(true);
+
+    const response = await POST(request({ challengeToken: "token", code: "123456" }));
+    const body = await json(response);
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      role: "STUDENT_MANAGER",
+      authType: "staff",
+      redirectTo: "/admin/overview",
+    });
+    expect(mocks.createSession).toHaveBeenCalledWith("user_1", "STUDENT_MANAGER", "manager@example.com", "staff");
   });
 
   it("rejects a staff challenge for a super admin account", async () => {
