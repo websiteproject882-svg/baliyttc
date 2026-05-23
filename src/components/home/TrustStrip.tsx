@@ -5,8 +5,19 @@ import { IMG } from "@/data/site";
 import { Link } from "@/i18n/routing";
 import { useHomeCopy } from "@/lib/use-home-copy";
 import { useSocialProof } from "@/lib/use-social-proof";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
-const authorityCards = [
+type AuthorityCard = {
+  title: string;
+  subtitle: string;
+  image?: string;
+  icon?: string;
+  tone?: string;
+  href?: string;
+  internalHref?: string;
+};
+
+const authorityCards: AuthorityCard[] = [
   {
     title: "Yoga Alliance",
     subtitle: "RYS 200 Registry",
@@ -39,9 +50,18 @@ const authorityCards = [
 export const TrustStrip = () => {
   const copy = useHomeCopy();
   const { ratingLabel, reviewLabel } = useSocialProof();
+  const siteSettings = usePublicSiteSettings();
   const cards = authorityCards.map((card) => {
     if (card.title === "Trustpilot") return { ...card, subtitle: `${ratingLabel} - Excellent` };
-    if (card.title === "Google Reviews") return { ...card, subtitle: reviewLabel };
+    if (card.title === "Google Reviews") {
+      return { ...card, subtitle: reviewLabel, href: siteSettings.reviews.googleReviewUrl };
+    }
+    if (card.title === "TripAdvisor") {
+      return { ...card, href: siteSettings.reviews.tripadvisorReviewUrl };
+    }
+    if (card.title === "Yoga Alliance") {
+      return { ...card, internalHref: "/yoga-alliance" };
+    }
     return card;
   });
   const marqueeCards = [...cards, ...cards];
@@ -57,32 +77,67 @@ export const TrustStrip = () => {
 
         <div className="-mx-4 overflow-hidden px-4">
           <div className="flex w-max gap-4 animate-marquee hover:[animation-play-state:paused] md:gap-5">
-            {marqueeCards.map((card, index) => (
-              <div
-                key={`${card.title}-${card.subtitle}-${index}`}
-                className="flex min-h-[98px] w-[190px] shrink-0 flex-col items-center justify-center rounded-[10px] border border-stone-200 bg-[#fcfaf7] px-4 py-3 text-center shadow-[0_10px_24px_rgba(35,35,30,0.04)] transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_16px_34px_rgba(35,35,30,0.09)] md:min-h-[108px] md:w-[220px]"
-              >
-                <div className="mb-2 flex h-9 w-10 items-center justify-center">
-                  {card.image ? (
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="max-h-9 max-w-[86px] object-contain"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : card.icon === "G" ? (
-                    <span className="number-value text-[#4285F4]">G</span>
-                  ) : (
-                    <span className={`flex h-9 w-9 items-center justify-center rounded-full ${card.tone || "text-sage"}`}>
-                      <Star className="h-8 w-8 fill-current" />
-                    </span>
-                  )}
+            {marqueeCards.map((card, index) => {
+              const cardClass =
+                "flex min-h-[98px] w-[190px] shrink-0 flex-col items-center justify-center rounded-[10px] border border-stone-200 bg-[#fcfaf7] px-4 py-3 text-center shadow-[0_10px_24px_rgba(35,35,30,0.04)] transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_16px_34px_rgba(35,35,30,0.09)] md:min-h-[108px] md:w-[220px]";
+              const content = (
+                <>
+                  <div className="mb-2 flex h-9 w-10 items-center justify-center">
+                    {card.image ? (
+                      <img
+                        src={card.image}
+                        alt={card.title}
+                        className="max-h-9 max-w-[86px] object-contain"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : card.icon === "G" ? (
+                      <span className="number-value text-[#4285F4]">G</span>
+                    ) : (
+                      <span className={`flex h-9 w-9 items-center justify-center rounded-full ${card.tone || "text-sage"}`}>
+                        <Star className="h-8 w-8 fill-current" />
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="display-sm text-charcoal">{card.title}</h3>
+                  <p className="mt-1 text-xs leading-5 text-ink-soft md:text-sm">{card.subtitle}</p>
+                </>
+              );
+
+              if (card.href) {
+                return (
+                  <a
+                    key={`${card.title}-${card.subtitle}-${index}`}
+                    href={card.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cardClass}
+                    aria-label={`Open ${card.title}`}
+                  >
+                    {content}
+                  </a>
+                );
+              }
+
+              if (card.internalHref) {
+                return (
+                  <Link
+                    key={`${card.title}-${card.subtitle}-${index}`}
+                    href={card.internalHref}
+                    className={cardClass}
+                    aria-label={`Open ${card.title}`}
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
+              return (
+                <div key={`${card.title}-${card.subtitle}-${index}`} className={cardClass}>
+                  {content}
                 </div>
-                <h3 className="display-sm text-charcoal">{card.title}</h3>
-                <p className="mt-1 text-xs leading-5 text-ink-soft md:text-sm">{card.subtitle}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
