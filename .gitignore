@@ -38,4 +38,8 @@ firebase-adminsdk*.json
 *.sw?
 .vercel
 
+# Local chat/upload leftovers
+WhatsApp Image*.jpg
+WhatsApp Image*.jpeg
+
 /src/generated/prisma
