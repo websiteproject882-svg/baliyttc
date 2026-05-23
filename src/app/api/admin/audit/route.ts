@@ -1,8 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+
+const querySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  entity: z.string().trim().min(1).optional(),
+  action: z.string().trim().min(1).optional(),
+  actor: z.string().trim().min(1).optional(),
+});
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireAdminUser();
@@ -12,20 +21,22 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-    const entity = searchParams.get("entity");
-    const action = searchParams.get("action");
-    const actor = searchParams.get("actor");
+    const query = querySchema.parse({
+      limit: searchParams.get("limit") ?? undefined,
+      entity: searchParams.get("entity") ?? undefined,
+      action: searchParams.get("action") ?? undefined,
+      actor: searchParams.get("actor") ?? undefined,
+    });
 
     const logs = await prisma.auditLog.findMany({
       where: {
-        ...(entity ? { entity } : {}),
-        ...(action ? { action } : {}),
-        ...(actor
+        ...(query.entity ? { entity: query.entity } : {}),
+        ...(query.action ? { action: query.action } : {}),
+        ...(query.actor
           ? {
               user: {
                 email: {
-                  contains: actor,
+                  contains: query.actor,
                   mode: "insensitive",
                 },
               },
@@ -41,10 +52,10 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: limit,
+      take: query.limit,
     });
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       logs: logs.map((log) => ({
         id: log.id,
         action: log.action,
@@ -60,9 +71,12 @@ export async function GET(request: NextRequest) {
           displayName: log.user.displayName,
         },
       })),
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET audit logs error:", error);
-    return NextResponse.json({ error: "Failed to fetch audit logs" }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
+    }
+    logApiError("admin.audit.list", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to fetch audit logs" }, { status: 500 }, request);
   }
 }
