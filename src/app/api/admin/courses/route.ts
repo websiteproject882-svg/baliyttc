@@ -7,22 +7,24 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const courseSchema = z.object({
-  name: z.string().min(2),
+  name: z.string().trim().min(2).max(160),
   slug: z.string()
+    .trim()
     .min(2)
+    .max(180)
     .transform((value) => value.trim().toLowerCase().replace(/\s+/g, "-"))
     .pipe(z.string().regex(/^[a-z0-9-]+$/)),
-  duration: z.string().min(2),
-  summary: z.string().min(10),
-  description: z.string().min(20),
+  duration: z.string().trim().min(2).max(80),
+  summary: z.string().trim().min(10).max(600),
+  description: z.string().trim().min(20).max(20000),
   priceFrom: z.coerce.number().nonnegative(),
   priceFull: z.coerce.number().nonnegative().nullable().optional(),
   image: z.string().url().optional().or(z.literal("")),
   translations: z.record(z.object({
-    name: z.string().optional(),
-    duration: z.string().optional(),
-    summary: z.string().optional(),
-    description: z.string().optional(),
+    name: z.string().trim().max(160).optional(),
+    duration: z.string().trim().max(80).optional(),
+    summary: z.string().trim().max(600).optional(),
+    description: z.string().trim().max(20000).optional(),
     image: z.string().url().optional().or(z.literal("")),
   }).partial()).optional(),
   isActive: z.boolean().optional(),

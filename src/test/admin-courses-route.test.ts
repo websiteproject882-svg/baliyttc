@@ -197,6 +197,26 @@ describe("admin courses route", () => {
     expect(mocks.courseCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized course copy before saving", async () => {
+    const response = await POST(request("POST", payload({ summary: "x".repeat(601) })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized translated course copy before saving", async () => {
+    const response = await POST(
+      request("POST", payload({ translations: { es: { name: "x".repeat(161) } } })),
+    );
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed course create JSON before saving", async () => {
     const response = await POST(rawRequest("POST", "{not-valid-json"));
     const body = await response?.json();
