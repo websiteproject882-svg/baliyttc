@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import { IMG } from "@/data/site";
 import { Link } from "@/i18n/routing";
 import { useHomeCopy } from "@/lib/use-home-copy";
+import { useSocialProof } from "@/lib/use-social-proof";
 
 const authorityCards = [
   {
@@ -37,7 +38,13 @@ const authorityCards = [
 
 export const TrustStrip = () => {
   const copy = useHomeCopy();
-  const marqueeCards = [...authorityCards, ...authorityCards];
+  const { ratingLabel, reviewLabel } = useSocialProof();
+  const cards = authorityCards.map((card) => {
+    if (card.title === "Trustpilot") return { ...card, subtitle: `${ratingLabel} - Excellent` };
+    if (card.title === "Google Reviews") return { ...card, subtitle: reviewLabel };
+    return card;
+  });
+  const marqueeCards = [...cards, ...cards];
 
   return (
     <section id="trust" className="overflow-hidden border-y border-stone-200 bg-white py-5 md:py-6">

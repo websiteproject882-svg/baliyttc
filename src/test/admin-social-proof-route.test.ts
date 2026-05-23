@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   requireAdminUser: vi.fn(),
   requireSameOrigin: vi.fn(),
   writeAuditLog: vi.fn(),
+  getSocialProofStats: vi.fn(),
   certificateCount: vi.fn(),
   testimonialAggregate: vi.fn(),
   studentFindMany: vi.fn(),
@@ -48,6 +49,23 @@ vi.mock("@/lib/security", () => ({
   },
   logApiError: mocks.logApiError,
 }));
+
+vi.mock("@/lib/social-proof", async () => {
+  const { z } = await import("zod");
+  return {
+    SOCIAL_PROOF_SETTINGS_KEY: "social_proof_overrides",
+    socialProofSchema: z.object({
+      totalGraduates: z.coerce.number().int().min(0),
+      yearsExperience: z.coerce.number().int().min(0),
+      averageRating: z.coerce.number().min(0).max(5),
+      totalReviews: z.coerce.number().int().min(0),
+      countries: z.coerce.number().int().min(0),
+      trainingHours: z.coerce.number().int().min(0),
+      certifiedTeachers: z.coerce.number().int().min(0),
+    }),
+    getSocialProofStats: mocks.getSocialProofStats,
+  };
+});
 
 const admin = {
   id: "admin_1",
@@ -94,6 +112,44 @@ beforeEach(() => {
   mocks.siteSettingFindUnique.mockResolvedValue(null);
   mocks.siteSettingUpsert.mockResolvedValue({ key: "social_proof_overrides", value: stats });
   mocks.writeAuditLog.mockResolvedValue(undefined);
+  mocks.getSocialProofStats.mockImplementation(async () => {
+    const [totalGraduates, reviewStats, countries, trainingHours, certifiedTeachers] = await Promise.all([
+      mocks.certificateCount({ where: { status: "ISSUED" } }),
+      mocks.testimonialAggregate({
+        where: { status: "APPROVED" },
+        _count: { id: true },
+        _avg: { rating: true },
+      }),
+      mocks.studentFindMany({
+        where: { nationality: { not: null } },
+        select: { nationality: true },
+        distinct: ["nationality"],
+      }),
+      mocks.studentAggregate({
+        _sum: { completedHours: true },
+      }),
+      mocks.certificateCount({ where: { status: "ISSUED" } }),
+    ]);
+    const computedStats = {
+      totalGraduates,
+      yearsExperience: 12,
+      averageRating: Number((reviewStats._avg.rating || 4.9).toFixed(1)),
+      totalReviews: reviewStats._count.id || 600,
+      countries: countries.length || 70,
+      trainingHours: Number(trainingHours?._sum?.completedHours) || 50000,
+      certifiedTeachers,
+    };
+    const overrideRow = await mocks.siteSettingFindUnique({ where: { key: "social_proof_overrides" } });
+    const isValidOverride =
+      overrideRow?.value &&
+      typeof overrideRow.value.averageRating === "number" &&
+      overrideRow.value.averageRating >= 0 &&
+      overrideRow.value.averageRating <= 5;
+    return {
+      stats: isValidOverride ? overrideRow.value : computedStats,
+      computedStats,
+    };
+  });
 });
 
 describe("admin social proof route", () => {

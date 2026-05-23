@@ -3,65 +3,14 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
-
-const SETTINGS_KEY = "social_proof_overrides";
-
-const socialProofSchema = z.object({
-  totalGraduates: z.coerce.number().int().min(0),
-  yearsExperience: z.coerce.number().int().min(0),
-  averageRating: z.coerce.number().min(0).max(5),
-  totalReviews: z.coerce.number().int().min(0),
-  countries: z.coerce.number().int().min(0),
-  trainingHours: z.coerce.number().int().min(0),
-  certifiedTeachers: z.coerce.number().int().min(0),
-});
+import { SOCIAL_PROOF_SETTINGS_KEY, getSocialProofStats, socialProofSchema } from "@/lib/social-proof";
 
 export async function GET(request: NextRequest) {
   const { response } = await requireAdminUser();
   if (response) return response;
 
   try {
-    const [
-      totalGraduates,
-      reviewStats,
-      countries,
-      trainingHours,
-      certifiedTeachers,
-    ] = await Promise.all([
-      prisma.certificate.count({
-        where: { status: "ISSUED" },
-      }),
-      prisma.testimonial.aggregate({
-        where: { status: "APPROVED" },
-        _count: { id: true },
-        _avg: { rating: true },
-      }),
-      prisma.student.findMany({
-        where: { nationality: { not: null } },
-        select: { nationality: true },
-        distinct: ["nationality"],
-      }),
-      prisma.student.aggregate({
-        _sum: { completedHours: true },
-      }),
-      prisma.certificate.count({
-        where: { status: "ISSUED" },
-      }),
-    ]);
-
-    const computedStats = {
-      totalGraduates,
-      yearsExperience: 12,
-      averageRating: Number((reviewStats._avg.rating || 0).toFixed(1)),
-      totalReviews: reviewStats._count.id,
-      countries: countries.length,
-      trainingHours: Number(trainingHours?._sum?.completedHours) || 0,
-      certifiedTeachers,
-    };
-    const overrideRow = await prisma.siteSetting.findUnique({ where: { key: SETTINGS_KEY } });
-    const parsedOverrides = socialProofSchema.safeParse(overrideRow?.value);
-    const stats = parsedOverrides.success ? parsedOverrides.data : computedStats;
-
+    const { stats, computedStats } = await getSocialProofStats();
     return jsonWithRequestId({ stats, computedStats }, undefined, request);
   } catch (error) {
     logApiError("admin.socialProof.list", error, request);
@@ -78,10 +27,10 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const stats = socialProofSchema.parse(await request.json());
-    const existing = await prisma.siteSetting.findUnique({ where: { key: SETTINGS_KEY } });
+    const existing = await prisma.siteSetting.findUnique({ where: { key: SOCIAL_PROOF_SETTINGS_KEY } });
     await prisma.siteSetting.upsert({
-      where: { key: SETTINGS_KEY },
-      create: { key: SETTINGS_KEY, value: stats },
+      where: { key: SOCIAL_PROOF_SETTINGS_KEY },
+      create: { key: SOCIAL_PROOF_SETTINGS_KEY, value: stats },
       update: { value: stats },
     });
 
@@ -89,7 +38,7 @@ export async function PATCH(request: NextRequest) {
       actorUserId: user!.id,
       action: "social_proof.updated",
       entity: "site_settings",
-      entityId: SETTINGS_KEY,
+      entityId: SOCIAL_PROOF_SETTINGS_KEY,
       oldValue: existing?.value,
       newValue: stats,
       request,

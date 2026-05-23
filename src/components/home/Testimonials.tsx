@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useHomeCopy } from "@/lib/use-home-copy";
 import { Link } from "@/i18n/routing";
+import { useSocialProof } from "@/lib/use-social-proof";
 
 type PublicTestimonial = {
   name: string;
@@ -21,6 +22,7 @@ const avatarGradients = ["from-brand to-brand-light", "from-sage to-sage-light",
 
 export const Testimonials = () => {
   const copy = useHomeCopy();
+  const { stats: socialProofStats } = useSocialProof();
   const fallbackTestimonials = STATIC_TESTIMONIALS.map((item, index) => ({
     ...item,
     course: copy.testimonials.items[index]?.course || item.course,
@@ -28,7 +30,17 @@ export const Testimonials = () => {
     rating: 5,
   }));
   const [testimonials, setTestimonials] = useState<PublicTestimonial[]>(fallbackTestimonials);
-  const [stats, setStats] = useState({ averageRating: 4.9, totalApproved: 200 });
+  const [stats, setStats] = useState({
+    averageRating: socialProofStats.averageRating,
+    totalApproved: socialProofStats.totalReviews,
+  });
+
+  useEffect(() => {
+    setStats({
+      averageRating: socialProofStats.averageRating,
+      totalApproved: socialProofStats.totalReviews,
+    });
+  }, [socialProofStats.averageRating, socialProofStats.totalReviews]);
 
   useEffect(() => {
     void fetch("/api/testimonials?limit=6")
@@ -39,13 +51,13 @@ export const Testimonials = () => {
         }
         if (result.stats) {
           setStats({
-            averageRating: result.stats.averageRating || 4.9,
-            totalApproved: result.stats.totalApproved || 200,
+            averageRating: socialProofStats.averageRating || result.stats.averageRating || 4.9,
+            totalApproved: socialProofStats.totalReviews || result.stats.totalApproved || 200,
           });
         }
       })
       .catch(console.error);
-  }, []);
+  }, [socialProofStats.averageRating, socialProofStats.totalReviews]);
 
   return (
     <section id="testimonials" className="relative overflow-hidden bg-[#f8f5ef] py-12 md:py-16">
