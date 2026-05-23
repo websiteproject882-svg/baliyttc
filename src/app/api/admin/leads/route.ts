@@ -1,14 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const leadUpdateSchema = z.object({
   id: z.string().min(1),
   status: z.enum(["NEW", "CONTACTED", "INTERESTED", "ENROLLED", "NOT_INTERESTED", "SPAM"]).optional(),
   notes: z.string().max(5000).nullable().optional(),
   assignedTo: z.string().max(120).nullable().optional(),
-  followUpAt: z.string().min(1).nullable().optional(),
+  followUpAt: z
+    .string()
+    .refine((value) => value === "" || !Number.isNaN(Date.parse(value)), "Invalid date")
+    .nullable()
+    .optional(),
 });
 
 // Re-export leads routes with admin-specific features
@@ -21,8 +26,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const rawPage = Number.parseInt(searchParams.get("page") || "1", 10);
+    const rawLimit = Number.parseInt(searchParams.get("limit") || "20", 10);
+    const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 100) : 20;
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
@@ -46,14 +53,14 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {});
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       leads,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
       stats: counts,
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET admin leads error:", error);
-    return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
+    logApiError("admin.leads.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch leads" }, { status: 500 }, request);
   }
 }
 
@@ -76,7 +83,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Lead not found" }, { status: 404 }, request);
     }
 
     const lead = await prisma.lead.update({
@@ -99,13 +106,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, lead });
+    return jsonWithRequestId({ success: true, lead }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH admin lead error:", error);
-    return NextResponse.json({ error: "Failed to update lead" }, { status: 500 });
+    logApiError("admin.leads.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update lead" }, { status: 500 }, request);
   }
 }
 
@@ -123,11 +130,11 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+    if (!id) return jsonWithRequestId({ error: "Lead id is required" }, { status: 400 }, request);
 
     const existing = await prisma.lead.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Lead not found" }, { status: 404 }, request);
     }
 
     await prisma.lead.delete({ where: { id } });
@@ -141,9 +148,9 @@ export async function DELETE(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error("DELETE lead error:", error);
-    return NextResponse.json({ error: "Failed to delete lead" }, { status: 500 });
+    logApiError("admin.leads.delete", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to delete lead" }, { status: 500 }, request);
   }
 }
