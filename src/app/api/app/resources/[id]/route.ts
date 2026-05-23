@@ -17,7 +17,7 @@ function isSafeRedirectUrl(url: string) {
     const parsed = new URL(url);
     return parsed.protocol === "https:";
   } catch {
-    return url.startsWith("/");
+    return url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/\\");
   }
 }
 

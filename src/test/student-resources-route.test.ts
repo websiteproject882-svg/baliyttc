@@ -152,6 +152,22 @@ describe("student resource redirect route", () => {
     expect(body.error).toBe("Resource URL is invalid");
   });
 
+  it("rejects protocol-relative resource URLs", async () => {
+    mocks.preArrivalResourceFindUnique.mockResolvedValue({
+      id: "resource_1",
+      title: "External redirect",
+      url: "//evil.example/phish.pdf",
+      audience: "PRE_ARRIVAL",
+      isActive: true,
+    });
+
+    const response = await GET(request(), params());
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Resource URL is invalid");
+  });
+
   it("logs database failures without leaking internals", async () => {
     mocks.preArrivalResourceFindUnique.mockRejectedValue(new Error("database down"));
 
