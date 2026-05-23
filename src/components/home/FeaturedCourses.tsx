@@ -148,29 +148,29 @@ const CourseThumb = ({ course }: { course: DisplayCourse }) => {
 const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: CourseLabels }) => (
   <Link
     href={course.href}
-    className="group flex w-[286px] shrink-0 snap-center flex-col overflow-hidden rounded-[14px] border border-stone-200 bg-white shadow-[0_12px_28px_rgba(22,33,37,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(22,33,37,0.13)]"
+    className="group flex w-[calc(100vw-48px)] max-w-[350px] shrink-0 snap-center flex-col overflow-hidden rounded-[14px] border border-stone-200 bg-white shadow-[0_12px_28px_rgba(22,33,37,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(22,33,37,0.13)]"
   >
-    <div className="relative h-[174px] overflow-hidden bg-stone-100">
+    <div className="relative aspect-[1.42/1] min-h-[196px] overflow-hidden bg-stone-100">
       <CourseThumb course={course} />
       <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-transparent" />
-      <div className="absolute left-4 top-4">
-        <span className="rounded-[5px] bg-sage px-3 py-2 text-[10px] font-bold uppercase tracking-[0.08em] text-white shadow-sm">
+      <div className="absolute left-5 top-5">
+        <span className="rounded-[5px] bg-sage px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.06em] text-white shadow-sm">
           {getMobileBadge(course, labels)}
         </span>
       </div>
     </div>
 
-    <div className="flex min-h-[310px] flex-col p-5">
+    <div className="flex min-h-[382px] flex-col p-5">
       <div className="inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.08em] text-sage">
         <CalendarDays className="h-4 w-4" />
         <span>{course.days}</span>
       </div>
-      <h3 className="mt-5 font-sans text-[1.35rem] font-semibold leading-[1.18] text-charcoal">
+      <h3 className="mt-5 font-sans text-[1.45rem] font-semibold leading-[1.18] tracking-tight text-charcoal">
         {getCompactTitle(course.title)}
       </h3>
-      <p className="mt-3 text-sm text-charcoal">{course.duration} {labels.certificationTrack}</p>
+      <p className="mt-3 text-[15px] leading-6 text-charcoal">{course.duration} {labels.certificationTrack}</p>
       <div className="my-5 h-px bg-stone-200" />
-      <p className="line-clamp-4 text-sm leading-7 text-ink-soft">{course.summary}</p>
+      <p className="line-clamp-5 text-[15px] leading-7 text-charcoal/85">{course.summary}</p>
 
       <div className="mt-auto border-t border-stone-200 pt-5">
         <div>
@@ -179,7 +179,7 @@ const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: C
             EUR {course.priceFrom.toLocaleString("en-US")}
           </p>
         </div>
-        <span className="mt-4 inline-flex h-12 w-full items-center justify-between rounded-[7px] border border-sage px-5 text-sm font-semibold text-sage transition group-hover:bg-sage group-hover:text-white">
+        <span className="mt-4 inline-flex h-12 w-full items-center justify-between rounded-[7px] border border-sage px-5 text-base font-semibold text-sage transition group-hover:bg-sage group-hover:text-white">
           {labels.details} <ArrowRight className="h-5 w-5" />
         </span>
       </div>
@@ -367,14 +367,14 @@ export const FeaturedCourses = () => {
           <button
             type="button"
             onClick={() => scrollMobileSlider("prev")}
-            className="absolute left-0 top-[112px] z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-charcoal shadow-[0_10px_26px_rgba(35,35,30,0.16)] transition hover:border-sage hover:text-sage"
+            className="absolute left-1 top-[112px] z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-charcoal shadow-[0_10px_26px_rgba(35,35,30,0.16)] transition hover:border-sage hover:text-sage"
             aria-label="Previous courses"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div
             ref={mobileSliderRef}
-            className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-5 pb-6 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-6 pb-6 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {courses.map((course) => (
               <MobileCourseCard key={course.slug} course={course} labels={labels} />
@@ -383,7 +383,7 @@ export const FeaturedCourses = () => {
           <button
             type="button"
             onClick={() => scrollMobileSlider("next")}
-            className="absolute right-0 top-[112px] z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-charcoal shadow-[0_10px_26px_rgba(35,35,30,0.16)] transition hover:border-sage hover:text-sage"
+            className="absolute right-1 top-[112px] z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-charcoal shadow-[0_10px_26px_rgba(35,35,30,0.16)] transition hover:border-sage hover:text-sage"
             aria-label="Next courses"
           >
             <ArrowRight className="h-4 w-4" />
