@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const galleryImageSchema = z.object({
@@ -18,7 +18,7 @@ const galleryImageUpdateSchema = galleryImageSchema.partial().extend({
 });
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminUser();
+  const { response } = await requirePermission("gallery.view");
   if (response) return response;
 
   try {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("gallery.upload");
   if (response) return response;
 
   try {
@@ -75,7 +75,7 @@ export async function PATCH(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("gallery.approve");
   if (response) return response;
 
   try {
@@ -122,7 +122,7 @@ export async function DELETE(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("gallery.delete");
   if (response) return response;
 
   try {

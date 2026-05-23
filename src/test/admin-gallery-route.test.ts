@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { DELETE, GET, PATCH, POST } from "../app/api/admin/gallery/route";
 
 const mocks = vi.hoisted(() => ({
-  requireAdminUser: vi.fn(),
+  requirePermission: vi.fn(),
   requireSameOrigin: vi.fn(),
   writeAuditLog: vi.fn(),
   galleryFindMany: vi.fn(),
@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requireAdminUser: mocks.requireAdminUser,
+  requirePermission: mocks.requirePermission,
   requireSameOrigin: mocks.requireSameOrigin,
   writeAuditLog: mocks.writeAuditLog,
 }));
@@ -86,7 +86,7 @@ function payload(overrides: Record<string, unknown> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
-  mocks.requireAdminUser.mockResolvedValue({ user: admin, response: null });
+  mocks.requirePermission.mockResolvedValue({ user: admin, response: null });
   mocks.galleryFindMany.mockResolvedValue([image]);
   mocks.galleryFindUnique.mockResolvedValue(image);
   mocks.galleryCreate.mockResolvedValue(image);
@@ -103,7 +103,7 @@ describe("admin gallery route", () => {
     expect(response?.status).toBe(200);
     expect(response?.headers.get("X-Request-Id")).toBe("req_admin_gallery");
     expect(body.images).toHaveLength(1);
-    expect(mocks.requireAdminUser).toHaveBeenCalled();
+    expect(mocks.requirePermission).toHaveBeenCalledWith("gallery.view");
     expect(mocks.galleryFindMany).toHaveBeenCalledWith({
       orderBy: { order: "asc" },
     });
@@ -114,6 +114,7 @@ describe("admin gallery route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("gallery.upload");
     expect(body.image).toEqual(expect.objectContaining({ id: "gallery_1" }));
     expect(mocks.galleryCreate).toHaveBeenCalledWith({
       data: {
@@ -158,6 +159,7 @@ describe("admin gallery route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("gallery.approve");
     expect(body.image.order).toBe(3);
     expect(mocks.galleryFindUnique).toHaveBeenCalledWith({ where: { id: "gallery_1" } });
     expect(mocks.galleryUpdate).toHaveBeenCalledWith({
@@ -191,6 +193,7 @@ describe("admin gallery route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("gallery.delete");
     expect(body).toEqual({ success: true });
     expect(mocks.galleryDelete).toHaveBeenCalledWith({ where: { id: "gallery_1" } });
     expect(mocks.writeAuditLog).toHaveBeenCalledWith(
