@@ -7,14 +7,14 @@ export const defaultLocale: Locale = 'en';
 
 export const localeNames: Record<Locale, string> = {
   en: 'English',
-  es: 'Español',
+  es: 'Espanol',
   de: 'Deutsch',
-  fr: 'Français',
+  fr: 'Francais',
   id: 'Bahasa Indonesia',
-  ko: '한국어',
-  zh: '中文',
-  ja: '日本語',
-  ru: 'Русский',
+  ko: 'Korean',
+  zh: 'Chinese',
+  ja: 'Japanese',
+  ru: 'Russian',
 };
 
 export const { Link, redirect, usePathname, useRouter } =
