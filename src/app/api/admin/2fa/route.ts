@@ -45,7 +45,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { action, code } = twoFactorActionSchema.parse(await request.json());
+    const parsed = twoFactorActionSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: parsed.error.errors },
+        { status: 400 },
+        request,
+      );
+    }
+
+    const { action, code } = parsed.data;
     const currentUser = await prisma.user.findUnique({
       where: { id: user.id },
       include: { staff: true },

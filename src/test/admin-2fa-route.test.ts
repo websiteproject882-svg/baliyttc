@@ -58,6 +58,19 @@ function request(body?: unknown) {
   });
 }
 
+function rawPostRequest(body: string) {
+  return new NextRequest("https://example.com/api/admin/2fa", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+      "x-request-id": "req_2fa_test",
+    },
+    body,
+  });
+}
+
 function mockAdmin() {
   mocks.requireAdminUser.mockResolvedValue({
     user: {
@@ -137,6 +150,18 @@ describe("admin 2FA route", () => {
     expect(response.status).toBe(400);
     expect((await json(response)).error).toBe("Validation failed");
     expect(mocks.userFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed 2FA action JSON before user lookup", async () => {
+    const response = await POST(rawPostRequest("{not-valid-json"));
+    const body = await json(response);
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_2fa_test");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.userFindUnique).not.toHaveBeenCalled();
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("requires a code before verifying or disabling 2FA", async () => {
