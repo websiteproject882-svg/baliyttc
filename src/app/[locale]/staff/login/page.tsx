@@ -11,7 +11,7 @@ import { BalieytcLogo } from "@/components/shared/BalieytcLogo";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff, Users } from "lucide-react";
 import { getRoleHomePath } from "@/lib/rbac";
-import { isFirebaseConfigured } from "@/lib/firebase";
+import { isFirebaseConfigured, sendPortalPasswordReset } from "@/lib/firebase";
 
 export default function StaffLoginPage() {
   const router = useRouter();
@@ -22,6 +22,7 @@ export default function StaffLoginPage() {
   const [pendingUser, setPendingUser] = useState<{ uid: string; email: string; displayName: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const canUseTestLogin = process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
 
@@ -157,6 +158,25 @@ export default function StaffLoginPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    setIsResettingPassword(true);
+    try {
+      await sendPortalPasswordReset(email);
+      toast({
+        title: "Password reset sent",
+        description: "Check your inbox for the reset link.",
+      });
+    } catch (error) {
+      toast({
+        title: "Password reset unavailable",
+        description: error instanceof Error ? error.message : "Contact the admin to reset your password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   return (
     <NextLayoutWrapper>
       <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 flex items-center justify-center p-4">
@@ -268,9 +288,19 @@ export default function StaffLoginPage() {
 
                   {/* Password */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-emerald-100 font-medium">
-                      Password
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password" className="text-emerald-100 font-medium">
+                        Password
+                      </Label>
+                      <button
+                        type="button"
+                        onClick={handlePasswordReset}
+                        disabled={isResettingPassword}
+                        className="text-sm font-medium text-emerald-200 hover:text-white"
+                      >
+                        {isResettingPassword ? "Sending..." : "Forgot password?"}
+                      </button>
+                    </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-400" />
                       <Input

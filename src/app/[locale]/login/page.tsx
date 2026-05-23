@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRoleHomePath } from "@/lib/rbac";
-import { isFirebaseConfigured } from "@/lib/firebase";
+import { isFirebaseConfigured, sendPortalPasswordReset } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [pendingUser, setPendingUser] = useState<{ uid: string; email: string; displayName: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const showTestCredentials = process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
 
@@ -110,6 +111,25 @@ export default function LoginPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setIsResettingPassword(true);
+    try {
+      await sendPortalPasswordReset(email);
+      toast({
+        title: "Password reset sent",
+        description: "Check your inbox for the reset link.",
+      });
+    } catch (error) {
+      toast({
+        title: "Password reset unavailable",
+        description: error instanceof Error ? error.message : "Contact support to reset your password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -229,12 +249,14 @@ export default function LoginPage() {
                     <Label htmlFor="password" className="text-gray-700 font-medium">
                       Password
                     </Label>
-                    <a
-                      href={`mailto:info@baliyttc.com?subject=${encodeURIComponent("Student portal password reset")}`}
+                    <button
+                      type="button"
+                      onClick={handlePasswordReset}
+                      disabled={isResettingPassword}
                       className="text-sm text-amber-600 hover:text-amber-700 font-medium"
                     >
-                      Forgot password?
-                    </a>
+                      {isResettingPassword ? "Sending..." : "Forgot password?"}
+                    </button>
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />

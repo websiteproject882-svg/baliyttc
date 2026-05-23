@@ -4,6 +4,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
   updateProfile,
@@ -135,6 +136,18 @@ export async function verifyTwoFactorLogin(challengeToken: string, code: string)
   }
 
   return data as { role: string; redirectTo: string };
+}
+
+export async function sendPortalPasswordReset(email: string) {
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("Enter your email address first.");
+  }
+
+  if (!isFirebaseConfigured() || !auth) {
+    throw new Error("Password reset is not available yet. Contact support.");
+  }
+
+  await sendPasswordResetEmail(auth, email);
 }
 
 export async function registerWithEmail(email: string, password: string, name: string) {
