@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 // Email templates are stored in the database for admin editing
@@ -19,7 +19,7 @@ const templateSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminUser();
+  const { response } = await requirePermission("templates.view");
   if (response) return response;
 
   try {
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("templates.edit");
   if (response) return response;
 
   try {

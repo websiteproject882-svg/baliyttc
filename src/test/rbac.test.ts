@@ -23,8 +23,10 @@ describe("rbac helpers", () => {
     expect(hasPermission("SUPER_ADMIN", "payments.refund")).toBe(true);
     expect(hasPermission("FINANCE_MANAGER", "payments.refund")).toBe(true);
     expect(hasPermission("SEO_EDITOR", "social_proof.edit")).toBe(true);
+    expect(hasPermission("SEO_EDITOR", "templates.edit")).toBe(true);
     expect(hasPermission("STUDENT_MANAGER", "social_proof.view")).toBe(true);
     expect(hasPermission("STUDENT_MANAGER", "social_proof.edit")).toBe(false);
+    expect(hasPermission("FINANCE_MANAGER", "templates.edit")).toBe(false);
     expect(hasPermission("TEACHER", "payments.refund")).toBe(false);
   });
 });

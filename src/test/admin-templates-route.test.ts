@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { GET, PUT } from "../app/api/admin/templates/route";
 
 const mocks = vi.hoisted(() => ({
-  requireAdminUser: vi.fn(),
+  requirePermission: vi.fn(),
   requireSameOrigin: vi.fn(),
   writeAuditLog: vi.fn(),
   blogFindMany: vi.fn(),
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requireAdminUser: mocks.requireAdminUser,
+  requirePermission: mocks.requirePermission,
   requireSameOrigin: mocks.requireSameOrigin,
   writeAuditLog: mocks.writeAuditLog,
 }));
@@ -78,7 +78,7 @@ function payload(overrides: Record<string, unknown> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
-  mocks.requireAdminUser.mockResolvedValue({ user: admin, response: null });
+  mocks.requirePermission.mockResolvedValue({ user: admin, response: null });
   mocks.blogFindMany.mockResolvedValue([dbTemplate]);
   mocks.blogUpsert.mockResolvedValue(dbTemplate);
   mocks.writeAuditLog.mockResolvedValue(undefined);
@@ -91,6 +91,7 @@ describe("admin templates route", () => {
 
     expect(response?.status).toBe(200);
     expect(response?.headers.get("X-Request-Id")).toBe("req_admin_templates");
+    expect(mocks.requirePermission).toHaveBeenCalledWith("templates.view");
     expect(body.templates).toEqual([
       {
         id: "template_1",
@@ -133,6 +134,7 @@ describe("admin templates route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("templates.edit");
     expect(body.template.variables).toEqual(["studentName", "courseName"]);
     expect(mocks.blogUpsert).toHaveBeenCalledWith({
       where: { id: "template_1" },

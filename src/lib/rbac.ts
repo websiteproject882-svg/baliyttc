@@ -49,6 +49,7 @@ export const PERMISSIONS: Record<string, string[]> = {
     "testimonials.view", "testimonials.approve",
     "faq.view", "faq.edit",
     "social_proof.view", "social_proof.edit",
+    "templates.view", "templates.edit",
     "bot.view", "bot.edit",
     "analytics.partial",
   ],
