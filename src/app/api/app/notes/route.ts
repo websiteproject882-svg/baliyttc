@@ -36,7 +36,13 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const data = notesSchema.parse(await request.json());
+    const payload = await request.json().catch(() => null);
+    const result = notesSchema.safeParse(payload);
+    if (!result.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+    }
+
+    const data = result.data;
     const existing = await prisma.student.findUnique({
       where: { id: student.id },
       select: { personalNotes: true },

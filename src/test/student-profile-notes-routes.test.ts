@@ -76,6 +76,14 @@ function notesRequest(body?: Record<string, unknown>) {
   return request("https://example.com/api/app/notes", body);
 }
 
+function rawRequest(url: string, body: string) {
+  return new NextRequest(url, {
+    method: "PATCH",
+    headers: { "x-request-id": "req_student_profile" },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -143,6 +151,18 @@ describe("student profile and notes routes", () => {
     expect(body.error).toBe("Validation failed");
     expect(mocks.userUpdate).not.toHaveBeenCalled();
     expect(mocks.studentUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed profile JSON before saving", async () => {
+    const response = await patchProfile(rawRequest("https://example.com/api/app/profile", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_profile");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.userUpdate).not.toHaveBeenCalled();
+    expect(mocks.studentUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("updates user and student profile fields and writes an audit log", async () => {
@@ -233,5 +253,16 @@ describe("student profile and notes routes", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
+  });
+
+  it("rejects malformed personal notes JSON before saving", async () => {
+    const response = await patchNotes(rawRequest("https://example.com/api/app/notes", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_profile");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.studentUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 });

@@ -84,7 +84,13 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const parsed = profileSchema.parse(await request.json());
+    const payload = await request.json().catch(() => null);
+    const result = profileSchema.safeParse(payload);
+    if (!result.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+    }
+
+    const parsed = result.data;
     const existing = await prisma.student.findUnique({
       where: { id: student.id },
       select: {
