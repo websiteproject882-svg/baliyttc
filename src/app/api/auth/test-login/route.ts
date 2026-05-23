@@ -3,13 +3,13 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { getRoleHomePath, isAdminPanelRole, type AppRole } from "@/lib/rbac";
-import { getClientIp, jsonWithRequestId, rateLimit, requireSameOrigin } from "@/lib/security";
+import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+  password: z.string().min(1).max(200),
 });
 
 function expectedPassword(email: string) {
@@ -57,12 +57,16 @@ export async function POST(request: NextRequest) {
   });
 
   if (!limit.allowed) {
-    return jsonWithRequestId({ error: "Too many login attempts. Try again later." }, { status: 429 }, request);
+    return jsonWithRequestId(
+      { error: "Too many login attempts. Try again later." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((limit.resetAt - Date.now()) / 1000)) } },
+      request,
+    );
   }
 
   try {
     const { email, password } = schema.parse(await request.json());
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email;
     const expectedPasswords = expectedPassword(normalizedEmail);
 
     if (!expectedPasswords?.includes(password)) {
@@ -125,7 +129,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("test login error:", error);
+    logApiError("auth.test-login", error, request);
     return jsonWithRequestId({ error: "Failed to login" }, { status: 500 }, request);
   }
 }
