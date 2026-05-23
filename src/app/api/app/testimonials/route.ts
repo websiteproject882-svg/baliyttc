@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireStudentUser, writeAuditLog } from "@/lib/authz";
@@ -14,18 +14,23 @@ const testimonialSchema = z.object({
   graduationYear: z.number().int().min(2000).max(2100).optional().nullable(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { student, response } = await requireStudentUser({ minimumAccess: "PRE_ARRIVAL" });
   if (!student || response) {
     return response;
   }
 
-  const testimonials = await prisma.testimonial.findMany({
-    where: { studentId: student.id },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const testimonials = await prisma.testimonial.findMany({
+      where: { studentId: student.id },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({ testimonials });
+    return jsonWithRequestId({ testimonials }, undefined, request);
+  } catch (error) {
+    logApiError("app.testimonials.list", error, request, { studentId: student.id });
+    return jsonWithRequestId({ error: "Failed to load testimonials" }, { status: 500 }, request);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -66,7 +71,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    logApiError("app.testimonials.create", error, request);
+    logApiError("app.testimonials.create", error, request, { studentId: student.id });
     return jsonWithRequestId({ error: "Failed to submit testimonial" }, { status: 500 }, request);
   }
 }

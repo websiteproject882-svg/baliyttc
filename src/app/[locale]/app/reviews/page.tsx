@@ -141,7 +141,7 @@ export default function StudentReviewsPage() {
               <input className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Course name" value={form.courseName} onChange={(e) => setForm((current) => ({ ...current, courseName: e.target.value }))} />
               <input className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Graduation year" value={form.graduationYear} onChange={(e) => setForm((current) => ({ ...current, graduationYear: e.target.value }))} />
               <textarea className="min-h-[220px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Describe your experience in detail." value={form.quote} onChange={(e) => setForm((current) => ({ ...current, quote: e.target.value }))} />
-              <Button className="bg-orange-500 text-white hover:bg-orange-600" onClick={submit} disabled={saving || form.quote.trim().length < 10}>
+              <Button className="bg-orange-500 text-white hover:bg-orange-600" onClick={submit} disabled={saving || form.quote.trim().length < 30}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Submit for approval
               </Button>
