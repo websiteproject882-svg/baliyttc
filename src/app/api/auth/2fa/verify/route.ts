@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { createSession, decrypt, AuthType } from "@/lib/session";
+import { createSession, decrypt } from "@/lib/session";
 import { getRoleHomePath } from "@/lib/rbac";
 import { verifyTotpToken } from "@/lib/totp";
-import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
+import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+
+const STAFF_PORTAL_ROLES = new Set(["TEACHER", "SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER"]);
 
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
@@ -42,7 +44,28 @@ export async function POST(request: NextRequest) {
       include: { staff: true },
     });
 
-    if (!user?.staff || !user.staff.totpEnabled || !user.staff.totpSecret) {
+    if (!user?.staff) {
+      return jsonWithRequestId({ error: "Staff account not found" }, { status: 403 }, request);
+    }
+
+    if (user.staff.status !== "ACTIVE") {
+      return jsonWithRequestId({ error: "Account is not active" }, { status: 403 }, request);
+    }
+
+    const authType = challenge.authType === "admin" || challenge.authType === "staff" ? challenge.authType : null;
+    if (!authType) {
+      return jsonWithRequestId({ error: "Invalid 2FA challenge type" }, { status: 401 }, request);
+    }
+
+    if (authType === "admin" && user.staff.role !== "SUPER_ADMIN") {
+      return jsonWithRequestId({ error: "Admin privileges required" }, { status: 403 }, request);
+    }
+
+    if (authType === "staff" && !STAFF_PORTAL_ROLES.has(user.staff.role)) {
+      return jsonWithRequestId({ error: "Valid staff role required" }, { status: 403 }, request);
+    }
+
+    if (!user.staff.totpEnabled || !user.staff.totpSecret) {
       return jsonWithRequestId({ error: "2FA is not configured for this account" }, { status: 400 }, request);
     }
 
@@ -56,14 +79,14 @@ export async function POST(request: NextRequest) {
       data: { lastLogin: new Date() },
     });
 
-    const authType = (challenge.authType as AuthType) || 'student';
-    await createSession(user.id, String(challenge.role), user.email, authType);
+    const role = user.staff.role;
+    await createSession(user.id, role, user.email, authType);
 
     return jsonWithRequestId({
       success: true,
-      role: challenge.role,
+      role,
       authType,
-      redirectTo: getRoleHomePath(String(challenge.role)),
+      redirectTo: getRoleHomePath(role),
     }, undefined, request);
   } catch (error) {
     logApiError("auth.2fa.verify", error, request);

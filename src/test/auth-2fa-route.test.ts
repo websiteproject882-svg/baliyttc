@@ -95,6 +95,8 @@ describe("2FA verification route", () => {
       email: "admin@example.com",
       staff: {
         id: "staff_1",
+        role: "SUPER_ADMIN",
+        status: "ACTIVE",
         totpEnabled: false,
         totpSecret: "secret",
       },
@@ -114,6 +116,8 @@ describe("2FA verification route", () => {
       email: "admin@example.com",
       staff: {
         id: "staff_1",
+        role: "SUPER_ADMIN",
+        status: "ACTIVE",
         totpEnabled: true,
         totpSecret: "secret",
       },
@@ -134,6 +138,8 @@ describe("2FA verification route", () => {
       email: "admin@example.com",
       staff: {
         id: "staff_1",
+        role: "SUPER_ADMIN",
+        status: "ACTIVE",
         totpEnabled: true,
         totpSecret: "secret",
       },
@@ -154,6 +160,77 @@ describe("2FA verification route", () => {
       data: { lastLogin: expect.any(Date) },
     });
     expect(mocks.createSession).toHaveBeenCalledWith("user_1", "SUPER_ADMIN", "admin@example.com", "admin");
+  });
+
+  it("rejects inactive staff before creating a 2FA session", async () => {
+    mocks.decrypt.mockResolvedValue({ purpose: "2fa", userId: "user_1", role: "SUPER_ADMIN", authType: "admin" });
+    mocks.userFindUnique.mockResolvedValue({
+      id: "user_1",
+      email: "admin@example.com",
+      staff: {
+        id: "staff_1",
+        role: "SUPER_ADMIN",
+        status: "INACTIVE",
+        totpEnabled: true,
+        totpSecret: "secret",
+      },
+    });
+
+    const response = await POST(request({ challengeToken: "token", code: "123456" }));
+
+    expect(response.status).toBe(403);
+    expect(await json(response)).toEqual({ error: "Account is not active" });
+    expect(mocks.verifyTotpToken).not.toHaveBeenCalled();
+    expect(mocks.createSession).not.toHaveBeenCalled();
+  });
+
+  it("uses the current database role instead of trusting the challenge role", async () => {
+    mocks.decrypt.mockResolvedValue({ purpose: "2fa", userId: "user_1", role: "SUPER_ADMIN", authType: "staff" });
+    mocks.userFindUnique.mockResolvedValue({
+      id: "user_1",
+      email: "teacher@example.com",
+      staff: {
+        id: "staff_1",
+        role: "TEACHER",
+        status: "ACTIVE",
+        totpEnabled: true,
+        totpSecret: "secret",
+      },
+    });
+    mocks.verifyTotpToken.mockReturnValue(true);
+
+    const response = await POST(request({ challengeToken: "token", code: "123456" }));
+    const body = await json(response);
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      role: "TEACHER",
+      authType: "staff",
+      redirectTo: "/app/teacher/dashboard",
+    });
+    expect(mocks.createSession).toHaveBeenCalledWith("user_1", "TEACHER", "teacher@example.com", "staff");
+  });
+
+  it("rejects a staff challenge for a super admin account", async () => {
+    mocks.decrypt.mockResolvedValue({ purpose: "2fa", userId: "user_1", role: "SUPER_ADMIN", authType: "staff" });
+    mocks.userFindUnique.mockResolvedValue({
+      id: "user_1",
+      email: "admin@example.com",
+      staff: {
+        id: "staff_1",
+        role: "SUPER_ADMIN",
+        status: "ACTIVE",
+        totpEnabled: true,
+        totpSecret: "secret",
+      },
+    });
+
+    const response = await POST(request({ challengeToken: "token", code: "123456" }));
+
+    expect(response.status).toBe(403);
+    expect(await json(response)).toEqual({ error: "Valid staff role required" });
+    expect(mocks.createSession).not.toHaveBeenCalled();
   });
 
   it("rate limits repeated 2FA attempts", async () => {
