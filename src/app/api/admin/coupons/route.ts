@@ -69,7 +69,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = couponSchema.parse(await request.json());
+    const parsed = couponSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const coupon = await prisma.coupon.create({
       data: {
         ...data,
@@ -111,7 +116,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const { id, ...data } = updateSchema.parse(await request.json());
+    const parsed = updateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, ...data } = parsed.data;
     const existing = await prisma.coupon.findUnique({ where: { id } });
     if (!existing) {
       return jsonWithRequestId({ error: "Coupon not found" }, { status: 404 }, request);
