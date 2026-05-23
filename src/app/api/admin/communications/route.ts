@@ -1,29 +1,35 @@
 import { CommunicationCampaign } from "@prisma/client";
 import { z } from "zod";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { getCommunicationDashboardData, runCommunicationCampaign } from "@/lib/communications";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
 const sendSchema = z.object({
   campaign: z.nativeEnum(CommunicationCampaign),
   recipientKeys: z.array(z.string()).optional(),
-  limit: z.number().int().min(1).max(100).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("communications.view");
   if (response) {
     return response;
   }
 
-  const data = await getCommunicationDashboardData();
+  try {
+    const data = await getCommunicationDashboardData();
 
-  return NextResponse.json({
-    queues: data.queues,
-    logs: data.recentLogs,
-  });
+    return jsonWithRequestId({
+      queues: data.queues,
+      logs: data.recentLogs,
+    }, undefined, request);
+  } catch (error) {
+    logApiError("admin.communications.dashboard", error, request);
+    return jsonWithRequestId({ error: "Failed to load communications" }, { status: 500 }, request);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -50,12 +56,12 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, ...result });
+    return jsonWithRequestId({ success: true, ...result }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST admin communications error:", error);
-    return NextResponse.json({ error: "Failed to run communication campaign" }, { status: 500 });
+    logApiError("admin.communications.run", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to run communication campaign" }, { status: 500 }, request);
   }
 }
