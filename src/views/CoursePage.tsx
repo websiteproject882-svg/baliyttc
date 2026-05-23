@@ -219,7 +219,7 @@ const courseDetails = {
     foundationTitle: <>Beginner Multi-Style <em className="text-terra">Foundation</em></>,
     curriculumTitle: "What the 100-hour training covers",
     pricingTitle: <>Simple 100-hour <em className="text-terra">Pricing</em></>,
-    pricingSub: "Reserve the course with a EUR 300 deposit. Early-bird rates can be switched from admin later when seasonal pricing is final.",
+    pricingSub: "Reserve the course with a EUR 200 deposit. Early-bird rates can be switched from admin later when seasonal pricing is final.",
     faqEyebrow: "100-Hour FAQ",
     intro:
       "A beginner-friendly 11-day immersion for students who want a serious first step into Hatha, Ashtanga and Vinyasa practice. The program builds practical foundations, personal discipline and teaching confidence without requiring prior yoga training.",
@@ -333,7 +333,7 @@ const courseDetails = {
       },
       {
         q: "How do I reserve my seat?",
-        a: "A EUR 300 deposit secures your place. If your travel plan changes, the booking can be rescheduled according to the school policy.",
+        a: "A EUR 200 deposit secures your place. If your travel plan changes, the booking can be rescheduled according to the school policy.",
       },
     ],
   },
@@ -492,7 +492,7 @@ const courseDetails = {
     foundationTitle: <>Advanced Teacher <em className="text-terra">Pathway</em></>,
     curriculumTitle: "What the 300-hour training covers",
     pricingTitle: <>300-hour Advanced <em className="text-terra">Fees</em></>,
-    pricingSub: "Reserve your place with a EUR 300 deposit. Final seasonal and early-bird pricing can remain admin-controlled.",
+    pricingSub: "Reserve your place with a EUR 400 deposit. Final seasonal and early-bird pricing can remain admin-controlled.",
     faqEyebrow: "300-Hour FAQ",
     intro:
       "A deeper 28-day immersion for teachers who have already completed a 200-hour training and want stronger technical skill, richer philosophy, smarter sequencing and more mature teaching presence.",
