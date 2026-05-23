@@ -1,8 +1,9 @@
 import { PostStatus } from "@prisma/client";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ const blogPostSchema = z.object({
   status: z.nativeEnum(PostStatus).default(PostStatus.DRAFT),
   publishedAt: z.string().nullable().optional(),
   scheduledAt: z.string().nullable().optional(),
-  readTime: z.number().int().min(1).default(5),
+  readTime: z.coerce.number().int().min(1).default(5),
   metaTitle: z.string().nullable().optional(),
   metaDescription: z.string().nullable().optional(),
   seoTitle: z.string().nullable().optional(),
@@ -31,7 +32,7 @@ const updateSchema = blogPostSchema.extend({
   id: z.string(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("blog.view");
   if (response) {
     return response;
@@ -41,10 +42,10 @@ export async function GET() {
     const posts = await prisma.blogPost.findMany({
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ posts });
+    return jsonWithRequestId({ posts }, undefined, request);
   } catch (error) {
-    console.error("GET admin blog error:", error);
-    return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
+    logApiError("admin.blog.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch posts" }, { status: 500 }, request);
   }
 }
 
@@ -66,7 +67,11 @@ export async function POST(request: NextRequest) {
       where: { slug_locale: { slug: data.slug, locale: data.locale } },
     });
     if (existing) {
-      return NextResponse.json({ error: "A post with this slug already exists for this language" }, { status: 400 });
+      return jsonWithRequestId(
+        { error: "A post with this slug already exists for this language" },
+        { status: 400 },
+        request,
+      );
     }
 
     const post = await prisma.blogPost.create({
@@ -99,13 +104,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, post });
+    return jsonWithRequestId({ success: true, post }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST admin blog error:", error);
-    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+    logApiError("admin.blog.create", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to create post" }, { status: 500 }, request);
   }
 }
 
@@ -125,7 +130,7 @@ export async function PATCH(request: NextRequest) {
     const existing = await prisma.blogPost.findUnique({ where: { id: data.id } });
 
     if (!existing) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Post not found" }, { status: 404 }, request);
     }
 
     if (data.slug !== existing.slug || data.locale !== existing.locale) {
@@ -133,7 +138,11 @@ export async function PATCH(request: NextRequest) {
         where: { slug_locale: { slug: data.slug, locale: data.locale } },
       });
       if (slugExists && slugExists.id !== data.id) {
-        return NextResponse.json({ error: "A post with this slug already exists for this language" }, { status: 400 });
+        return jsonWithRequestId(
+          { error: "A post with this slug already exists for this language" },
+          { status: 400 },
+          request,
+        );
       }
     }
 
@@ -169,13 +178,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, post });
+    return jsonWithRequestId({ success: true, post }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH admin blog error:", error);
-    return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
+    logApiError("admin.blog.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update post" }, { status: 500 }, request);
   }
 }
 
@@ -195,12 +204,12 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+      return jsonWithRequestId({ error: "Post id is required" }, { status: 400 }, request);
     }
 
     const existing = await prisma.blogPost.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Post not found" }, { status: 404 }, request);
     }
 
     await prisma.blogPost.delete({ where: { id } });
@@ -214,9 +223,9 @@ export async function DELETE(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error("DELETE admin blog error:", error);
-    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+    logApiError("admin.blog.delete", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to delete post" }, { status: 500 }, request);
   }
 }
