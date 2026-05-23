@@ -41,8 +41,6 @@ export const GalleryTeaser = () => {
         </div>
 
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent md:w-28" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent md:w-28" />
           <div className="flex w-max animate-marquee-reverse gap-3 px-4 pb-3 [animation-duration:48s] hover:[animation-play-state:paused] md:gap-5 md:px-8">
             {marqueeGallery.map((src, i) => {
               const label = galleryLabels[i % galleryLabels.length] || `Gallery ${(i % HOME_GALLERY.length) + 1}`;
