@@ -1,15 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { ResourceAudience, ResourceType } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+
+function isSafeResourceUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return url.startsWith("/");
+  }
+}
 
 const resourceSchema = z.object({
   title: z.string().min(3).max(160),
   description: z.string().max(2000).optional().nullable(),
-  url: z.string().url(),
+  url: z.string().min(1).refine(isSafeResourceUrl, "URL must be http(s) or a relative path"),
   type: z.nativeEnum(ResourceType),
   audience: z.nativeEnum(ResourceAudience),
   taskKey: z.string().max(100).optional().nullable(),
@@ -21,17 +31,22 @@ const updateSchema = resourceSchema.extend({
   id: z.string(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("prearrival.view");
   if (response) {
     return response;
   }
 
-  const resources = await prisma.preArrivalResource.findMany({
-    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-  });
+  try {
+    const resources = await prisma.preArrivalResource.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    });
 
-  return NextResponse.json({ resources });
+    return jsonWithRequestId({ resources }, undefined, request);
+  } catch (error) {
+    logApiError("admin.prearrival_resources.list", error, request);
+    return jsonWithRequestId({ error: "Failed to load resources" }, { status: 500 }, request);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -69,13 +84,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, resource });
+    return jsonWithRequestId({ success: true, resource }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST prearrival resources error:", error);
-    return NextResponse.json({ error: "Failed to create resource" }, { status: 500 });
+    logApiError("admin.prearrival_resources.create", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to create resource" }, { status: 500 }, request);
   }
 }
 
@@ -97,7 +112,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Resource not found" }, { status: 404 }, request);
     }
 
     const resource = await prisma.preArrivalResource.update({
@@ -124,13 +139,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, resource });
+    return jsonWithRequestId({ success: true, resource }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH prearrival resources error:", error);
-    return NextResponse.json({ error: "Failed to update resource" }, { status: 500 });
+    logApiError("admin.prearrival_resources.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update resource" }, { status: 500 }, request);
   }
 }
 
@@ -148,27 +163,32 @@ export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) {
-    return NextResponse.json({ error: "Resource id is required" }, { status: 400 });
+    return jsonWithRequestId({ error: "Resource id is required" }, { status: 400 }, request);
   }
 
-  const existing = await prisma.preArrivalResource.findUnique({
-    where: { id },
-  });
+  try {
+    const existing = await prisma.preArrivalResource.findUnique({
+      where: { id },
+    });
 
-  if (!existing) {
-    return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+    if (!existing) {
+      return jsonWithRequestId({ error: "Resource not found" }, { status: 404 }, request);
+    }
+
+    await prisma.preArrivalResource.delete({ where: { id } });
+
+    await writeAuditLog({
+      actorUserId: user.id,
+      action: "prearrival_resource.deleted",
+      entity: "prearrival_resource",
+      entityId: id,
+      oldValue: existing,
+      request,
+    });
+
+    return jsonWithRequestId({ success: true }, undefined, request);
+  } catch (error) {
+    logApiError("admin.prearrival_resources.delete", error, request, { resourceId: id, userId: user.id });
+    return jsonWithRequestId({ error: "Failed to delete resource" }, { status: 500 }, request);
   }
-
-  await prisma.preArrivalResource.delete({ where: { id } });
-
-  await writeAuditLog({
-    actorUserId: user.id,
-    action: "prearrival_resource.deleted",
-    entity: "prearrival_resource",
-    entityId: id,
-    oldValue: existing,
-    request,
-  });
-
-  return NextResponse.json({ success: true });
 }
