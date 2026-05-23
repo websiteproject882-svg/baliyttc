@@ -244,6 +244,16 @@ describe("admin coupons route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized coupon update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121), discount: 15 })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.couponFindUnique).not.toHaveBeenCalled();
+    expect(mocks.couponUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes coupons and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/coupons?id=coupon_1"));
     const body = await response?.json();
@@ -266,6 +276,16 @@ describe("admin coupons route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Coupon id is required");
+  });
+
+  it("rejects oversized coupon delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/admin/coupons?id=${"x".repeat(121)}`));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Coupon id is required");
+    expect(mocks.couponFindUnique).not.toHaveBeenCalled();
+    expect(mocks.couponDelete).not.toHaveBeenCalled();
   });
 
   it("logs delete failures without leaking internals", async () => {

@@ -14,7 +14,7 @@ const optionalDateString = z
   .optional();
 
 const couponBaseSchema = z.object({
-  code: z.string().min(2).transform((value) => value.trim().toUpperCase()),
+  code: z.string().trim().min(2).max(80).transform((value) => value.toUpperCase()),
   discountType: z.nativeEnum(DiscountType),
   discount: z.coerce.number().int().positive(),
   minAmount: z.coerce.number().int().nonnegative().nullable().optional(),
@@ -37,8 +37,12 @@ const validateDiscount = (data: { discountType: DiscountType; discount: number }
 const couponSchema = couponBaseSchema.superRefine(validateDiscount);
 
 const updateSchema = couponBaseSchema.extend({
-  id: z.string(),
+  id: z.string().trim().min(1).max(120),
 }).superRefine(validateDiscount);
+
+const deleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
+});
 
 export async function GET(request: NextRequest) {
   const { response } = await requirePermission("coupons.view");
@@ -171,10 +175,11 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
+    const parsedQuery = deleteQuerySchema.safeParse({ id: searchParams.get("id") });
+    if (!parsedQuery.success) {
       return jsonWithRequestId({ error: "Coupon id is required" }, { status: 400 }, request);
     }
+    const { id } = parsedQuery.data;
 
     const existing = await prisma.coupon.findUnique({ where: { id } });
     if (!existing) {

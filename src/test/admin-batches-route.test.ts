@@ -265,6 +265,17 @@ describe("admin batches route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized batch update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121), name: "Updated March 2026" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.batchFindUnique).not.toHaveBeenCalled();
+    expect(mocks.accommodationDeleteMany).not.toHaveBeenCalled();
+    expect(mocks.batchUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes batches and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/batches?id=batch_1"));
     const body = await response?.json();
@@ -287,6 +298,16 @@ describe("admin batches route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Batch id is required");
+  });
+
+  it("rejects oversized batch delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/admin/batches?id=${"x".repeat(121)}`));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Batch id is required");
+    expect(mocks.batchFindUnique).not.toHaveBeenCalled();
+    expect(mocks.batchDelete).not.toHaveBeenCalled();
   });
 
   it("returns 404 when deleting a missing batch", async () => {

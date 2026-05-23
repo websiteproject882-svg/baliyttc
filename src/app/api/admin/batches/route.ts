@@ -21,8 +21,8 @@ const nullableDateString = z
   .optional();
 
 const batchBaseSchema = z.object({
-  courseId: z.string(),
-  name: z.string().min(2),
+  courseId: z.string().trim().min(1).max(120),
+  name: z.string().trim().min(2).max(160),
   startDate: dateString,
   endDate: dateString,
   capacity: z.coerce.number().int().positive(),
@@ -47,9 +47,13 @@ const validateDateOrder = (data: { startDate: string; endDate: string }, ctx: z.
 const batchSchema = batchBaseSchema.superRefine(validateDateOrder);
 
 const updateSchema = batchBaseSchema.extend({
-  id: z.string(),
+  id: z.string().trim().min(1).max(120),
   enrolled: z.coerce.number().int().nonnegative().optional(),
 }).superRefine(validateDateOrder);
+
+const deleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
+});
 
 export async function GET(request: NextRequest) {
   const { response } = await requirePermission("batches.view");
@@ -217,10 +221,11 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
+    const parsedQuery = deleteQuerySchema.safeParse({ id: searchParams.get("id") });
+    if (!parsedQuery.success) {
       return jsonWithRequestId({ error: "Batch id is required" }, { status: 400 }, request);
     }
+    const { id } = parsedQuery.data;
 
     const existing = await prisma.batch.findUnique({
       where: { id },

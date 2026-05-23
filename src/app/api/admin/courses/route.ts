@@ -29,7 +29,11 @@ const courseSchema = z.object({
 });
 
 const updateSchema = courseSchema.extend({
-  id: z.string(),
+  id: z.string().trim().min(1).max(120),
+});
+
+const deleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
 });
 
 export async function GET(request: NextRequest) {
@@ -178,11 +182,11 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
+    const parsedQuery = deleteQuerySchema.safeParse({ id: searchParams.get("id") });
+    if (!parsedQuery.success) {
       return jsonWithRequestId({ error: "Course id is required" }, { status: 400 }, request);
     }
+    const { id } = parsedQuery.data;
 
     const existing = await prisma.course.findUnique({ where: { id } });
     if (!existing) {

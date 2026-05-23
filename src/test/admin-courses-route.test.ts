@@ -255,6 +255,16 @@ describe("admin courses route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized course update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121), name: "Updated YTT" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseFindUnique).not.toHaveBeenCalled();
+    expect(mocks.courseUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes courses and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/courses?id=course_1"));
     const body = await response?.json();
@@ -277,6 +287,16 @@ describe("admin courses route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Course id is required");
+  });
+
+  it("rejects oversized course delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/admin/courses?id=${"x".repeat(121)}`));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Course id is required");
+    expect(mocks.courseFindUnique).not.toHaveBeenCalled();
+    expect(mocks.courseDelete).not.toHaveBeenCalled();
   });
 
   it("returns 404 when deleting a missing course", async () => {
