@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { SITE } from "@/data/site";
 import { LocationMap } from "@/components/home/LocationMap";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/shared/Reveal";
@@ -10,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Phone, Mail, Loader2, MessageCircle, Clock } from "lucide-react";
 import { sendContactEmail, getContactWhatsAppMessage } from "@/lib/emailjs";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 const Contact = () => {
   const [data, setData] = useState({ name: "", email: "", course: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const site = SITE;
+  const siteSettings = usePublicSiteSettings();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +40,7 @@ const Contact = () => {
 
   const handleWhatsApp = () => {
     const message = getContactWhatsAppMessage(data);
-    const whatsappUrl = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${siteSettings.whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
 
@@ -102,21 +102,21 @@ const Contact = () => {
               <div>
                 <h3 className="font-serif text-2xl text-warm-dark mb-4">Or reach us directly</h3>
                 <div className="space-y-4">
-                  <a href={`tel:${site.phone}`} className="flex items-center gap-4 group">
+                  <a href={`tel:${siteSettings.general.phone}`} className="flex items-center gap-4 group">
                     <div className="p-3 bg-terra/10 rounded-lg group-hover:bg-terra/20 transition-colors">
                       <Phone className="w-5 h-5 text-terra" />
                     </div>
                     <div>
-                      <p className="font-bold text-warm-dark">{site.phone}</p>
+                      <p className="font-bold text-warm-dark">{siteSettings.general.phone}</p>
                       <p className="text-sm text-warm-mid">Call us anytime</p>
                     </div>
                   </a>
-                  <a href={`mailto:${site.email}`} className="flex items-center gap-4 group">
+                  <a href={`mailto:${siteSettings.general.email}`} className="flex items-center gap-4 group">
                     <div className="p-3 bg-terra/10 rounded-lg group-hover:bg-terra/20 transition-colors">
                       <Mail className="w-5 h-5 text-terra" />
                     </div>
                     <div>
-                      <p className="font-bold text-warm-dark">{site.email}</p>
+                      <p className="font-bold text-warm-dark">{siteSettings.general.email}</p>
                       <p className="text-sm text-warm-mid">Email us anytime</p>
                     </div>
                   </a>
