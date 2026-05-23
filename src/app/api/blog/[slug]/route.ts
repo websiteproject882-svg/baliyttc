@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { PostStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
 import { findStaticBlogPost } from "@/data/blog";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const publicPostWhere = (slug: string, locale: string) => ({
   slug_locale: { slug, locale },
@@ -25,15 +26,15 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
 
     if (!post) {
       const fallback = findStaticBlogPost(params.slug);
-      if (fallback) return NextResponse.json({ post: fallback, locale: defaultLocale, fallback: true });
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      if (fallback) return jsonWithRequestId({ post: fallback, locale: defaultLocale, fallback: true }, undefined, request);
+      return jsonWithRequestId({ error: "Post not found" }, { status: 404 }, request);
     }
 
-    return NextResponse.json({ post, locale });
+    return jsonWithRequestId({ post, locale }, undefined, request);
   } catch (error) {
-    console.error("GET blog post error:", error);
+    logApiError("blog.detail", error, request, { slug: params.slug });
     const fallback = findStaticBlogPost(params.slug);
-    if (fallback) return NextResponse.json({ post: fallback, locale: defaultLocale, fallback: true });
-    return NextResponse.json({ error: "Failed to fetch blog post" }, { status: 500 });
+    if (fallback) return jsonWithRequestId({ post: fallback, locale: defaultLocale, fallback: true }, undefined, request);
+    return jsonWithRequestId({ error: "Failed to fetch blog post" }, { status: 500 }, request);
   }
 }

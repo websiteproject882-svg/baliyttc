@@ -1,11 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { PostStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
 import { STATIC_BLOG_POSTS } from "@/data/blog";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 30;
 
 const publicBlogWhere = (locale: string, category: string | null) => ({
   status: PostStatus.PUBLISHED,
@@ -14,12 +17,19 @@ const publicBlogWhere = (locale: string, category: string | null) => ({
   ...(category ? { category } : {}),
 });
 
+function getPositiveInt(value: string | null, fallback: number, max?: number) {
+  const parsed = Number(value || fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  const normalized = Math.max(Math.trunc(parsed), 1);
+  return max ? Math.min(normalized, max) : normalized;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const page = parseInt(searchParams.get("page") || "1");
+    const limit = getPositiveInt(searchParams.get("limit"), DEFAULT_LIMIT, MAX_LIMIT);
+    const page = getPositiveInt(searchParams.get("page"), 1);
     const locale = normalizeLocale(searchParams.get("locale"));
 
     const where = publicBlogWhere(locale, category);
@@ -84,31 +94,31 @@ export async function GET(request: NextRequest) {
       .slice(0, limit);
     const mergedTotal = Math.max(total, posts.length + staticMissing.length);
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       posts: mergedPosts,
       locale,
       pagination: { page, limit, total: mergedTotal, totalPages: Math.ceil(mergedTotal / limit) },
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET blog error:", error);
+    logApiError("blog.list", error, request);
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const page = parseInt(searchParams.get("page") || "1");
+    const limit = getPositiveInt(searchParams.get("limit"), DEFAULT_LIMIT, MAX_LIMIT);
+    const page = getPositiveInt(searchParams.get("page"), 1);
     const category = searchParams.get("category");
-    const posts = STATIC_BLOG_POSTS
-      .filter((post) => !category || post.category === category)
+    const filteredPosts = STATIC_BLOG_POSTS.filter((post) => !category || post.category === category);
+    const posts = filteredPosts
       .slice((page - 1) * limit, page * limit);
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       posts,
       locale: defaultLocale,
       fallback: true,
       pagination: {
         page,
         limit,
-        total: STATIC_BLOG_POSTS.length,
-        totalPages: Math.ceil(STATIC_BLOG_POSTS.length / limit),
+        total: filteredPosts.length,
+        totalPages: Math.ceil(filteredPosts.length / limit),
       },
-    });
+    }, undefined, request);
   }
 }

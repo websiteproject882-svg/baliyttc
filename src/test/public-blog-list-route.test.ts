@@ -5,6 +5,7 @@ import { GET } from "../app/api/blog/route";
 const mocks = vi.hoisted(() => ({
   blogPostFindMany: vi.fn(),
   blogPostCount: vi.fn(),
+  logApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -25,11 +26,23 @@ vi.mock("@/lib/localized-content", () => ({
 }));
 
 vi.mock("@/data/blog", () => ({
-  STATIC_BLOG_POSTS: [],
+  STATIC_BLOG_POSTS: [
+    { id: "static_1", slug: "one", title: "One", category: "Training", publishedAt: "2026-01-01T00:00:00.000Z" },
+    { id: "static_2", slug: "two", title: "Two", category: "Practice", publishedAt: "2026-01-02T00:00:00.000Z" },
+  ],
+}));
+
+vi.mock("@/lib/security", () => ({
+  jsonWithRequestId: (body: unknown, init: ResponseInit | undefined, request: NextRequest) => {
+    const response = Response.json(body, init);
+    response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
+    return response;
+  },
+  logApiError: mocks.logApiError,
 }));
 
 function request(url = "https://example.com/api/blog?locale=en&limit=10&page=1") {
-  return new NextRequest(url);
+  return new NextRequest(url, { headers: { "x-request-id": "req_blog_list" } });
 }
 
 beforeEach(() => {
@@ -51,6 +64,8 @@ describe("public blog list route", () => {
           OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }],
           category: "Training",
         },
+        skip: 0,
+        take: 6,
       }),
     );
     expect(mocks.blogPostCount).toHaveBeenCalledWith({
@@ -86,7 +101,13 @@ describe("public blog list route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.posts).toHaveLength(1);
+    expect(body.posts).toHaveLength(2);
+    expect(body.posts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "post_en" }),
+        expect.objectContaining({ id: "static_1" }),
+      ]),
+    );
     expect(mocks.blogPostFindMany).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
@@ -98,5 +119,38 @@ describe("public blog list route", () => {
         },
       }),
     );
+  });
+
+  it("clamps invalid pagination input for public list queries", async () => {
+    const response = await GET(request("https://example.com/api/blog?locale=en&limit=500&page=-2"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("X-Request-Id")).toBe("req_blog_list");
+    expect(body.pagination).toEqual(expect.objectContaining({ page: 1, limit: 30 }));
+    expect(mocks.blogPostFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skip: 0,
+        take: 30,
+      }),
+    );
+  });
+
+  it("uses clamped pagination and filtered totals for static fallback", async () => {
+    mocks.blogPostFindMany.mockRejectedValue(new Error("database down"));
+
+    const response = await GET(request("https://example.com/api/blog?category=Training&limit=500&page=-1"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.fallback).toBe(true);
+    expect(body.posts).toHaveLength(1);
+    expect(body.pagination).toEqual({
+      page: 1,
+      limit: 30,
+      total: 1,
+      totalPages: 1,
+    });
+    expect(mocks.logApiError).toHaveBeenCalledWith("blog.list", expect.any(Error), expect.any(NextRequest));
   });
 });

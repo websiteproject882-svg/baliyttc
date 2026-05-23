@@ -4,6 +4,7 @@ import { GET } from "../app/api/blog/[slug]/route";
 
 const mocks = vi.hoisted(() => ({
   blogPostFindFirst: vi.fn(),
+  logApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -26,8 +27,19 @@ vi.mock("@/data/blog", () => ({
   findStaticBlogPost: vi.fn(() => null),
 }));
 
+vi.mock("@/lib/security", () => ({
+  jsonWithRequestId: (body: unknown, init: ResponseInit | undefined, request: NextRequest) => {
+    const response = Response.json(body, init);
+    response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
+    return response;
+  },
+  logApiError: mocks.logApiError,
+}));
+
 function request(locale = "en") {
-  return new NextRequest(`https://example.com/api/blog/yoga-guide?locale=${locale}`);
+  return new NextRequest(`https://example.com/api/blog/yoga-guide?locale=${locale}`, {
+    headers: { "x-request-id": "req_blog_detail" },
+  });
 }
 
 beforeEach(() => {
@@ -50,6 +62,7 @@ describe("public blog post route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("X-Request-Id")).toBe("req_blog_detail");
     expect(body.post).toEqual(expect.objectContaining({ id: "post_1", title: "Yoga Guide" }));
     expect(mocks.blogPostFindFirst).toHaveBeenCalledWith({
       where: {
@@ -67,6 +80,7 @@ describe("public blog post route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(404);
+    expect(response.headers.get("X-Request-Id")).toBe("req_blog_detail");
     expect(body.error).toBe("Post not found");
   });
 
@@ -93,5 +107,21 @@ describe("public blog post route", () => {
         OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }],
       },
     });
+  });
+
+  it("logs failures without leaking internals", async () => {
+    mocks.blogPostFindFirst.mockRejectedValue(new Error("database down"));
+
+    const response = await GET(request(), { params: { slug: "yoga-guide" } });
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.error).toBe("Failed to fetch blog post");
+    expect(mocks.logApiError).toHaveBeenCalledWith(
+      "blog.detail",
+      expect.any(Error),
+      expect.any(NextRequest),
+      { slug: "yoga-guide" },
+    );
   });
 });
