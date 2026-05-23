@@ -44,10 +44,24 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ error: 'Firebase account is missing an email' }, { status: 400 }, request);
     }
 
-    const user = await prisma.user.findUnique({
+    const userByUid = await prisma.user.findUnique({
       where: { uid: decodedToken.uid },
       include: { staff: true },
     });
+    const userByEmail = await prisma.user.findUnique({
+      where: { email },
+      include: { staff: true },
+    });
+
+    if (userByUid && userByEmail && userByUid.id !== userByEmail.id) {
+      return jsonWithRequestId(
+        { error: 'This Firebase account is linked to a different staff email.' },
+        { status: 409 },
+        request,
+      );
+    }
+
+    const user = userByEmail || userByUid;
 
     // Check if user exists
     if (!user) {
@@ -104,6 +118,8 @@ export async function POST(request: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
+        uid: decodedToken.uid,
+        email,
         displayName: decodedToken.name || decodedToken.email?.split("@")[0] || null,
         photoURL: decodedToken.picture || null,
       },
