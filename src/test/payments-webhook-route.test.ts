@@ -56,6 +56,17 @@ function webhookRequest(provider: "razorpay" | "paypal", body: unknown, headers:
   });
 }
 
+function rawWebhookRequest(provider: "razorpay" | "paypal", body: string, headers: Record<string, string> = {}) {
+  return new NextRequest(`https://example.com/api/payments/webhook?provider=${provider}`, {
+    method: "POST",
+    headers: {
+      "x-request-id": "req_payment_webhook",
+      ...headers,
+    },
+    body,
+  });
+}
+
 const pendingPayment = {
   id: "payment_1",
   enrollmentId: "enrollment_1",
@@ -113,6 +124,31 @@ describe("payment webhook route", () => {
     expect(mocks.paymentUpdate).not.toHaveBeenCalled();
     expect(mocks.paymentUpdateMany).not.toHaveBeenCalled();
     expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed Razorpay webhook JSON after signature verification", async () => {
+    const response = await POST(
+      rawWebhookRequest("razorpay", "{not-valid-json", { "x-razorpay-signature": "valid_signature" }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_payment_webhook");
+    expect(body).toEqual({ error: "Invalid webhook JSON" });
+    expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed PayPal webhook JSON before signature verification", async () => {
+    const response = await POST(rawWebhookRequest("paypal", "{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_payment_webhook");
+    expect(body).toEqual({ error: "Invalid webhook JSON" });
+    expect(mocks.verifyPayPalWebhook).not.toHaveBeenCalled();
+    expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("marks Razorpay captured payments complete once and stores provider event data", async () => {

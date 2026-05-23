@@ -27,6 +27,14 @@ type StoredPaymentForWebhook = {
   currency: string;
 };
 
+function parseWebhookJson(rawBody: string) {
+  try {
+    return { ok: true as const, event: JSON.parse(rawBody) as unknown };
+  } catch {
+    return { ok: false as const };
+  }
+}
+
 function toMinorUnits(value: number) {
   return Math.round(value * 100);
 }
@@ -59,7 +67,12 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
 
     if (provider === "paypal") {
-      const event = JSON.parse(rawBody) as {
+      const parsed = parseWebhookJson(rawBody);
+      if (!parsed.ok) {
+        return jsonWithRequestId({ error: "Invalid webhook JSON" }, { status: 400 }, request);
+      }
+
+      const event = parsed.event as {
         id?: string;
         event_type?: string;
         resource?: {
@@ -149,7 +162,12 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ error: "Invalid Razorpay signature" }, { status: 400 }, request);
     }
 
-    const event = JSON.parse(rawBody) as RazorpayWebhookEvent;
+    const parsed = parseWebhookJson(rawBody);
+    if (!parsed.ok) {
+      return jsonWithRequestId({ error: "Invalid webhook JSON" }, { status: 400 }, request);
+    }
+
+    const event = parsed.event as RazorpayWebhookEvent;
     if (!event.id) {
       return jsonWithRequestId({ error: "Missing Razorpay event id" }, { status: 400 }, request);
     }
