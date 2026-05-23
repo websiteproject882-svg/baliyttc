@@ -39,9 +39,15 @@ export async function POST(request: NextRequest) {
 
     const capturedAmount = Number(capturedPayment?.amount?.value);
     const capturedCurrency = capturedPayment?.amount?.currency_code?.toUpperCase();
+    if (!Number.isFinite(capturedAmount) || !capturedCurrency) {
+      return jsonWithRequestId(
+        { error: "Captured PayPal amount is missing or invalid." },
+        { status: 409 },
+        request,
+      );
+    }
+
     if (
-      Number.isFinite(capturedAmount) &&
-      capturedCurrency &&
       (capturedCurrency !== payment.currency.toUpperCase() || toMinorUnits(capturedAmount) !== toMinorUnits(payment.amount))
     ) {
       return jsonWithRequestId(

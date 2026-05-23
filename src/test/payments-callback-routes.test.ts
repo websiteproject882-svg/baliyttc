@@ -244,6 +244,27 @@ describe("payment callback routes", () => {
     expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
   });
 
+  it("rejects PayPal captures when provider amount is missing", async () => {
+    mocks.capturePayPalOrder.mockResolvedValue({
+      status: "COMPLETED",
+      purchase_units: [
+        {
+          payments: {
+            captures: [{ id: "capture_123" }],
+          },
+        },
+      ],
+    });
+
+    const response = await capturePayPalPayment(paypalRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("Captured PayPal amount is missing or invalid.");
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+    expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
+  });
+
   it("completes callbacks with stored full payment metadata after a deposit", async () => {
     mocks.paymentFindFirst.mockResolvedValue({
       ...payment,
