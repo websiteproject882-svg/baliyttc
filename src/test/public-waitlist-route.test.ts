@@ -92,6 +92,19 @@ function patchRequest(body: Record<string, unknown>) {
   });
 }
 
+function rawPatchRequest(body: string) {
+  return new NextRequest("https://example.com/api/waitlist", {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+      "x-request-id": "req_admin_waitlist",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -217,6 +230,18 @@ describe("public waitlist route", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.waitlistUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed admin waitlist update JSON before writing", async () => {
+    const response = await PATCH(rawPatchRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_admin_waitlist");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistUpdate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("does not add a waitlist entry when the batch is open", async () => {

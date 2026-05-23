@@ -180,7 +180,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const { id, status, priority, notes } = waitlistUpdateSchema.parse(await request.json());
+    const parsed = waitlistUpdateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, status, priority, notes } = parsed.data;
 
     const updateData: Record<string, unknown> = {};
     if (status) updateData.status = status;
