@@ -1,10 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 export const dynamic = 'force-dynamic';
+import { z } from 'zod';
 import { auth } from '@/lib/firebase-admin';
 import { createSession, createTwoFactorChallenge, AuthType } from '@/lib/session';
 import prisma from '@/lib/prisma';
-import { getRoleHomePath, isAdminPanelRole } from '@/lib/rbac';
-import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
+import { getRoleHomePath } from '@/lib/rbac';
+import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
+
+const loginSchema = z.object({
+  idToken: z.string().trim().min(1).max(20_000),
+});
 
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
@@ -25,18 +30,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { idToken } = await request.json();
-
-    if (!idToken) {
-      return jsonWithRequestId({ error: 'Missing ID token' }, { status: 400 }, request);
-    }
+    const { idToken } = loginSchema.parse(await request.json());
 
     if (!auth) {
       return jsonWithRequestId({ error: 'Firebase admin is not configured' }, { status: 503 }, request);
     }
 
     const decodedToken = await auth.verifyIdToken(idToken);
-    const email = decodedToken.email || "";
+    const email = decodedToken.email?.trim().toLowerCase() || "";
 
     if (!email) {
       return jsonWithRequestId({ error: 'Firebase account is missing an email' }, { status: 400 }, request);
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
       data: {
         uid: decodedToken.uid,
         email,
-        displayName: decodedToken.name || decodedToken.email?.split("@")[0] || null,
+        displayName: decodedToken.name?.trim() || email.split("@")[0] || null,
         photoURL: decodedToken.picture || null,
       },
     });
@@ -130,6 +131,9 @@ export async function POST(request: NextRequest) {
     }, undefined, request);
 
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: 'Invalid login request' }, { status: 400 }, request);
+    }
     logApiError('auth.admin.login', error, request);
     return jsonWithRequestId({ error: 'Internal server error' }, { status: 500 }, request);
   }
