@@ -7,20 +7,21 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const profileSchema = z.object({
-  displayName: z.string().max(120).optional().or(z.literal("")),
+  displayName: z.string().trim().max(120).optional().or(z.literal("")),
   photoURL: z
     .string()
+    .trim()
     .max(250000)
     .refine((value) => !value || value.startsWith("data:image/") || /^https?:\/\//.test(value), {
       message: "Photo must be an image upload or URL",
     })
     .optional()
     .or(z.literal("")),
-  phone: z.string().max(50).optional().or(z.literal("")),
-  nationality: z.string().max(100).optional().or(z.literal("")),
-  dietaryRequirements: z.string().max(500).optional().or(z.literal("")),
-  yogaExperience: z.string().max(1000).optional().or(z.literal("")),
-  emergencyContact: z.string().max(500).optional().or(z.literal("")),
+  phone: z.string().trim().max(50).optional().or(z.literal("")),
+  nationality: z.string().trim().max(100).optional().or(z.literal("")),
+  dietaryRequirements: z.string().trim().max(500).optional().or(z.literal("")),
+  yogaExperience: z.string().trim().max(1000).optional().or(z.literal("")),
+  emergencyContact: z.string().trim().max(500).optional().or(z.literal("")),
 });
 
 export async function GET(request: NextRequest) {

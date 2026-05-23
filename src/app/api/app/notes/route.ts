@@ -7,7 +7,7 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const notesSchema = z.object({
-  personalNotes: z.string().max(10000),
+  personalNotes: z.string().trim().max(10000),
 });
 
 export async function GET(request: NextRequest) {

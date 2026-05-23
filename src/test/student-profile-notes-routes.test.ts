@@ -170,7 +170,7 @@ describe("student profile and notes routes", () => {
       profileRequest({
         displayName: "Updated Student",
         photoURL: "data:image/png;base64,abc",
-        phone: "+911111111111",
+        phone: " +911111111111 ",
         nationality: "India",
         dietaryRequirements: "Vegan",
         yogaExperience: "3 years",
@@ -228,7 +228,7 @@ describe("student profile and notes routes", () => {
     expect(getResponse?.status).toBe(200);
     expect(getBody).toEqual({ personalNotes: "Bring mat" });
 
-    const patchResponse = await patchNotes(notesRequest({ personalNotes: "Updated notes" }));
+    const patchResponse = await patchNotes(notesRequest({ personalNotes: "  Updated notes  " }));
     const patchBody = await patchResponse?.json();
 
     expect(patchResponse?.status).toBe(200);

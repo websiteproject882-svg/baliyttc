@@ -7,11 +7,11 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const testimonialSchema = z.object({
-  rating: z.number().int().min(1).max(5),
-  quote: z.string().min(30).max(3000),
-  location: z.string().max(120).optional().or(z.literal("")),
-  courseName: z.string().max(160).optional().or(z.literal("")),
-  graduationYear: z.number().int().min(2000).max(2100).optional().nullable(),
+  rating: z.coerce.number().int().min(1).max(5),
+  quote: z.string().trim().min(30).max(3000),
+  location: z.string().trim().max(120).optional().or(z.literal("")),
+  courseName: z.string().trim().max(160).optional().or(z.literal("")),
+  graduationYear: z.coerce.number().int().min(2000).max(2100).optional().nullable(),
 });
 
 export async function GET(request: NextRequest) {

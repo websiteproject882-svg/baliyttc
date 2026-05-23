@@ -124,11 +124,11 @@ describe("student testimonials route", () => {
   it("creates a testimonial using explicit course and year fields", async () => {
     const response = await POST(
       request("POST", {
-        rating: 5,
-        quote: "The training gave me confidence, structure, and excellent teaching practice.",
-        location: "India",
-        courseName: "300 Hour YTTC",
-        graduationYear: 2026,
+        rating: "5",
+        quote: "  The training gave me confidence, structure, and excellent teaching practice.  ",
+        location: " India ",
+        courseName: " 300 Hour YTTC ",
+        graduationYear: "2026",
       }),
     );
     const body = await response?.json();
