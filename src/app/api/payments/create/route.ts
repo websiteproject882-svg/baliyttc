@@ -67,6 +67,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = paymentCreateSchema.parse(body);
     const storedEnrollment = await resolveStoredEnrollmentAmount(data.enrollmentId);
+    if (data.email.trim().toLowerCase() !== storedEnrollment.email.toLowerCase()) {
+      return jsonWithRequestId(
+        { error: "Payment details do not match this enrollment" },
+        { status: 403 },
+        request,
+      );
+    }
+
     let amount = storedEnrollment.amount;
     const currency = storedEnrollment.currency.toUpperCase();
     let paymentType = storedEnrollment.paymentType.toLowerCase();

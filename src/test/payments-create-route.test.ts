@@ -113,7 +113,7 @@ function createRequest(body: Record<string, unknown>) {
       enrollmentId: "enrollment_1",
       amount: 1,
       currency: "usd",
-      email: "body@example.com",
+      email: "stored@example.com",
       name: "Body Student",
       courseName: "Body Course Name",
       paymentType: "deposit",
@@ -146,6 +146,17 @@ beforeEach(() => {
 });
 
 describe("payment create route", () => {
+  it("rejects payment creation when request email does not match the enrollment", async () => {
+    const response = await POST(createRequest({ provider: "razorpay", email: "attacker@example.com" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("Payment details do not match this enrollment");
+    expect(mocks.razorpayOrdersCreate).not.toHaveBeenCalled();
+    expect(mocks.createPayPalOrder).not.toHaveBeenCalled();
+    expect(mocks.paymentCreate).not.toHaveBeenCalled();
+  });
+
   it("blocks a disabled provider before creating a payment intent", async () => {
     mocks.getSiteSettings.mockResolvedValue({
       payments: {
