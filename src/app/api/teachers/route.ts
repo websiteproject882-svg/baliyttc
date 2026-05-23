@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { StaffRole, StaffStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { TEACHERS as STATIC_TEACHERS } from "@/data/site";
 
@@ -12,24 +13,74 @@ const staticBySlug = new Map(STATIC_TEACHERS.map((teacher) => [slugify(teacher.n
 
 export async function GET() {
   try {
-    const teachers = await prisma.teacher.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: "asc" },
+    const [teachers, staffTeachers] = await Promise.all([
+      prisma.teacher.findMany({
+        where: { isActive: true },
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.staff.findMany({
+        where: {
+          role: StaffRole.TEACHER,
+          status: StaffStatus.ACTIVE,
+        },
+        include: {
+          user: {
+            select: {
+              displayName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      }),
+    ]);
+
+    const mappedTeachers = teachers.map((teacher) => {
+      const fallback = staticBySlug.get(teacher.slug) || staticBySlug.get(slugify(teacher.name));
+
+      return {
+        ...teacher,
+        role: teacher.role || fallback?.role || "",
+        credentials: teacher.credentials || fallback?.cred || "",
+        bio: teacher.bio || fallback?.bio || "",
+        image: teacher.image || fallback?.img || "/images/teachers/vivek-kalura.jpg",
+        styles: teacher.styles?.length ? teacher.styles : fallback?.style || [],
+      };
+    });
+
+    const existingSlugs = new Set(mappedTeachers.map((teacher) => teacher.slug));
+    const staffBackedTeachers = staffTeachers.flatMap((member) => {
+      const name = member.user.displayName?.trim();
+      if (!name) return [];
+
+      const slug = slugify(name);
+      if (existingSlugs.has(slug)) return [];
+
+      const fallback = staticBySlug.get(slug);
+      existingSlugs.add(slug);
+
+      return [
+        {
+          id: `staff-${member.id}`,
+          name,
+          slug,
+          role: "Teacher",
+          credentials: fallback?.cred || "Bali YTTC teaching faculty",
+          bio:
+            fallback?.bio ||
+            `${name} is part of the Bali YTTC teaching team, supporting students through practice, methodology and daily training.`,
+          image: fallback?.img || "/images/teachers/vivek-kalura.jpg",
+          styles: fallback?.style || ["Teaching Methodology", "Practice Support"],
+          isActive: true,
+          createdAt: member.createdAt,
+          updatedAt: member.createdAt,
+          source: "staff",
+        },
+      ];
     });
 
     return NextResponse.json({
-      teachers: teachers.map((teacher) => {
-        const fallback = staticBySlug.get(teacher.slug) || staticBySlug.get(slugify(teacher.name));
-
-        return {
-          ...teacher,
-          role: teacher.role || fallback?.role || "",
-          credentials: teacher.credentials || fallback?.cred || "",
-          bio: teacher.bio || fallback?.bio || "",
-          image: teacher.image || fallback?.img || "/images/teachers/vivek-kalura.jpg",
-          styles: teacher.styles?.length ? teacher.styles : fallback?.style || [],
-        };
-      }),
+      teachers: [...mappedTeachers, ...staffBackedTeachers],
     });
   } catch (error) {
     console.error("GET teachers error:", error);
