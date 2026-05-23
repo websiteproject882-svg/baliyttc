@@ -5,6 +5,7 @@ import { GET } from "../app/api/payments/status/route";
 const mocks = vi.hoisted(() => ({
   getSiteSettings: vi.fn(),
   getPaymentProviderReadiness: vi.fn(),
+  getCurrentUser: vi.fn(),
 }));
 
 vi.mock("@/lib/site-settings", () => ({
@@ -13,6 +14,10 @@ vi.mock("@/lib/site-settings", () => ({
 
 vi.mock("@/lib/payments/readiness", () => ({
   getPaymentProviderReadiness: mocks.getPaymentProviderReadiness,
+}));
+
+vi.mock("@/lib/authz", () => ({
+  getCurrentUser: mocks.getCurrentUser,
 }));
 
 vi.mock("@/lib/security", () => ({
@@ -77,10 +82,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.getSiteSettings.mockResolvedValue({ payments: paymentSettings });
   mocks.getPaymentProviderReadiness.mockReturnValue(readiness);
+  mocks.getCurrentUser.mockResolvedValue(null);
 });
 
 describe("payment status route", () => {
-  it("returns admin payment settings and configured provider states", async () => {
+  it("returns public payment settings and configured provider states without env diagnostics", async () => {
     const response = await GET(request());
     const body = await response.json();
 
@@ -91,25 +97,49 @@ describe("payment status route", () => {
       expect.objectContaining({
         configured: true,
         enabled: true,
-        envReady: true,
-        checkoutReady: true,
-        webhookReady: true,
         label: "Razorpay",
       }),
     );
+    expect(body.providers.razorpay).not.toHaveProperty("diagnostics");
+    expect(body.providers.razorpay).not.toHaveProperty("missingEnv");
+    expect(body.providers.razorpay).not.toHaveProperty("envReady");
     expect(body.providers.paypal).toEqual(
       expect.objectContaining({
         configured: false,
         enabled: true,
-        missingEnv: ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_WEBHOOK_ID"],
         unavailableReason: "Client PayPal checkout keys are pending.",
       }),
     );
+    expect(body.providers.paypal).not.toHaveProperty("diagnostics");
     expect(body.providers.bankTransfer).toEqual(
       expect.objectContaining({
         configured: true,
         enabled: true,
         unavailableReason: null,
+      }),
+    );
+  });
+
+  it("includes provider diagnostics for a super admin session", async () => {
+    mocks.getCurrentUser.mockResolvedValue({
+      id: "admin_1",
+      email: "admin@example.com",
+      displayName: "Admin",
+      role: "SUPER_ADMIN",
+      permissions: ["*"],
+      authType: "admin",
+    });
+
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.providers.paypal.diagnostics).toEqual(
+      expect.objectContaining({
+        envReady: false,
+        checkoutReady: false,
+        webhookReady: false,
+        missingEnv: ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_WEBHOOK_ID"],
       }),
     );
   });

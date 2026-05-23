@@ -23,6 +23,28 @@ const paymentCreateSchema = z.object({
   cancelUrl: z.string().url().optional(),
 });
 
+function resolveAllowedRedirectUrl(value: string | undefined, request: NextRequest) {
+  if (!value) return { url: undefined };
+
+  const allowedOrigins = new Set([request.nextUrl.origin]);
+  const publicBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+  if (publicBaseUrl) {
+    try {
+      allowedOrigins.add(new URL(publicBaseUrl).origin);
+    } catch {
+      // Invalid deployment configuration should not make arbitrary redirects valid.
+    }
+  }
+
+  const parsed = new URL(value);
+  if (!allowedOrigins.has(parsed.origin)) {
+    return { error: "Payment redirect URL must stay on this website." };
+  }
+
+  return { url: parsed.toString() };
+}
+
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
@@ -259,6 +281,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const returnUrl = resolveAllowedRedirectUrl(data.returnUrl, request);
+    const cancelUrl = resolveAllowedRedirectUrl(data.cancelUrl, request);
+    if (returnUrl.error || cancelUrl.error) {
+      return jsonWithRequestId(
+        { error: returnUrl.error || cancelUrl.error },
+        { status: 400 },
+        request,
+      );
+    }
+
     const order = await createPayPalOrder({
       amount,
       currency,
@@ -266,8 +298,8 @@ export async function POST(request: NextRequest) {
       courseName: data.courseName,
       paymentType,
       email: storedEnrollment.email,
-      returnUrl: data.returnUrl,
-      cancelUrl: data.cancelUrl,
+      returnUrl: returnUrl.url,
+      cancelUrl: cancelUrl.url,
     });
 
     const existingPayment = await prisma.payment.findFirst({

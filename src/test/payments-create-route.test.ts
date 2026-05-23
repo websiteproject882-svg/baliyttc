@@ -238,6 +238,40 @@ describe("payment create route", () => {
     expect(body).toEqual(expect.objectContaining({ success: true, provider: "paypal" }));
   });
 
+  it("passes same-origin PayPal return URLs to the provider", async () => {
+    const response = await POST(
+      createRequest({
+        provider: "paypal",
+        returnUrl: "https://example.com/en/payment/return?provider=paypal",
+        cancelUrl: "https://example.com/en/payment/return?provider=paypal&status=cancelled",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.createPayPalOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        returnUrl: "https://example.com/en/payment/return?provider=paypal",
+        cancelUrl: "https://example.com/en/payment/return?provider=paypal&status=cancelled",
+      }),
+    );
+  });
+
+  it("rejects external PayPal return URLs before creating a provider order", async () => {
+    const response = await POST(
+      createRequest({
+        provider: "paypal",
+        returnUrl: "https://evil.example/payment/return",
+        cancelUrl: "https://example.com/en/payment/return?provider=paypal&status=cancelled",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Payment redirect URL must stay on this website.");
+    expect(mocks.createPayPalOrder).not.toHaveBeenCalled();
+    expect(mocks.paymentCreate).not.toHaveBeenCalled();
+  });
+
   it("reuses a pending bank transfer payment and ignores client supplied amount", async () => {
     mocks.paymentFindFirst.mockResolvedValue({ id: "payment_existing" });
 
