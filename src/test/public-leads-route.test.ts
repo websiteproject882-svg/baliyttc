@@ -76,6 +76,18 @@ function patchRequest(body: Record<string, unknown>) {
   });
 }
 
+function rawRequest(method: "POST" | "PATCH", body: string, requestId = "req_public_leads") {
+  return new NextRequest("https://example.com/api/leads", {
+    method,
+    headers: {
+      "x-request-id": requestId,
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -120,6 +132,17 @@ describe("public leads route", () => {
     expect(mocks.leadCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed public lead JSON before creating a lead", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_public_leads");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.leadCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("rate limits public lead submissions", async () => {
     mocks.rateLimit.mockReturnValue({ allowed: false, resetAt: Date.now() + 30_000 });
 
@@ -156,6 +179,18 @@ describe("public leads route", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.leadUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed legacy lead management JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json", "req_legacy_leads"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_legacy_leads");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.leadFindUnique).not.toHaveBeenCalled();
+    expect(mocks.leadUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("rejects empty legacy lead management updates", async () => {
