@@ -76,6 +76,18 @@ function request(method: "GET" | "POST" | "PATCH" | "DELETE", body?: Record<stri
   });
 }
 
+function rawRequest(method: "POST" | "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/courses", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_courses",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     name: "200 Hour YTT",
@@ -185,6 +197,17 @@ describe("admin courses route", () => {
     expect(mocks.courseCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed course create JSON before saving", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_courses");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("updates existing courses and writes an audit log", async () => {
     const response = await PATCH(request("PATCH", payload({ id: "course_1", name: "Updated YTT" })));
     const body = await response?.json();
@@ -218,6 +241,18 @@ describe("admin courses route", () => {
     expect(response?.status).toBe(404);
     expect(body.error).toBe("Course not found");
     expect(mocks.courseUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed course update JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_courses");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseFindUnique).not.toHaveBeenCalled();
+    expect(mocks.courseUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("deletes courses and writes an audit log", async () => {

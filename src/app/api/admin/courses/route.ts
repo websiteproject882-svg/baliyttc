@@ -76,7 +76,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = courseSchema.parse(await request.json());
+    const parsed = courseSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const course = await prisma.course.create({
       data: {
         ...data,
@@ -118,7 +123,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const { id, ...data } = updateSchema.parse(await request.json());
+    const parsed = updateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, ...data } = parsed.data;
     const existing = await prisma.course.findUnique({ where: { id } });
 
     if (!existing) {
