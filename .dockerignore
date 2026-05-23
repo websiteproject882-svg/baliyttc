@@ -20,3 +20,5 @@ firebase-adminsdk*.json
 tsconfig.tsbuildinfo
 tsconfig.typecheck.tsbuildinfo
 *.mp4
+WhatsApp Image*.jpg
+WhatsApp Image*.jpeg
