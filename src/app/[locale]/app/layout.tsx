@@ -46,6 +46,8 @@ export default async function AppLayout({
     redirect(`/${params.locale}/login`);
   }
 
+  const sessionEmail = typeof session.email === "string" ? session.email : "";
+
   const accessLevelColors: Record<string, { bg: string; text: string }> = {
     PRE_ARRIVAL: { bg: "bg-blue-50", text: "text-blue-600" },
     FULL: { bg: "bg-green-50", text: "text-green-600" },
@@ -169,10 +171,10 @@ export default async function AppLayout({
           {/* User & Logout */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white font-bold text-xs">
-              {session?.email?.[0]?.toUpperCase() || "U"}
+              {sessionEmail[0]?.toUpperCase() || "U"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-900 truncate">{session?.email}</p>
+              <p className="text-xs font-medium text-gray-900 truncate">{sessionEmail}</p>
               <form action="/api/auth/logout" method="POST">
                 <button type="submit" className="text-[10px] text-gray-500 hover:text-orange-600 transition-colors">
                   Sign out

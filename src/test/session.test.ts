@@ -16,6 +16,7 @@ describe("session helpers", () => {
 
     const payload = await decrypt(token);
 
+    if (!payload) throw new Error("Expected decrypted payload");
     expect(payload.userId).toBe("user_1");
     expect(payload.authType).toBe("student");
   });

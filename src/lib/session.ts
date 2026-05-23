@@ -4,6 +4,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export type AuthType = 'student' | 'admin' | 'staff';
 
+export type SessionPayload = {
+  userId: string;
+  role: string;
+  email: string;
+  authType: AuthType;
+  expires?: Date | string;
+  purpose?: "2fa";
+};
+
 function getSessionSecret() {
   const secret = process.env.SESSION_SECRET;
 
@@ -22,7 +31,7 @@ function getSessionKey() {
   return new TextEncoder().encode(getSessionSecret());
 }
 
-export async function encrypt(payload: any) {
+export async function encrypt(payload: SessionPayload | Record<string, unknown>) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -30,7 +39,7 @@ export async function encrypt(payload: any) {
     .sign(getSessionKey());
 }
 
-export async function decrypt(input: string): Promise<any> {
+export async function decrypt(input: string): Promise<Record<string, unknown> | null> {
   try {
     const { payload } = await jwtVerify(input, getSessionKey(), {
       algorithms: ['HS256'],
@@ -166,14 +175,15 @@ export async function updateSession(request: NextRequest, authType?: AuthType) {
   if (!parsed) return;
   if (!sessionMatchesAuthType(parsed, authType ?? "student")) return;
 
-  parsed.expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  parsed.expires = expires;
   const res = NextResponse.next();
   res.cookies.set({
     name: cookieName,
     value: await encrypt(parsed),
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    expires: parsed.expires,
+    expires,
     sameSite: 'lax',
     path: '/',
   });
