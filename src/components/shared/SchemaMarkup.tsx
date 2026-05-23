@@ -1,7 +1,8 @@
 "use client";
 
-import { SITE } from "@/data/site";
-import { COURSES } from "@/data/site";
+import { COURSES, SITE } from "@/data/site";
+
+const publicBaseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
 
 // Organization Schema
 export const OrganizationSchema = () => (
@@ -13,9 +14,9 @@ export const OrganizationSchema = () => (
         "@type": "Organization",
         name: SITE.name,
         description: SITE.philosophy,
-        url: "https://baliyttc.com",
-        logo: "https://baliyttc.com/logo.png",
-        image: "https://baliyttc.com/images/hero/bali-hero-bg.png",
+        url: publicBaseUrl,
+        logo: `${publicBaseUrl}/logo.png`,
+        image: `${publicBaseUrl}/images/hero/bali-hero-bg.png`,
         telephone: SITE.phone,
         email: SITE.email,
         address: {
@@ -67,7 +68,7 @@ export const OrganizationSchema = () => (
 );
 
 // Course Schema for each course page
-export const CourseSchema = ({ course }: { course: typeof COURSES[0] }) => (
+export const CourseSchema = ({ course }: { course: (typeof COURSES)[0] }) => (
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
@@ -79,14 +80,14 @@ export const CourseSchema = ({ course }: { course: typeof COURSES[0] }) => (
         provider: {
           "@type": "Organization",
           name: SITE.name,
-          url: "https://baliyttc.com",
+          url: publicBaseUrl,
         },
         offers: {
           "@type": "Offer",
           price: course.priceFrom,
           priceCurrency: "EUR",
           availability: "https://schema.org/InStock",
-          url: `https://baliyttc.com/courses/${course.slug}`,
+          url: `${publicBaseUrl}/courses/${course.slug}`,
         },
         hasCourseInstance: {
           "@type": "CourseInstance",
@@ -106,23 +107,17 @@ export const CourseSchema = ({ course }: { course: typeof COURSES[0] }) => (
             "@type": "Offer",
             price: course.priceFrom,
             priceCurrency: "EUR",
-            availability: course.seats.includes("4 seats") 
+            availability: course.seats.includes("4 seats")
               ? "https://schema.org/LimitedAvailability"
               : "https://schema.org/InStock",
           },
         },
-        educationalLevel: course.slug === "100hr" 
-          ? "Beginner" 
-          : course.slug === "200hr" 
-            ? "Intermediate" 
-            : "Advanced",
-        coursePrerequisites: course.slug === "300hr" 
-          ? "200-hour Yoga Alliance certification" 
-          : "None",
+        educationalLevel: course.slug === "100hr" ? "Beginner" : course.slug === "200hr" ? "Intermediate" : "Advanced",
+        coursePrerequisites: course.slug === "300hr" ? "200-hour Yoga Alliance certification" : "None",
         educationalCredentialAwarded: `${course.title} - Yoga Alliance RYT-${course.slug.replace("hr", "")}`,
         numberOfCredits: {
           "@type": "StructuredValue",
-          value: parseInt(course.duration.split(" ")[0]),
+          value: parseInt(course.duration.split(" ")[0], 10),
           unitCode: "HUR",
         },
       }),
@@ -178,10 +173,10 @@ export const LocalBusinessSchema = () => (
       __html: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
-        "@id": "https://baliyttc.com/#organization",
+        "@id": `${publicBaseUrl}/#organization`,
         name: SITE.name,
-        image: "https://baliyttc.com/logo.png",
-        priceRange: "€€€",
+        image: `${publicBaseUrl}/logo.png`,
+        priceRange: "EUR 499-1899",
         servesCuisine: "Vegetarian",
         aggregateRating: {
           "@type": "AggregateRating",
