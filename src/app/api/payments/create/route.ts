@@ -42,6 +42,10 @@ function resolveAllowedRedirectUrl(value: string | undefined, request: NextReque
     return { error: "Payment redirect URL must stay on this website." };
   }
 
+  if (!parsed.pathname.endsWith("/payment/return")) {
+    return { error: "Payment redirect URL must use the payment return page." };
+  }
+
   return { url: parsed.toString() };
 }
 

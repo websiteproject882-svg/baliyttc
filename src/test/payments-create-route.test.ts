@@ -283,6 +283,22 @@ describe("payment create route", () => {
     expect(mocks.paymentCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects same-origin PayPal return URLs outside the payment return flow", async () => {
+    const response = await POST(
+      createRequest({
+        provider: "paypal",
+        returnUrl: "https://example.com/en/login?next=/payment/return",
+        cancelUrl: "https://example.com/en/payment/return?provider=paypal&status=cancelled",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Payment redirect URL must use the payment return page.");
+    expect(mocks.createPayPalOrder).not.toHaveBeenCalled();
+    expect(mocks.paymentCreate).not.toHaveBeenCalled();
+  });
+
   it("reuses a pending bank transfer payment and ignores client supplied amount", async () => {
     mocks.paymentFindFirst.mockResolvedValue({ id: "payment_existing" });
 
