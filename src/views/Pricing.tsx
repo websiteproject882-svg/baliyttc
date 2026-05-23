@@ -10,10 +10,37 @@ import { Check, Star, Calendar, Shield, Clock, ArrowRight, Sparkles, Zap, Percen
 
 const coursePricing = [
   {
+    course: "50-Hour YTT",
+    slug: "50hr",
+    regularPrice: 599,
+    priceFrom: 499,
+    deposit: 150,
+    image: IMG.classMain,
+    duration: "6 Days",
+    level: "Beginner",
+    highlight: "Short foundation",
+    description: "A focused Hatha-Vinyasa foundation for beginners who want practical alignment, breathwork, and teaching basics in a compact Bali immersion.",
+    included: [
+      "50-hour certification track",
+      "6 days focused training",
+      "Shared villa accommodation",
+      "3 sattvic meals daily",
+      "Practice teaching basics",
+      "Course manual & materials",
+      "Welcome & graduation ceremony",
+    ],
+    batches: [
+      { date: "Jan 12 - Jan 17, 2026", price: 499, seats: 8, earlyBird: true, earlyBirdDeadline: "Dec 15, 2025", urgent: false },
+      { date: "Apr 20 - Apr 25, 2026", price: 499, seats: 10, earlyBird: true, earlyBirdDeadline: "Mar 20, 2026", urgent: false },
+      { date: "Aug 10 - Aug 15, 2026", price: 549, seats: 12, earlyBird: false, urgent: false },
+    ],
+    featured: false,
+  },
+  {
     course: "100-Hour YTT",
     slug: "100hr",
-    regularPrice: 1199,
-    priceFrom: 999,
+    regularPrice: 899,
+    priceFrom: 699,
     deposit: 200,
     image: IMG.course100,
     duration: "11 Days",
@@ -22,7 +49,7 @@ const coursePricing = [
     description: "Multi-style foundation for aspiring teachers. Learn the fundamentals of Hatha, Vinyasa, philosophy, and teaching methodology.",
     included: [
       "Yoga Alliance certification",
-      "21 days intensive training",
+      "11 days intensive training",
       "Shared villa accommodation",
       "3 sattvic meals daily",
       "All workshops & ceremonies",
@@ -31,9 +58,9 @@ const coursePricing = [
       "Welcome & graduation ceremony",
     ],
     batches: [
-      { date: "Feb 5 - Feb 15, 2026", price: 999, seats: 6, earlyBird: true, earlyBirdDeadline: "Jan 15, 2026", urgent: false },
-      { date: "Jun 1 - Jun 11, 2026", price: 999, seats: 10, earlyBird: true, earlyBirdDeadline: "May 1, 2026", urgent: false },
-      { date: "Sep 10 - Sep 20, 2026", price: 1099, seats: 12, earlyBird: false, urgent: false },
+      { date: "Feb 5 - Feb 15, 2026", price: 699, seats: 6, earlyBird: true, earlyBirdDeadline: "Jan 15, 2026", urgent: false },
+      { date: "Jun 1 - Jun 11, 2026", price: 699, seats: 10, earlyBird: true, earlyBirdDeadline: "May 1, 2026", urgent: false },
+      { date: "Sep 10 - Sep 20, 2026", price: 799, seats: 12, earlyBird: false, urgent: false },
     ],
     featured: false,
   },
@@ -138,7 +165,7 @@ const workshopsPricing = [
   { name: "Mandala Painting Workshop", price: 79, duration: "4 hours" },
   { name: "Acro Yoga Workshop", price: 99, duration: "4 hours" },
   { name: "Arm Balancing Workshop", price: 119, duration: "5 hours" },
-  { name: "All 4 Workshops Bundle", price: 329, duration: "Save €57" },
+  { name: "All 4 Workshops Bundle", price: 329, duration: "Save EUR 57" },
 ];
 
 const accommodationOptions = [
@@ -150,14 +177,14 @@ const accommodationOptions = [
   },
   {
     name: "Private Villa",
-    price: "+ €400",
+    price: "+ EUR 400",
     desc: "Private room with premium amenities, daily housekeeping",
     popular: true,
   },
 ];
 
 const earlyBirdBenefits = [
-  "Save up to €300 on your training",
+  "Save up to EUR 300 on your training",
   "Priority batch placement",
   "Extended payment window available",
   "Free welcome package upgrade",
@@ -175,7 +202,7 @@ const paymentOptions = [
     title: "Deposit + Balance",
     icon: Clock,
     color: "bg-blue-500",
-    benefits: ["Secure your spot from €200 deposit", "Balance due 30 days before arrival", "Flexible payment schedule"],
+    benefits: ["Secure your spot from EUR 200 deposit", "Balance due 30 days before arrival", "Flexible payment schedule"],
   },
   {
     title: "Installment Plan",
@@ -187,12 +214,12 @@ const paymentOptions = [
 
 const pricingFaqs = [
   { q: "What's included in the course fee?", a: "Everything: accommodation (shared villa), 3 sattvic vegetarian meals daily, all yoga sessions, workshops, ceremonies, excursions, course manual, and your Yoga Alliance certification. Flights, visa, and travel insurance are not included." },
-  { q: "Is the deposit refundable?", a: "Deposits are partially refundable up to 30 days before the course start date (minus a €50 admin fee). Within 30 days, deposits are non-refundable but can be transferred to a future batch. Full payments can be cancelled up to 30 days before for a full refund." },
+  { q: "Is the deposit refundable?", a: "Deposits are partially refundable up to 30 days before the course start date (minus a EUR 50 admin fee). Within 30 days, deposits are non-refundable but can be transferred to a future batch. Full payments can be cancelled up to 30 days before for a full refund." },
   { q: "Can I upgrade my accommodation?", a: "Yes. Private room upgrades are available for an additional fee and subject to availability. Simply let us know when booking and we'll arrange everything." },
-  { q: "Are there any hidden costs?", a: "No hidden costs. Your course fee covers accommodation, meals, training, materials, and certification. Optional extras: private yoga sessions (€50/hr), spa treatments, additional excursions, and personal expenses." },
+  { q: "Are there any hidden costs?", a: "No hidden costs. Your course fee covers accommodation, meals, training, materials, and certification. Optional extras: private yoga sessions (EUR 50/hr), spa treatments, additional excursions, and personal expenses." },
   { q: "What payment methods do you accept?", a: "We accept Razorpay, PayPal, and bank transfer (EUR preferred). All payments are processed securely. Currency is auto-detected but you can manually switch EUR/USD." },
   { q: "When do I need to pay the full amount?", a: "For deposit bookings, the balance is due 30 days before your course start date. You'll receive payment reminders at 45, 30, 14, and 7 days before. Installment plans are available for longer programs." },
-  { q: "Is there an early bird discount?", a: "Yes! Early bird pricing is available for most batches — typically €100-300 off. Early bird prices are available until a set deadline (usually 30-60 days before the batch). After the deadline, regular pricing applies." },
+  { q: "Is there an early bird discount?", a: "Yes. Early bird pricing is available for most batches, typically EUR 100-300 off. Early bird prices are available until a set deadline (usually 30-60 days before the batch). After the deadline, regular pricing applies." },
   { q: "Do you offer group discounts?", a: "Yes! Groups of 3 or more students booking together receive a 5% group discount. Groups of 5+ receive 8%. Contact us directly to arrange group bookings and we'll process the discount manually." },
 ];
 
@@ -209,7 +236,7 @@ const Pricing = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-warm-dark via-warm-dark/80 to-warm-dark/30" />
         <div className="relative container-edit">
           <Reveal>
-            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">← Back to Home</Link>
+            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">Back to Home</Link>
           </Reveal>
           <Reveal delay={0.05}>
             <p className="eyebrow text-gold-light mb-5">Investment in Your Transformation</p>
@@ -221,7 +248,7 @@ const Pricing = () => {
           </Reveal>
           <Reveal delay={0.15}>
             <p className="mt-6 text-cream/75 max-w-2xl text-lg leading-relaxed">
-              All-inclusive pricing — accommodation, meals, training, and certification. No hidden costs. Choose to pay in full or split your payment across time.
+              All-inclusive pricing: accommodation, meals, training, and certification. No hidden costs. Choose to pay in full or split your payment across time.
             </p>
           </Reveal>
           <Reveal delay={0.2}>
@@ -245,7 +272,7 @@ const Pricing = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Sparkles className="w-6 h-6 text-cream" />
-              <p className="text-cream font-semibold">Early bird pricing available on select 2026 batches — save up to €300</p>
+              <p className="text-cream font-semibold">Early bird pricing available on select 2026 batches - save up to EUR 300</p>
             </div>
             <ApplyModal
               defaultCourse="early-bird"
@@ -347,7 +374,7 @@ const Pricing = () => {
                             </button>
                           ))}
                         </div>
-                        <span className="text-xs text-cream/60 ml-2">€1 ≈ $1.08</span>
+                        <span className="text-xs text-cream/60 ml-2">EUR 1 approx USD 1.08</span>
                       </div>
                     </div>
 
@@ -409,7 +436,7 @@ const Pricing = () => {
                           {batch.earlyBird && batch.earlyBirdDeadline && (
                             <p className="mt-2 text-xs text-amber-700 bg-amber-100 rounded-lg px-3 py-2 inline-flex items-center gap-1">
                               <Percent className="w-3 h-3" />
-                              Early bird ends {batch.earlyBirdDeadline} — save EUR {course.regularPrice - batch.price}
+                              Early bird ends {batch.earlyBirdDeadline} - save EUR {course.regularPrice - batch.price}
                             </p>
                           )}
                         </div>
@@ -435,7 +462,7 @@ const Pricing = () => {
                   <div key={retreat.name} className="bg-sand rounded-xl p-5 flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-warm-dark">{retreat.name}</p>
-                      <p className="text-xs text-warm-light">{retreat.location} · {retreat.includes}</p>
+                      <p className="text-xs text-warm-light">{retreat.location} - {retreat.includes}</p>
                     </div>
                     <div className="text-right">
                       <p className="price-value text-terra-deep">EUR {retreat.price}</p>
@@ -524,7 +551,7 @@ const Pricing = () => {
                   Early Bird <em className="text-terra-light">Benefits</em>
                 </h2>
                 <p className="mt-6 text-cream/70 leading-relaxed">
-                  Book early and save. Early bird pricing is available on most 2026 batches — typically €100-300 off the regular price. Plus, early bookers get priority on accommodation choices.
+                  Book early and save. Early bird pricing is available on most 2026 batches, typically EUR 100-300 off the regular price. Plus, early bookers get priority on accommodation choices.
                 </p>
                 <ApplyModal
                   defaultCourse="early-bird"
