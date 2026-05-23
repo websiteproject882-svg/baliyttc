@@ -76,6 +76,18 @@ function request(method: "GET" | "PATCH" | "DELETE", body?: Record<string, unkno
   });
 }
 
+function rawRequest(method: "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/waitlist", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_waitlist",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     id: "waitlist_1",
@@ -167,6 +179,19 @@ describe("admin waitlist route", () => {
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.waitlistUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed waitlist update JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_waitlist");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistFindUnique).not.toHaveBeenCalled();
+    expect(mocks.waitlistUpdate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("returns 404 when updating a missing entry", async () => {
