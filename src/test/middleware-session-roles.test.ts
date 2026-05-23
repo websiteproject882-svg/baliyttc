@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSessionAllowedForAuthType } from "../lib/session-access";
+import { ADMIN_PANEL_SESSION_ROLES, isSessionAllowedForAuthType } from "../lib/session-access";
 import { getProtectedRouteRequirement } from "../lib/route-protection";
 
 describe("middleware session role boundaries", () => {
@@ -18,7 +18,18 @@ describe("middleware session role boundaries", () => {
     expect(isSessionAllowedForAuthType({ authType: "staff", role: "COURSE_MANAGER" }, "staff")).toBe(true);
 
     expect(isSessionAllowedForAuthType({ authType: "staff", role: "STUDENT" }, "staff")).toBe(false);
+    expect(isSessionAllowedForAuthType({ authType: "staff", role: "STUDENT_MANAGER" }, "staff")).toBe(false);
     expect(isSessionAllowedForAuthType({ authType: "staff", role: "SUPER_ADMIN" }, "staff")).toBe(false);
+  });
+
+  it("keeps admin-panel staff-session roles aligned with RBAC", () => {
+    expect(ADMIN_PANEL_SESSION_ROLES.has("SUPER_ADMIN")).toBe(true);
+    expect(ADMIN_PANEL_SESSION_ROLES.has("ADMIN")).toBe(true);
+    expect(ADMIN_PANEL_SESSION_ROLES.has("STUDENT_MANAGER")).toBe(true);
+    expect(ADMIN_PANEL_SESSION_ROLES.has("SEO_EDITOR")).toBe(true);
+    expect(ADMIN_PANEL_SESSION_ROLES.has("FINANCE_MANAGER")).toBe(true);
+    expect(ADMIN_PANEL_SESSION_ROLES.has("COURSE_MANAGER")).toBe(true);
+    expect(ADMIN_PANEL_SESSION_ROLES.has("TEACHER")).toBe(false);
   });
 
   it("rejects auth type mismatches before protected pages render", () => {

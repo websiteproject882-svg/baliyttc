@@ -5,15 +5,7 @@ import { verifySessionToken } from '@/lib/session-edge';
 import { isSessionAllowedForAuthType } from '@/lib/session-access';
 import { defaultLocale, locales } from '@/i18n/routing';
 import { getProtectedRouteRequirement } from '@/lib/route-protection';
-
-const ADMIN_PANEL_SESSION_ROLES = new Set([
-  "SUPER_ADMIN",
-  "ADMIN",
-  "STUDENT_MANAGER",
-  "SEO_EDITOR",
-  "FINANCE_MANAGER",
-  "COURSE_MANAGER",
-]);
+import { ADMIN_PANEL_SESSION_ROLES } from '@/lib/session-access';
 
 const intlMiddleware = createMiddleware({
   locales,
