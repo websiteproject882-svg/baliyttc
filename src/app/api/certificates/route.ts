@@ -1,10 +1,16 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { generateCertificateId } from "@/lib/certificate";
 import { canManageStudentCertificates } from "@/lib/certificate-access";
 import { getCertificateEligibility } from "@/lib/certificate-eligibility";
 import { getCurrentUser, requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+
+const createCertificateSchema = z.object({
+  studentId: z.string().trim().min(1).max(120),
+  courseSlug: z.string().trim().min(1).max(120),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,8 +20,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const studentId = searchParams.get("studentId");
-    const studentEmail = searchParams.get("email");
+    const studentId = searchParams.get("studentId")?.trim();
+    const studentEmail = searchParams.get("email")?.trim().toLowerCase();
 
     let student;
 
@@ -81,16 +87,15 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    const body = await request.json();
-    const { studentId, courseSlug } = body;
-
-    if (!studentId || !courseSlug) {
+    const parsed = createCertificateSchema.safeParse(await request.json());
+    if (!parsed.success) {
       return jsonWithRequestId(
         { error: "studentId and courseSlug are required" },
         { status: 400 },
         request,
       );
     }
+    const { studentId, courseSlug } = parsed.data;
 
     const student = await prisma.student.findUnique({
       where: { id: studentId },

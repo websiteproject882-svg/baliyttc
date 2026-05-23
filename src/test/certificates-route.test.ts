@@ -240,6 +240,15 @@ describe("certificates route", () => {
     expect(body).toEqual({ error: "studentId and courseSlug are required" });
   });
 
+  it("rejects oversized certificate create fields before lookup", async () => {
+    const response = await POST(postRequest({ studentId: "x".repeat(121), courseSlug: "200-hour-yttc" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({ error: "studentId and courseSlug are required" });
+    expect(mocks.studentFindUnique).not.toHaveBeenCalled();
+  });
+
   it("returns an existing certificate without duplicating issuance", async () => {
     mocks.certificateFindFirst.mockResolvedValue({
       id: "existing_certificate",

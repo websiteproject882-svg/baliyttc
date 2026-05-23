@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { generateCertificatePDF } from "@/lib/certificate";
 import { canManageStudentCertificates } from "@/lib/certificate-access";
 import { getCurrentUser } from "@/lib/authz";
-import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { applySecurityHeaders, jsonWithRequestId, logApiError, withRequestId } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
 
 export async function GET(
@@ -51,12 +51,14 @@ export async function GET(
       templateImageUrl: siteSettings.assets.certificateTemplateUrl || undefined,
     });
 
-    return new NextResponse(pdfBuffer, {
+    const response = new NextResponse(pdfBuffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="certificate-${certificate.certificateId}.pdf"`,
+        "Cache-Control": "private, no-store",
       },
     });
+    return applySecurityHeaders(withRequestId(response, request));
   } catch (error) {
     logApiError("certificates.download", error, request, { certificateId: params.id });
     return jsonWithRequestId({ error: "Failed to generate certificate" }, { status: 500 }, request);

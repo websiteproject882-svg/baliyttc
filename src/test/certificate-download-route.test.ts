@@ -36,12 +36,20 @@ vi.mock("@/lib/site-settings", () => ({
 }));
 
 vi.mock("@/lib/security", () => ({
+  applySecurityHeaders: (response: Response) => {
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    return response;
+  },
   jsonWithRequestId: (body: unknown, init: ResponseInit | undefined, request: NextRequest) => {
     const response = Response.json(body, init);
     response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
     return response;
   },
   logApiError: mocks.logApiError,
+  withRequestId: (response: Response, request: NextRequest) => {
+    response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
+    return response;
+  },
 }));
 
 const studentUser = {
@@ -138,6 +146,9 @@ describe("certificate download route", () => {
     expect(response.headers.get("Content-Disposition")).toBe(
       'attachment; filename="certificate-BALI-200-2026-001.pdf"',
     );
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response.headers.get("X-Request-Id")).toBe("req_certificate_download");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(body).toBe("%PDF-test");
     expect(mocks.generateCertificatePDF).toHaveBeenCalledWith({
       studentName: "Student One",
