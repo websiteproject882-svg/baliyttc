@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { DELETE, GET, PATCH, POST } from "../app/api/admin/ceremonies/route";
 
 const mocks = vi.hoisted(() => ({
-  requireAdminUser: vi.fn(),
+  requirePermission: vi.fn(),
   requireSameOrigin: vi.fn(),
   writeAuditLog: vi.fn(),
   scheduleFindMany: vi.fn(),
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requireAdminUser: mocks.requireAdminUser,
+  requirePermission: mocks.requirePermission,
   requireSameOrigin: mocks.requireSameOrigin,
   writeAuditLog: mocks.writeAuditLog,
 }));
@@ -94,7 +94,7 @@ function payload(overrides: Record<string, unknown> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
-  mocks.requireAdminUser.mockResolvedValue({ user: admin, response: null });
+  mocks.requirePermission.mockResolvedValue({ user: admin, response: null });
   mocks.scheduleFindMany.mockResolvedValue([ceremony]);
   mocks.scheduleCreate.mockResolvedValue(ceremony);
   mocks.scheduleUpdate.mockResolvedValue({ ...ceremony, notes: "Updated Ceremony" });
@@ -117,6 +117,7 @@ describe("admin ceremonies route", () => {
 
     expect(response?.status).toBe(200);
     expect(response?.headers.get("X-Request-Id")).toBe("req_admin_ceremonies");
+    expect(mocks.requirePermission).toHaveBeenCalledWith("ceremonies.view");
     expect(body.ceremonies).toEqual([
       {
         id: "ceremony_1",
@@ -139,6 +140,7 @@ describe("admin ceremonies route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("ceremonies.create");
     expect(body.ceremony.batchIds).toEqual(["batch_1"]);
     expect(mocks.scheduleCreate).toHaveBeenCalledWith({
       data: {
@@ -199,6 +201,7 @@ describe("admin ceremonies route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("ceremonies.edit");
     expect(body.success).toBe(true);
     expect(mocks.scheduleUpdate).toHaveBeenCalledWith({
       where: { id: "ceremony_1" },
@@ -231,6 +234,7 @@ describe("admin ceremonies route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("ceremonies.edit");
     expect(body).toEqual({ success: true });
     expect(mocks.scheduleDelete).toHaveBeenCalledWith({ where: { id: "ceremony_1" } });
     expect(mocks.writeAuditLog).toHaveBeenCalledWith(
