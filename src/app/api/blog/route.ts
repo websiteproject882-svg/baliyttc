@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PostStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
 import { STATIC_BLOG_POSTS } from "@/data/blog";
 
 export const dynamic = "force-dynamic";
+
+const publicBlogWhere = (locale: string, category: string | null) => ({
+  status: PostStatus.PUBLISHED,
+  locale,
+  OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }],
+  ...(category ? { category } : {}),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,8 +22,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const locale = normalizeLocale(searchParams.get("locale"));
 
-    const where: Record<string, unknown> = { status: "PUBLISHED", locale };
-    if (category) where.category = category;
+    const where = publicBlogWhere(locale, category);
 
     let [posts, total] = await Promise.all([
       prisma.blogPost.findMany({
@@ -40,7 +47,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (posts.length === 0 && locale !== defaultLocale) {
-      const fallbackWhere = { ...where, locale: defaultLocale };
+      const fallbackWhere = publicBlogWhere(defaultLocale, category);
       [posts, total] = await Promise.all([
         prisma.blogPost.findMany({
           where: fallbackWhere,
