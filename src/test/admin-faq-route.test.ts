@@ -130,6 +130,17 @@ describe("admin FAQ route", () => {
     });
   });
 
+  it("rejects oversized FAQ filters before querying", async () => {
+    const response = await GET(
+      request("GET", undefined, `https://example.com/api/admin/faq?locale=en&category=${"x".repeat(81)}`),
+    );
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.faqFindMany).not.toHaveBeenCalled();
+  });
+
   it("creates FAQs with next order and writes an audit log", async () => {
     const response = await POST(request("POST", payload()));
     const body = await response?.json();
@@ -246,6 +257,16 @@ describe("admin FAQ route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized FAQ update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121) })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.faqFindUnique).not.toHaveBeenCalled();
+    expect(mocks.faqUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes FAQs and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/faq?id=faq_1"));
     const body = await response?.json();
@@ -268,6 +289,16 @@ describe("admin FAQ route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("FAQ id is required");
+  });
+
+  it("rejects oversized FAQ delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/admin/faq?id=${"x".repeat(121)}`));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.faqFindUnique).not.toHaveBeenCalled();
+    expect(mocks.faqDelete).not.toHaveBeenCalled();
   });
 
   it("returns 404 when deleting a missing FAQ", async () => {

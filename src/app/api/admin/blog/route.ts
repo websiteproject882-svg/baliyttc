@@ -7,29 +7,31 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const blogPostIdSchema = z.string().trim().min(1).max(120);
+
 const blogPostSchema = z.object({
-  title: z.string().min(1),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
-  excerpt: z.string().default(""),
-  content: z.string().min(1),
+  title: z.string().trim().min(1).max(180),
+  slug: z.string().trim().min(1).max(180).regex(/^[a-z0-9-]+$/),
+  excerpt: z.string().trim().max(600).default(""),
+  content: z.string().trim().min(1).max(100000),
   featuredImage: z.string().url().optional().or(z.literal("")).nullable(),
-  category: z.string().default(""),
-  tags: z.array(z.string()).default([]),
-  author: z.string().default(""),
-  locale: z.string().min(2).max(8).default("en"),
+  category: z.string().trim().max(80).default(""),
+  tags: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
+  author: z.string().trim().max(120).default(""),
+  locale: z.string().trim().min(2).max(8).default("en"),
   status: z.nativeEnum(PostStatus).default(PostStatus.DRAFT),
   publishedAt: z.string().nullable().optional(),
   scheduledAt: z.string().nullable().optional(),
   readTime: z.coerce.number().int().min(1).default(5),
-  metaTitle: z.string().nullable().optional(),
-  metaDescription: z.string().nullable().optional(),
-  seoTitle: z.string().nullable().optional(),
-  seoDescription: z.string().nullable().optional(),
-  focusKeyword: z.string().nullable().optional(),
+  metaTitle: z.string().trim().max(180).nullable().optional(),
+  metaDescription: z.string().trim().max(320).nullable().optional(),
+  seoTitle: z.string().trim().max(180).nullable().optional(),
+  seoDescription: z.string().trim().max(320).nullable().optional(),
+  focusKeyword: z.string().trim().max(120).nullable().optional(),
 });
 
 const updateSchema = blogPostSchema.extend({
-  id: z.string(),
+  id: blogPostIdSchema,
 });
 
 export async function GET(request: NextRequest) {
@@ -211,11 +213,16 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const rawId = searchParams.get("id");
 
-    if (!id) {
+    if (!rawId) {
       return jsonWithRequestId({ error: "Post id is required" }, { status: 400 }, request);
     }
+    const parsedId = blogPostIdSchema.safeParse(rawId);
+    if (!parsedId.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsedId.error.errors }, { status: 400 }, request);
+    }
+    const id = parsedId.data;
 
     const existing = await prisma.blogPost.findUnique({ where: { id } });
     if (!existing) {

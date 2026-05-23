@@ -206,6 +206,16 @@ describe("admin blog route", () => {
     expect(mocks.blogCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized blog payloads before slug lookup", async () => {
+    const response = await POST(request("POST", payload({ title: "x".repeat(181) })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed blog create JSON before slug lookup", async () => {
     const response = await POST(rawRequest("POST", "{not-valid-json"));
     const body = await response?.json();
@@ -266,6 +276,16 @@ describe("admin blog route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized blog update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121) })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogUpdate).not.toHaveBeenCalled();
+  });
+
   it("blocks updates that collide with another slug and locale", async () => {
     mocks.blogFindUnique
       .mockResolvedValueOnce({ ...post, slug: "old-slug" })
@@ -303,6 +323,16 @@ describe("admin blog route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Post id is required");
+  });
+
+  it("rejects oversized blog delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/admin/blog?id=${"x".repeat(121)}`));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogDelete).not.toHaveBeenCalled();
   });
 
   it("logs delete failures without leaking internals", async () => {

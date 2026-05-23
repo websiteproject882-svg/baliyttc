@@ -6,17 +6,24 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const faqIdSchema = z.string().trim().min(1).max(120);
+
 const faqSchema = z.object({
-  question: z.string().min(3).max(300),
-  answer: z.string().min(3).max(5000),
-  category: z.string().min(1).max(80),
-  keywords: z.array(z.string().min(1).max(80)).default([]),
-  locale: z.string().min(2).max(8).default("en"),
+  question: z.string().trim().min(3).max(300),
+  answer: z.string().trim().min(3).max(5000),
+  category: z.string().trim().min(1).max(80),
+  keywords: z.array(z.string().trim().min(1).max(80)).max(20).default([]),
+  locale: z.string().trim().min(2).max(8).default("en"),
   isActive: z.boolean().default(true),
 });
 
 const updateSchema = faqSchema.extend({
-  id: z.string(),
+  id: faqIdSchema,
+});
+
+const listQuerySchema = z.object({
+  locale: z.string().trim().min(2).max(8).optional(),
+  category: z.string().trim().min(1).max(80).optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -24,8 +31,14 @@ export async function GET(request: NextRequest) {
   if (response) return response;
 
   const { searchParams } = new URL(request.url);
-  const locale = searchParams.get("locale");
-  const category = searchParams.get("category");
+  const parsedQuery = listQuerySchema.safeParse({
+    locale: searchParams.get("locale") ?? undefined,
+    category: searchParams.get("category") ?? undefined,
+  });
+  if (!parsedQuery.success) {
+    return jsonWithRequestId({ error: "Validation failed", details: parsedQuery.error.errors }, { status: 400 }, request);
+  }
+  const { locale, category } = parsedQuery.data;
 
   try {
     const faqs = await prisma.fAQ.findMany({
@@ -149,10 +162,15 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
+    const rawId = searchParams.get("id");
+    if (!rawId) {
       return jsonWithRequestId({ error: "FAQ id is required" }, { status: 400 }, request);
     }
+    const parsedId = faqIdSchema.safeParse(rawId);
+    if (!parsedId.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsedId.error.errors }, { status: 400 }, request);
+    }
+    const id = parsedId.data;
 
     const existing = await prisma.fAQ.findUnique({ where: { id } });
     if (!existing) {
