@@ -196,7 +196,6 @@ export default function AdminLoginPage() {
               <p className="text-sm text-amber-400 font-medium mb-2">Test Credentials:</p>
               <div className="text-xs text-amber-300 space-y-1">
                 <p><strong>Admin:</strong> admin@baliyttc.com / admin123</p>
-                <p><strong>Owner:</strong> owner@baliyttc.com / password</p>
               </div>
             </div>
           )}

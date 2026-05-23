@@ -19,7 +19,6 @@ function expectedPassword(email: string) {
     return [
       process.env.TEST_ADMIN_PASSWORD,
       isDevelopment ? "admin123" : null,
-      isDevelopment ? "password" : null,
     ].filter(Boolean);
   }
 
