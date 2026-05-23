@@ -82,6 +82,18 @@ function request(method: "GET" | "POST", body?: Record<string, unknown>) {
   });
 }
 
+function rawRequest(method: "POST", body: string) {
+  return new NextRequest("https://example.com/api/admin/communications", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_communications",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -153,6 +165,18 @@ describe("admin communications route", () => {
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.runCommunicationCampaign).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed campaign JSON before sending", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_communications");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.runCommunicationCampaign).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("logs dashboard failures without leaking internals", async () => {

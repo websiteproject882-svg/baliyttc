@@ -44,7 +44,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const payload = sendSchema.parse(await request.json());
+    const parsed = sendSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const payload = parsed.data;
     const result = await runCommunicationCampaign(payload);
 
     await writeAuditLog({
