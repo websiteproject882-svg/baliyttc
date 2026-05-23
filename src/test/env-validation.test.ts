@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { validateRuntimeEnv } from "../lib/env-validation";
 
 const originalEnv = { ...process.env };
+const validFirebasePrivateKey = `-----BEGIN PRIVATE KEY-----\\n${"a".repeat(1000)}\\n-----END PRIVATE KEY-----`;
 
 afterEach(() => {
   process.env = { ...originalEnv };
@@ -36,7 +37,7 @@ describe("env validation", () => {
     process.env.DATABASE_URL = "postgres://db";
     process.env.FIREBASE_PROJECT_ID = "firebase-project";
     process.env.FIREBASE_CLIENT_EMAIL = "firebase@example.com";
-    process.env.FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----";
+    process.env.FIREBASE_PRIVATE_KEY = validFirebasePrivateKey;
     process.env.RAZORPAY_KEY_ID = "rzp_test_key";
     delete process.env.RAZORPAY_KEY_SECRET;
     delete process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -53,7 +54,7 @@ describe("env validation", () => {
     process.env.DATABASE_URL = "postgres://db";
     process.env.FIREBASE_PROJECT_ID = "firebase-project";
     process.env.FIREBASE_CLIENT_EMAIL = "firebase@example.com";
-    process.env.FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----";
+    process.env.FIREBASE_PRIVATE_KEY = validFirebasePrivateKey;
     process.env.ENABLE_TEST_LOGIN = "true";
     process.env.ALLOW_PRODUCTION_TEST_LOGIN = "false";
 
@@ -70,12 +71,27 @@ describe("env validation", () => {
     process.env.DATABASE_URL = "postgres://db";
     process.env.FIREBASE_PROJECT_ID = "firebase-project";
     process.env.FIREBASE_CLIENT_EMAIL = "firebase@example.com";
-    process.env.FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----";
+    process.env.FIREBASE_PRIVATE_KEY = validFirebasePrivateKey;
     process.env.ENABLE_TEST_LOGIN = "true";
     process.env.ALLOW_PRODUCTION_TEST_LOGIN = "true";
 
     const result = validateRuntimeEnv();
 
     expect(result.errors.some((item) => item.includes("ENABLE_TEST_LOGIN cannot be true"))).toBe(false);
+  });
+
+  it("fails in production when Firebase private key is incomplete", () => {
+    process.env = { ...process.env, NODE_ENV: "production" };
+    process.env.NEXT_PUBLIC_BASE_URL = "https://baliyytc.vercel.app";
+    process.env.SESSION_SECRET = "12345678901234567890123456789012";
+    process.env.DATABASE_URL = "postgres://db";
+    process.env.FIREBASE_PROJECT_ID = "firebase-project";
+    process.env.FIREBASE_CLIENT_EMAIL = "firebase@example.com";
+    process.env.FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----";
+
+    const result = validateRuntimeEnv();
+
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((item) => item.includes("FIREBASE_PRIVATE_KEY must be a complete PEM"))).toBe(true);
   });
 });

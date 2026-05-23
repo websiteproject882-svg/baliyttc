@@ -40,6 +40,16 @@ function warnOnce(key: string, message: string) {
   console.warn(message);
 }
 
+function hasValidFirebasePrivateKeyFormat(value: string | undefined) {
+  const privateKey = value?.replace(/\\n/g, "\n").trim();
+  return Boolean(
+    privateKey &&
+      privateKey.length >= 1000 &&
+      privateKey.includes("-----BEGIN PRIVATE KEY-----") &&
+      privateKey.includes("-----END PRIVATE KEY-----"),
+  );
+}
+
 export function validateRuntimeEnv(): ValidationResult {
   const requiredInAll = ["NEXT_PUBLIC_BASE_URL", "SESSION_SECRET"];
   const requiredInProduction = [
@@ -112,6 +122,12 @@ export function validateRuntimeEnv(): ValidationResult {
     process.env.ALLOW_PRODUCTION_TEST_LOGIN !== "true"
   ) {
     errors.push("ENABLE_TEST_LOGIN cannot be true in production unless ALLOW_PRODUCTION_TEST_LOGIN is explicitly true");
+  }
+
+  if (process.env.NODE_ENV === "production" && process.env.FIREBASE_PRIVATE_KEY && !hasValidFirebasePrivateKeyFormat(process.env.FIREBASE_PRIVATE_KEY)) {
+    errors.push("FIREBASE_PRIVATE_KEY must be a complete PEM private key with escaped newlines");
+  } else if (process.env.NODE_ENV !== "production" && process.env.FIREBASE_PRIVATE_KEY && !hasValidFirebasePrivateKeyFormat(process.env.FIREBASE_PRIVATE_KEY)) {
+    warnings.push("FIREBASE_PRIVATE_KEY does not look like a complete PEM private key");
   }
 
   if (process.env.NEXT_PUBLIC_BASE_URL) {
