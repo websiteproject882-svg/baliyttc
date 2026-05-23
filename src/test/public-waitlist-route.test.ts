@@ -67,6 +67,18 @@ function request(body: Record<string, unknown>) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/waitlist", {
+    method: "POST",
+    headers: {
+      "x-request-id": "req_public_waitlist",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function patchRequest(body: Record<string, unknown>) {
   return new NextRequest("https://example.com/api/waitlist", {
     method: "PATCH",
@@ -142,6 +154,32 @@ describe("public waitlist route", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.waitlistCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed public waitlist JSON before writing", async () => {
+    const response = await POST(rawRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
+  it("escapes public waitlist names before rendering confirmation email HTML", async () => {
+    const response = await POST(request({ name: "<img src=x onerror=alert(1)>" }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        html: expect.stringContaining("Hi &lt;img src=x onerror=alert(1)&gt;,"),
+      }),
+    );
+    expect(mocks.sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        html: expect.not.stringContaining("<img src=x onerror=alert(1)>"),
+      }),
+    );
   });
 
   it("validates admin waitlist updates and writes an audit log", async () => {

@@ -21,6 +21,15 @@ const waitlistUpdateSchema = z.object({
   notes: z.string().trim().max(3000).nullable().optional(),
 });
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function GET(request: NextRequest) {
   const { response } = await requirePermission("waitlist.view");
   if (response) {
@@ -82,8 +91,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const data = waitlistSchema.parse(body);
+    const parsed = waitlistSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+    const data = parsed.data;
 
     // Check if already on waitlist
     const existing = await prisma.waitlist.findFirst({
@@ -134,7 +146,7 @@ export async function POST(request: NextRequest) {
       to: data.email,
       subject: "You're on the Waitlist! - Bali YTTC",
       html: `
-        <h2>Hi ${data.name},</h2>
+        <h2>Hi ${escapeHtml(data.name)},</h2>
         <p>You're on the waitlist for our Yoga Teacher Training course.</p>
         <p>We'll notify you as soon as a spot becomes available.</p>
         <p>In the meantime, feel free to reach out if you have questions!</p>
