@@ -125,6 +125,17 @@ describe("teacher announcements route", () => {
     expect(mocks.announcementFindMany).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized batch filters before listing announcements", async () => {
+    const response = await GET(
+      request("GET", undefined, `https://example.com/api/teacher/announcements?batchId=${"x".repeat(121)}`),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.announcementFindMany).not.toHaveBeenCalled();
+  });
+
   it("creates trimmed announcements and writes an audit log", async () => {
     const response = await POST(request("POST", {
       title: "  Welcome  ",
@@ -185,6 +196,18 @@ describe("teacher announcements route", () => {
 
     expect(response.status).toBe(403);
     expect(body.error).toBe("Forbidden");
+    expect(mocks.announcementDelete).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized delete ids before lookup", async () => {
+    const response = await DELETE(
+      request("DELETE", undefined, `https://example.com/api/teacher/announcements?id=${"x".repeat(121)}`),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Invalid id");
+    expect(mocks.announcementFindUnique).not.toHaveBeenCalled();
     expect(mocks.announcementDelete).not.toHaveBeenCalled();
   });
 

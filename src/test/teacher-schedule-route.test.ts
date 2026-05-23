@@ -232,6 +232,16 @@ describe("teacher schedule route", () => {
     expect(mocks.writeAuditLog).toHaveBeenCalledWith(expect.objectContaining({ action: "schedule.deleted" }));
   });
 
+  it("rejects oversized delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/teacher/schedule?id=${"x".repeat(121)}`));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Invalid id");
+    expect(mocks.scheduleFindUnique).not.toHaveBeenCalled();
+    expect(mocks.scheduleDelete).not.toHaveBeenCalled();
+  });
+
   it("logs database failures without exposing internals", async () => {
     mocks.scheduleFindMany.mockRejectedValue(new Error("database down"));
 

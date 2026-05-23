@@ -12,6 +12,14 @@ const announcementSchema = z.object({
   batchId: z.string().trim().min(1).max(120).optional().transform((value) => value || undefined),
 });
 
+const announcementListQuerySchema = z.object({
+  batchId: z.string().trim().min(1).max(120).optional(),
+});
+
+const announcementDeleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
+});
+
 export async function GET(request: NextRequest) {
   const { user, response } = await requireStaffUser();
   if (!user || response) {
@@ -24,7 +32,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const batchId = searchParams.get("batchId");
+    const parsedQuery = announcementListQuerySchema.safeParse({
+      batchId: searchParams.get("batchId") ?? undefined,
+    });
+    if (!parsedQuery.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsedQuery.error.errors }, { status: 400 }, request);
+    }
+    const { batchId } = parsedQuery.data;
 
     const where: Record<string, unknown> = {};
     if (batchId) where.batchId = batchId;
@@ -108,9 +122,14 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const rawId = searchParams.get("id");
 
-    if (!id) return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
+    if (!rawId) return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
+    const parsedQuery = announcementDeleteQuerySchema.safeParse({ id: rawId });
+    if (!parsedQuery.success) {
+      return jsonWithRequestId({ error: "Invalid id" }, { status: 400 }, request);
+    }
+    const { id } = parsedQuery.data;
 
     const existing = await prisma.announcement.findUnique({
       where: { id },

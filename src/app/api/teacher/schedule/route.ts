@@ -25,6 +25,10 @@ const scheduleQuerySchema = z.object({
   endDate: z.string().datetime().optional(),
 });
 
+const scheduleDeleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
+});
+
 export async function GET(request: NextRequest) {
   const { user, response } = await requireStaffUser();
   if (!user || response) {
@@ -224,15 +228,15 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
+    const rawId = searchParams.get("id");
+    if (!rawId) {
       return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
     }
-
-    if (id.length > 120) {
+    const parsedQuery = scheduleDeleteQuerySchema.safeParse({ id: rawId });
+    if (!parsedQuery.success) {
       return jsonWithRequestId({ error: "Invalid id" }, { status: 400 }, request);
     }
+    const { id } = parsedQuery.data;
 
     const existing = await prisma.scheduleEntry.findUnique({
       where: { id },
