@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { generateCertificateId } from "@/lib/certificate";
 import { getCertificateEligibility } from "@/lib/certificate-eligibility";
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     const isOwner = student.userId === currentUser.id;
-    const isPrivileged = ["ADMIN", "SUPER_ADMIN", "SUPER_ADMIN", "STUDENT_MANAGER"].includes(currentUser.role);
+    const isPrivileged = ["ADMIN", "SUPER_ADMIN", "STUDENT_MANAGER"].includes(currentUser.role);
     if (!isOwner && !isPrivileged) {
       return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
     }
