@@ -289,10 +289,30 @@ export default function TemplatesPage() {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
+  const renderPreviewLine = (line: string) => {
+    if (!line) return <span aria-hidden="true">&nbsp;</span>;
+
+    return line.split(/(\{\{\w+\}\})/g).map((part, index) => {
+      const variable = part.match(/^\{\{(\w+)\}\}$/)?.[1];
+
+      if (variable) {
+        return (
+          <span key={`${variable}-${index}`} className="rounded bg-blue-100 px-1 text-blue-700">
+            {variable}
+          </span>
+        );
+      }
+
+      return part;
+    });
+  };
+
   const renderPreview = (content: string) => {
-    return content
-      .replace(/\{\{(\w+)\}\}/g, '<span class="bg-blue-100 text-blue-700 px-1 rounded">$1</span>')
-      .split("\n").map((line, i) => <p key={i} className="mb-2" dangerouslySetInnerHTML={{ __html: line || "&nbsp;" }} />);
+    return content.split("\n").map((line, i) => (
+      <p key={i} className="mb-2">
+        {renderPreviewLine(line)}
+      </p>
+    ));
   };
 
   return (
