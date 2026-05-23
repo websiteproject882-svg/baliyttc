@@ -8,7 +8,7 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const updateSchema = z.object({
-  id: z.string(),
+  id: z.string().trim().min(1).max(120),
   status: z.nativeEnum(TestimonialStatus),
 });
 

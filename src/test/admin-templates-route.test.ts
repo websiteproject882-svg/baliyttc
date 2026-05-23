@@ -187,6 +187,16 @@ describe("admin templates route", () => {
     expect(mocks.blogUpsert).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized template ids before upserting", async () => {
+    const response = await PUT(request("PUT", payload({ id: "x".repeat(121) })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogUpsert).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed template update JSON before writes", async () => {
     const response = await PUT(rawRequest("PUT", "{not-valid-json"));
     const body = await response?.json();

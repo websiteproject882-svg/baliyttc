@@ -12,9 +12,9 @@ export const dynamic = "force-dynamic";
 const DEFAULT_TEMPLATE_UPDATED_AT = "1970-01-01T00:00:00.000Z";
 
 const templateSchema = z.object({
-  id: z.string().min(1).optional(),
-  name: z.string().min(1).max(160),
-  subject: z.string().min(1).max(240),
+  id: z.string().trim().min(1).max(120).optional(),
+  name: z.string().trim().min(1).max(160),
+  subject: z.string().trim().min(1).max(240),
   content: z.string().max(50000),
 });
 

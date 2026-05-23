@@ -219,6 +219,16 @@ describe("admin testimonials route", () => {
     expect(mocks.testimonialUpdate).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized testimonial ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", { id: "x".repeat(121), status: "APPROVED" }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.testimonialFindUnique).not.toHaveBeenCalled();
+    expect(mocks.testimonialUpdate).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed testimonial moderation JSON before lookup", async () => {
     const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
     const body = await response?.json();
