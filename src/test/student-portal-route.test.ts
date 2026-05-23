@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   preArrivalResourceFindMany: vi.fn(),
   notificationFindMany: vi.fn(),
   getCertificateEligibility: vi.fn(),
+  getSiteSettings: vi.fn(),
   logApiError: vi.fn(),
 }));
 
@@ -61,6 +62,10 @@ vi.mock("@/lib/prisma", () => ({
 
 vi.mock("@/lib/certificate-eligibility", () => ({
   getCertificateEligibility: mocks.getCertificateEligibility,
+}));
+
+vi.mock("@/lib/site-settings", () => ({
+  getSiteSettings: mocks.getSiteSettings,
 }));
 
 vi.mock("@/lib/security", () => ({
@@ -223,6 +228,13 @@ beforeEach(() => {
     completionPercent: 33,
     accessLevel: "FULL",
   });
+  mocks.getSiteSettings.mockResolvedValue({
+    assets: {
+      courseManualUrl: "",
+      certificateTemplateUrl: "",
+      logoUrl: "",
+    },
+  });
 });
 
 describe("student portal route", () => {
@@ -285,5 +297,29 @@ describe("student portal route", () => {
     ]);
     expect(body.resources[0]).toEqual(expect.objectContaining({ url: "/api/app/resources/resource_1" }));
     expect(body.unreadNotifications).toBe(1);
+  });
+
+  it("adds the admin settings course manual to student resources", async () => {
+    mocks.getSiteSettings.mockResolvedValue({
+      assets: {
+        courseManualUrl: "https://example.com/course-manual.pdf",
+        certificateTemplateUrl: "",
+        logoUrl: "",
+      },
+    });
+
+    const response = await GET(request());
+    const body = await response?.json();
+
+    expect(response?.status).toBe(200);
+    expect(body.resources[0]).toEqual(
+      expect.objectContaining({
+        id: "settings-course-manual",
+        title: "Course Manual",
+        url: "https://example.com/course-manual.pdf",
+        taskKey: "read_manual",
+      }),
+    );
+    expect(body.resources[1]).toEqual(expect.objectContaining({ url: "/api/app/resources/resource_1" }));
   });
 });

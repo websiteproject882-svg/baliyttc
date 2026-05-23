@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireStudentUser } from "@/lib/authz";
 import { getCertificateEligibility } from "@/lib/certificate-eligibility";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -195,13 +196,34 @@ export async function GET(request: NextRequest) {
         ? ["PRE_ARRIVAL", "FULL", "ALL_ACTIVE"]
         : ["PRE_ARRIVAL", "ALL_ACTIVE"];
 
-  const resources = await prisma.preArrivalResource.findMany({
-    where: {
-      isActive: true,
-      audience: { in: allowedAudiences as ("PRE_ARRIVAL" | "FULL" | "ALUMNI" | "ALL_ACTIVE")[] },
-    },
-    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-  });
+  const [resources, siteSettings] = await Promise.all([
+    prisma.preArrivalResource.findMany({
+      where: {
+        isActive: true,
+        audience: { in: allowedAudiences as ("PRE_ARRIVAL" | "FULL" | "ALUMNI" | "ALL_ACTIVE")[] },
+      },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    }),
+    getSiteSettings(),
+  ]);
+
+  const settingsResources = siteSettings.assets.courseManualUrl
+    ? [
+        {
+          id: "settings-course-manual",
+          title: "Course Manual",
+          description: "Download the current course manual configured by the school team.",
+          url: siteSettings.assets.courseManualUrl,
+          type: "DOCUMENT",
+          audience: "PRE_ARRIVAL",
+          taskKey: "read_manual",
+          isActive: true,
+          order: -1,
+          createdAt: new Date(0),
+          updatedAt: new Date(0),
+        },
+      ]
+    : [];
 
   const notifications = await prisma.notification.findMany({
     where: {
@@ -294,10 +316,13 @@ export async function GET(request: NextRequest) {
     progress: refreshedProgress,
     certificates: fullStudent.certificates,
     certificateEligibility,
-    resources: resources.map((resource) => ({
-      ...resource,
-      url: `/api/app/resources/${resource.id}`,
-    })),
+    resources: [
+      ...settingsResources,
+      ...resources.map((resource) => ({
+        ...resource,
+        url: `/api/app/resources/${resource.id}`,
+      })),
+    ],
     schedule: schedule.map((entry) => ({
       ...entry,
       activities: Array.isArray(entry.activities) ? entry.activities : [],
