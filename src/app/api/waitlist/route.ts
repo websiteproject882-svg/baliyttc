@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { sendEmail } from "@/lib/resend";
-import { createRateLimitResponse, getClientIp, rateLimit } from "@/lib/security";
+import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 
 const waitlistSchema = z.object({
   name: z.string().min(1),
@@ -11,7 +11,6 @@ const waitlistSchema = z.object({
   phone: z.string().optional(),
   courseSlug: z.string(),
   batchId: z.string().optional(),
-  priority: z.number().default(0),
 });
 
 export async function GET(request: NextRequest) {
@@ -44,13 +43,13 @@ export async function GET(request: NextRequest) {
       prisma.waitlist.count({ where: { ...where, status: "CONVERTED" } }),
     ]);
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       waitlist,
       stats: { total, waiting, notified, converted },
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET waitlist error:", error);
-    return NextResponse.json({ error: "Failed to fetch waitlist" }, { status: 500 });
+    logApiError("waitlist.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch waitlist" }, { status: 500 }, request);
   }
 }
 
@@ -68,7 +67,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!limit.allowed) {
-      return createRateLimitResponse("Too many waitlist attempts. Try again later.", Math.ceil((limit.resetAt - Date.now()) / 1000));
+      return jsonWithRequestId(
+        { error: "Too many waitlist attempts. Try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil((limit.resetAt - Date.now()) / 1000)) } },
+        request,
+      );
     }
 
     const body = await request.json();
@@ -84,10 +87,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (existing) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         error: "You're already on the waitlist for this course",
         waitlist: existing,
-      });
+      }, undefined, request);
     }
 
     // Check batch availability
@@ -99,10 +102,10 @@ export async function POST(request: NextRequest) {
       if (batch && batch.status === "FULL") {
         // Batch is full, add to waitlist
       } else if (batch && batch.status === "OPEN") {
-        return NextResponse.json({
+        return jsonWithRequestId({
           message: "Spots available! Direct enrollment recommended.",
           directEnrollment: true,
-        });
+        }, undefined, request);
       }
     }
 
@@ -113,7 +116,7 @@ export async function POST(request: NextRequest) {
         phone: data.phone,
         courseSlug: data.courseSlug,
         batchId: data.batchId,
-        priority: data.priority,
+        priority: 0,
         status: "WAITING",
       },
     });
@@ -131,17 +134,17 @@ export async function POST(request: NextRequest) {
       `,
     }).catch(console.error);
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       success: true,
       waitlist,
       message: "You've been added to the waitlist!",
-    });
+    }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST waitlist error:", error);
-    return NextResponse.json({ error: "Failed to join waitlist" }, { status: 500 });
+    logApiError("waitlist.create", error, request);
+    return jsonWithRequestId({ error: "Failed to join waitlist" }, { status: 500 }, request);
   }
 }
 
@@ -161,7 +164,7 @@ export async function PATCH(request: NextRequest) {
     const { id, status, priority, notes } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+      return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
     }
 
     const updateData: Record<string, unknown> = {};
@@ -185,10 +188,10 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, waitlist });
+    return jsonWithRequestId({ success: true, waitlist }, undefined, request);
   } catch (error) {
-    console.error("PATCH waitlist error:", error);
-    return NextResponse.json({ error: "Failed to update waitlist" }, { status: 500 });
+    logApiError("waitlist.update", error, request);
+    return jsonWithRequestId({ error: "Failed to update waitlist" }, { status: 500 }, request);
   }
 }
 
@@ -208,7 +211,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+      return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
     }
 
     const existing = await prisma.waitlist.findUnique({
@@ -216,7 +219,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Waitlist entry not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Waitlist entry not found" }, { status: 404 }, request);
     }
 
     await prisma.waitlist.delete({ where: { id } });
@@ -230,9 +233,9 @@ export async function DELETE(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error("DELETE waitlist error:", error);
-    return NextResponse.json({ error: "Failed to remove from waitlist" }, { status: 500 });
+    logApiError("waitlist.delete", error, request);
+    return jsonWithRequestId({ error: "Failed to remove from waitlist" }, { status: 500 }, request);
   }
 }
