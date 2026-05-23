@@ -1,25 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { POST } from "../app/api/leads/route";
+import { PATCH, POST } from "../app/api/leads/route";
 
 const mocks = vi.hoisted(() => ({
+  requirePermission: vi.fn(),
   requireSameOrigin: vi.fn(),
+  writeAuditLog: vi.fn(),
   leadCreate: vi.fn(),
+  leadFindUnique: vi.fn(),
+  leadUpdate: vi.fn(),
   rateLimit: vi.fn(),
   logApiError: vi.fn(),
   logLegacyRouteAccess: vi.fn(),
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requirePermission: vi.fn(),
+  requirePermission: mocks.requirePermission,
   requireSameOrigin: mocks.requireSameOrigin,
-  writeAuditLog: vi.fn(),
+  writeAuditLog: mocks.writeAuditLog,
 }));
 
 vi.mock("@/lib/prisma", () => ({
   default: {
     lead: {
       create: mocks.leadCreate,
+      findUnique: mocks.leadFindUnique,
+      update: mocks.leadUpdate,
     },
   },
 }));
@@ -58,11 +64,30 @@ function request(body: Record<string, unknown>) {
   });
 }
 
+function patchRequest(body: Record<string, unknown>) {
+  return new NextRequest("https://example.com/api/leads", {
+    method: "PATCH",
+    headers: {
+      "x-request-id": "req_legacy_leads",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
+  mocks.requirePermission.mockResolvedValue({
+    user: { id: "admin_1", email: "admin@example.com" },
+    response: null,
+  });
+  mocks.writeAuditLog.mockResolvedValue(undefined);
   mocks.rateLimit.mockReturnValue({ allowed: true, resetAt: Date.now() + 60_000 });
   mocks.leadCreate.mockResolvedValue({ id: "lead_1", status: "NEW" });
+  mocks.leadFindUnique.mockResolvedValue({ id: "lead_1", status: "NEW" });
+  mocks.leadUpdate.mockResolvedValue({ id: "lead_1", status: "CONTACTED" });
 });
 
 describe("public leads route", () => {
@@ -116,5 +141,84 @@ describe("public leads route", () => {
     expect(response.status).toBe(500);
     expect(body.error).toBe("Failed to create lead");
     expect(mocks.logApiError).toHaveBeenCalledWith("leads.create", expect.any(Error), expect.any(NextRequest));
+  });
+
+  it("validates legacy lead management updates before writing", async () => {
+    const response = await PATCH(
+      patchRequest({
+        id: "lead_1",
+        status: "INVALID",
+        role: "SUPER_ADMIN",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.leadUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects empty legacy lead management updates", async () => {
+    const response = await PATCH(patchRequest({ id: "lead_1" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.leadUpdate).not.toHaveBeenCalled();
+  });
+
+  it("updates only allowed legacy lead management fields", async () => {
+    const response = await PATCH(
+      patchRequest({
+        id: "lead_1",
+        status: "CONTACTED",
+        notes: " Call tomorrow ",
+        assignedTo: " Priya ",
+        followUpAt: "2026-02-01",
+        email: "changed@example.com",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(mocks.leadUpdate).toHaveBeenCalledWith({
+      where: { id: "lead_1" },
+      data: {
+        status: "CONTACTED",
+        notes: "Call tomorrow",
+        assignedTo: "Priya",
+        followUpAt: expect.any(Date),
+      },
+    });
+    expect(mocks.writeAuditLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorUserId: "admin_1",
+        action: "lead.updated.legacy_route",
+        entity: "lead",
+        entityId: "lead_1",
+      }),
+    );
+  });
+
+  it("allows clearing nullable legacy lead management fields", async () => {
+    const response = await PATCH(
+      patchRequest({
+        id: "lead_1",
+        notes: null,
+        assignedTo: null,
+        followUpAt: "",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.leadUpdate).toHaveBeenCalledWith({
+      where: { id: "lead_1" },
+      data: {
+        notes: null,
+        assignedTo: null,
+        followUpAt: null,
+      },
+    });
   });
 });

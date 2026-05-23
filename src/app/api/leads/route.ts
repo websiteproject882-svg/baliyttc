@@ -17,6 +17,24 @@ const leadSchema = z.object({
   message: z.string().trim().max(3000).optional(),
 });
 
+const leadUpdateSchema = z
+  .object({
+    id: z.string().trim().min(1),
+    status: z.enum(["NEW", "CONTACTED", "INTERESTED", "ENROLLED", "NOT_INTERESTED", "SPAM"]).optional(),
+    notes: z.string().trim().max(5000).nullable().optional(),
+    assignedTo: z.string().trim().max(120).nullable().optional(),
+    followUpAt: z
+      .string()
+      .refine((value) => value === "" || !Number.isNaN(Date.parse(value)), "Invalid date")
+      .nullable()
+      .optional(),
+  })
+  .refine(
+    ({ status, notes, assignedTo, followUpAt }) =>
+      status !== undefined || notes !== undefined || assignedTo !== undefined || followUpAt !== undefined,
+    "At least one update field is required",
+  );
+
 function getPositiveInt(value: string | null, fallback: number, max: number) {
   const parsed = Number(value || fallback);
   if (!Number.isFinite(parsed)) return fallback;
@@ -139,8 +157,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const { id, ...data } = body;
+    const { id, status, notes, assignedTo, followUpAt } = leadUpdateSchema.parse(await request.json());
 
     const existing = await prisma.lead.findUnique({
       where: { id },
@@ -152,7 +169,12 @@ export async function PATCH(request: NextRequest) {
 
     const lead = await prisma.lead.update({
       where: { id },
-      data,
+      data: {
+        ...(status && { status }),
+        ...(notes !== undefined && { notes }),
+        ...(assignedTo !== undefined && { assignedTo }),
+        ...(followUpAt !== undefined && { followUpAt: followUpAt ? new Date(followUpAt) : null }),
+      },
     });
 
     await writeAuditLog({
@@ -167,6 +189,9 @@ export async function PATCH(request: NextRequest) {
 
     return withLeadsDeprecation(request, jsonWithRequestId({ success: true, lead }, undefined, request));
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
+    }
     logApiError("leads.update", error, request);
     return jsonWithRequestId({ error: "Failed to update lead" }, { status: 500 }, request);
   }
