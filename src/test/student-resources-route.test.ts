@@ -168,6 +168,15 @@ describe("student resource redirect route", () => {
     expect(body.error).toBe("Resource URL is invalid");
   });
 
+  it("rejects oversized resource ids before lookup", async () => {
+    const response = await GET(request(), params("x".repeat(121)));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Invalid resource id");
+    expect(mocks.preArrivalResourceFindUnique).not.toHaveBeenCalled();
+  });
+
   it("logs database failures without leaking internals", async () => {
     mocks.preArrivalResourceFindUnique.mockRejectedValue(new Error("database down"));
 

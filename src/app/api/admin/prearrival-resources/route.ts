@@ -7,6 +7,14 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const optionalTrimmed = (max: number) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }, z.string().min(1).max(max).optional());
+
 function isSafeResourceUrl(url: string) {
   try {
     const parsed = new URL(url);
@@ -17,18 +25,22 @@ function isSafeResourceUrl(url: string) {
 }
 
 const resourceSchema = z.object({
-  title: z.string().min(3).max(160),
-  description: z.string().max(2000).optional().nullable(),
-  url: z.string().min(1).refine(isSafeResourceUrl, "URL must be https or a relative path"),
+  title: z.string().trim().min(3).max(160),
+  description: optionalTrimmed(2000),
+  url: z.string().trim().min(1).max(2048).refine(isSafeResourceUrl, "URL must be https or a relative path"),
   type: z.nativeEnum(ResourceType),
   audience: z.nativeEnum(ResourceAudience),
-  taskKey: z.string().max(100).optional().nullable(),
+  taskKey: optionalTrimmed(100),
   order: z.number().int().min(0).max(999).default(0),
   isActive: z.boolean().default(true),
 });
 
 const updateSchema = resourceSchema.extend({
-  id: z.string(),
+  id: z.string().trim().min(1).max(120),
+});
+
+const deleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
 });
 
 export async function GET(request: NextRequest) {
@@ -171,10 +183,11 @@ export async function DELETE(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-  if (!id) {
+  const parsedQuery = deleteQuerySchema.safeParse({ id: searchParams.get("id") });
+  if (!parsedQuery.success) {
     return jsonWithRequestId({ error: "Resource id is required" }, { status: 400 }, request);
   }
+  const { id } = parsedQuery.data;
 
   try {
     const existing = await prisma.preArrivalResource.findUnique({

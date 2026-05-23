@@ -4,6 +4,7 @@ import { requireStudentUser } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+const MAX_RESOURCE_ID_LENGTH = 120;
 
 function allowedAudiences(accessLevel: "NONE" | "PRE_ARRIVAL" | "FULL" | "ALUMNI") {
   if (accessLevel === "ALUMNI") return ["ALUMNI", "ALL_ACTIVE"];
@@ -25,6 +26,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   const { student, response } = await requireStudentUser({ minimumAccess: "PRE_ARRIVAL" });
   if (!student || response) {
     return response;
+  }
+
+  if (!params.id || params.id.length > MAX_RESOURCE_ID_LENGTH) {
+    return jsonWithRequestId({ error: "Invalid resource id" }, { status: 400 }, request);
   }
 
   try {

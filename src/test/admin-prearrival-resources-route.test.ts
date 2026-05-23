@@ -235,6 +235,16 @@ describe("admin pre-arrival resources route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized resource update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121), title: "Updated Guide" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.preArrivalResourceFindUnique).not.toHaveBeenCalled();
+    expect(mocks.preArrivalResourceUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes a resource and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/prearrival-resources?id=resource_1"));
     const body = await response?.json();
@@ -257,6 +267,18 @@ describe("admin pre-arrival resources route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Resource id is required");
+  });
+
+  it("rejects oversized resource delete ids before lookup", async () => {
+    const response = await DELETE(
+      request("DELETE", undefined, `https://example.com/api/admin/prearrival-resources?id=${"x".repeat(121)}`),
+    );
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Resource id is required");
+    expect(mocks.preArrivalResourceFindUnique).not.toHaveBeenCalled();
+    expect(mocks.preArrivalResourceDelete).not.toHaveBeenCalled();
   });
 
   it("logs delete failures without leaking internals", async () => {
