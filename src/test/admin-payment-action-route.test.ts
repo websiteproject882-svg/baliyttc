@@ -148,6 +148,26 @@ describe("admin payment action route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized payment ids before payment lookup", async () => {
+    const response = await patch({ action: "mark_paid" }, "x".repeat(121));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body).toEqual({ error: "Invalid payment id" });
+    expect(mocks.paymentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
+  });
+
+  it("validates refund amount and reason before payment lookup", async () => {
+    const response = await patch({ action: "refund", amount: 1_000_001, reason: "x".repeat(501) });
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.paymentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+  });
+
   it("marks a payment paid through the shared completion workflow and audits it", async () => {
     const response = await patch({ action: "mark_paid", reason: "Bank confirmed" });
     const body = await response?.json();

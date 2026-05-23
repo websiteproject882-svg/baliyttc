@@ -10,10 +10,12 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const paymentIdParamSchema = z.string().trim().min(1).max(120);
+
 const actionSchema = z.object({
   action: z.enum(["mark_paid", "mark_failed", "refund"]),
-  amount: z.number().positive().optional(),
-  reason: z.string().max(500).optional(),
+  amount: z.coerce.number().positive().max(1_000_000).optional(),
+  reason: z.string().trim().max(500).optional(),
 });
 
 export async function PATCH(
@@ -31,6 +33,12 @@ export async function PATCH(
   }
 
   try {
+    const parsedPaymentId = paymentIdParamSchema.safeParse(params.paymentId);
+    if (!parsedPaymentId.success) {
+      return jsonWithRequestId({ error: "Invalid payment id" }, { status: 400 }, request);
+    }
+    const paymentId = parsedPaymentId.data;
+
     const parsed = actionSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) {
       return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
@@ -38,7 +46,7 @@ export async function PATCH(
 
     const data = parsed.data;
     const payment = await prisma.payment.findUnique({
-      where: { id: params.paymentId },
+      where: { id: paymentId },
       include: { enrollment: true },
     });
 
