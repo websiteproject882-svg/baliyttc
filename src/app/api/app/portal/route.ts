@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const refreshedTasks = await prisma.taskProgress.findMany({
+  let refreshedTasks = await prisma.taskProgress.findMany({
     where: { studentId: fullStudent.id },
     orderBy: { createdAt: "asc" },
   });
@@ -224,6 +224,26 @@ export async function GET(request: NextRequest) {
         },
       ]
     : [];
+
+  const resourceTaskKeys = new Set(refreshedTasks.map((task) => task.taskKey));
+  const resourceTasks = [...settingsResources, ...resources]
+    .filter((resource) => resource.taskKey && !resourceTaskKeys.has(resource.taskKey))
+    .map((resource) => ({
+      studentId: fullStudent.id,
+      taskKey: resource.taskKey as string,
+      taskTitle: resource.title,
+    }));
+
+  if (resourceTasks.length > 0) {
+    await prisma.taskProgress.createMany({
+      data: resourceTasks,
+      skipDuplicates: true,
+    });
+    refreshedTasks = await prisma.taskProgress.findMany({
+      where: { studentId: fullStudent.id },
+      orderBy: { createdAt: "asc" },
+    });
+  }
 
   const notifications = await prisma.notification.findMany({
     where: {

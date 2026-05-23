@@ -203,7 +203,7 @@ beforeEach(() => {
     { id: "schedule_1", activities: ["Practice"], teacher: { name: "Teacher", role: "Lead", styles: ["Hatha"] } },
   ]);
   mocks.announcementFindMany.mockResolvedValue([{ id: "announcement_1", title: "Welcome" }]);
-  mocks.preArrivalResourceFindMany.mockResolvedValue([{ id: "resource_1", title: "Visa Guide" }]);
+  mocks.preArrivalResourceFindMany.mockResolvedValue([{ id: "resource_1", title: "Visa Guide", taskKey: null }]);
   mocks.notificationFindMany.mockResolvedValue([
     {
       id: "notification_1",
@@ -300,6 +300,11 @@ describe("student portal route", () => {
   });
 
   it("adds the admin settings course manual to student resources", async () => {
+    mocks.taskProgressFindMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { id: "task_manual", taskKey: "read_manual", taskTitle: "Course Manual", completed: false },
+      ]);
     mocks.getSiteSettings.mockResolvedValue({
       assets: {
         courseManualUrl: "https://example.com/course-manual.pdf",
@@ -321,5 +326,32 @@ describe("student portal route", () => {
       }),
     );
     expect(body.resources[1]).toEqual(expect.objectContaining({ url: "/api/app/resources/resource_1" }));
+    expect(mocks.taskProgressCreateMany).toHaveBeenCalledWith({
+      data: [expect.objectContaining({ studentId: "student_1", taskKey: "read_manual", taskTitle: "Course Manual" })],
+      skipDuplicates: true,
+    });
+  });
+
+  it("turns admin resource task keys into student checklist tasks", async () => {
+    mocks.preArrivalResourceFindMany.mockResolvedValue([
+      { id: "resource_1", title: "Visa Guide", taskKey: "review_custom_visa_guide" },
+    ]);
+    mocks.taskProgressFindMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { id: "task_resource", taskKey: "review_custom_visa_guide", taskTitle: "Visa Guide", completed: false },
+      ]);
+
+    const response = await GET(request());
+    const body = await response?.json();
+
+    expect(response?.status).toBe(200);
+    expect(mocks.taskProgressCreateMany).toHaveBeenCalledWith({
+      data: [expect.objectContaining({ studentId: "student_1", taskKey: "review_custom_visa_guide", taskTitle: "Visa Guide" })],
+      skipDuplicates: true,
+    });
+    expect(body.tasks).toEqual([
+      expect.objectContaining({ taskKey: "review_custom_visa_guide", taskTitle: "Visa Guide" }),
+    ]);
   });
 });
