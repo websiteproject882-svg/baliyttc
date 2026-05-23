@@ -32,30 +32,20 @@ const reactionDisplayByCode: Record<string, string> = {
   FIRE: "\u{1F525}",
 };
 
-const getReactionCount = (counts: Record<string, number>, reaction: string) => {
-  const displayEmoji = reactionDisplayByCode[reaction];
-  const legacyEmoji = reactionCodeToEmoji[reaction];
-  return (displayEmoji ? counts[displayEmoji] || 0 : 0) + (legacyEmoji && legacyEmoji !== displayEmoji ? counts[legacyEmoji] || 0 : 0);
-};
-
-const isOwnReaction = (ownReaction: string | null, reaction: string) =>
-  ownReaction === reactionDisplayByCode[reaction] || ownReaction === reactionCodeToEmoji[reaction];
-
 const reactions = [
-  { label: "🙏", value: "PRAY" },
-  { label: "❤️", value: "LOVE" },
-  { label: "👍", value: "LIKE" },
-  { label: "🎉", value: "CELEBRATE" },
-  { label: "🔥", value: "FIRE" },
+  { label: reactionDisplayByCode.PRAY, value: "PRAY" },
+  { label: reactionDisplayByCode.LOVE, value: "LOVE" },
+  { label: reactionDisplayByCode.LIKE, value: "LIKE" },
+  { label: reactionDisplayByCode.CELEBRATE, value: "CELEBRATE" },
+  { label: reactionDisplayByCode.FIRE, value: "FIRE" },
 ];
 
-const reactionCodeToEmoji: Record<string, string> = {
-  PRAY: "🙏",
-  LOVE: "❤️",
-  LIKE: "👍",
-  CELEBRATE: "🎉",
-  FIRE: "🔥",
+const getReactionCount = (counts: Record<string, number>, reaction: string) => {
+  const displayEmoji = reactionDisplayByCode[reaction];
+  return displayEmoji ? counts[displayEmoji] || 0 : 0;
 };
+
+const isOwnReaction = (ownReaction: string | null, reaction: string) => ownReaction === reactionDisplayByCode[reaction];
 
 export default function AnnouncementsPage() {
   const [items, setItems] = useState<AnnouncementItem[]>([]);
@@ -175,7 +165,7 @@ export default function AnnouncementsPage() {
                       disabled={savingId === `${item.id}:${reaction.value}`}
                       onClick={() => react(item.id, reaction.value)}
                     >
-                      {reactionDisplayByCode[reaction.value]} {getReactionCount(item.reactionCounts, reaction.value)}
+                      {reaction.label} {getReactionCount(item.reactionCounts, reaction.value)}
                     </Button>
                   ))}
                 </div>
