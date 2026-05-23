@@ -4,14 +4,14 @@ import { GET } from "../app/api/teacher/students/route";
 
 const mocks = vi.hoisted(() => ({
   currentUserHasPermission: vi.fn(),
-  requireAuthenticatedUser: vi.fn(),
+  requireStaffUser: vi.fn(),
   studentFindMany: vi.fn(),
   logApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/authz", () => ({
   currentUserHasPermission: mocks.currentUserHasPermission,
-  requireAuthenticatedUser: mocks.requireAuthenticatedUser,
+  requireStaffUser: mocks.requireStaffUser,
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -47,7 +47,7 @@ function request(url = "https://example.com/api/teacher/students?batchId=batch_1
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.requireAuthenticatedUser.mockResolvedValue({ user: teacher, response: null });
+  mocks.requireStaffUser.mockResolvedValue({ user: teacher, response: null });
   mocks.currentUserHasPermission.mockReturnValue(false);
   mocks.studentFindMany.mockResolvedValue([
     {
@@ -110,7 +110,7 @@ describe("teacher students route", () => {
   });
 
   it("allows privileged non-teacher staff to view students", async () => {
-    mocks.requireAuthenticatedUser.mockResolvedValue({
+    mocks.requireStaffUser.mockResolvedValue({
       user: { ...teacher, role: "COURSE_MANAGER" },
       response: null,
     });
@@ -123,7 +123,7 @@ describe("teacher students route", () => {
   });
 
   it("rejects unauthorized staff before reading students", async () => {
-    mocks.requireAuthenticatedUser.mockResolvedValue({
+    mocks.requireStaffUser.mockResolvedValue({
       user: { ...teacher, role: "SEO_EDITOR" },
       response: null,
     });
@@ -134,6 +134,19 @@ describe("teacher students route", () => {
 
     expect(response.status).toBe(403);
     expect(body).toEqual({ error: "Forbidden" });
+    expect(mocks.studentFindMany).not.toHaveBeenCalled();
+  });
+
+  it("requires a staff session before reading students", async () => {
+    const unauthorized = Response.json({ error: "Unauthorized" }, { status: 401 });
+    mocks.requireStaffUser.mockResolvedValue({ user: null, response: unauthorized });
+
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toEqual({ error: "Unauthorized" });
+    expect(mocks.currentUserHasPermission).not.toHaveBeenCalled();
     expect(mocks.studentFindMany).not.toHaveBeenCalled();
   });
 

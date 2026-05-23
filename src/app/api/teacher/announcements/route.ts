@@ -2,7 +2,7 @@ import { AnnouncementType } from "@prisma/client";
 import { z } from "zod";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { currentUserHasPermission, requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { currentUserHasPermission, requireSameOrigin, requireStaffUser, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const announcementSchema = z.object({
@@ -13,7 +13,7 @@ const announcementSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }
@@ -101,7 +101,7 @@ export async function DELETE(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }

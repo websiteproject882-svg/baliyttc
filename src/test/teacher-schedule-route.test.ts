@@ -4,7 +4,7 @@ import { DELETE, GET, PATCH, POST } from "../app/api/teacher/schedule/route";
 
 const mocks = vi.hoisted(() => ({
   currentUserHasPermission: vi.fn(),
-  requireAuthenticatedUser: vi.fn(),
+  requireStaffUser: vi.fn(),
   requireSameOrigin: vi.fn(),
   writeAuditLog: vi.fn(),
   scheduleFindMany: vi.fn(),
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/authz", () => ({
   currentUserHasPermission: mocks.currentUserHasPermission,
-  requireAuthenticatedUser: mocks.requireAuthenticatedUser,
+  requireStaffUser: mocks.requireStaffUser,
   requireSameOrigin: mocks.requireSameOrigin,
   writeAuditLog: mocks.writeAuditLog,
 }));
@@ -90,7 +90,7 @@ function rawRequest(method: "POST" | "PATCH", body: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.requireAuthenticatedUser.mockResolvedValue({ user: teacher, response: null });
+  mocks.requireStaffUser.mockResolvedValue({ user: teacher, response: null });
   mocks.requireSameOrigin.mockReturnValue(null);
   mocks.currentUserHasPermission.mockReturnValue(false);
   mocks.writeAuditLog.mockResolvedValue(undefined);
@@ -128,6 +128,19 @@ describe("teacher schedule route", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBe("Validation failed");
+    expect(mocks.scheduleFindMany).not.toHaveBeenCalled();
+  });
+
+  it("requires a staff session before reading schedule entries", async () => {
+    const unauthorized = Response.json({ error: "Unauthorized" }, { status: 401 });
+    mocks.requireStaffUser.mockResolvedValue({ user: null, response: unauthorized });
+
+    const response = await GET(request("GET"));
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toEqual({ error: "Unauthorized" });
+    expect(mocks.currentUserHasPermission).not.toHaveBeenCalled();
     expect(mocks.scheduleFindMany).not.toHaveBeenCalled();
   });
 

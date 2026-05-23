@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { currentUserHasPermission, requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { currentUserHasPermission, requireSameOrigin, requireStaffUser, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const scheduleBaseSchema = z.object({
@@ -26,7 +26,7 @@ const scheduleQuerySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }
@@ -149,7 +149,7 @@ export async function PATCH(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }
@@ -213,7 +213,7 @@ export async function DELETE(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }

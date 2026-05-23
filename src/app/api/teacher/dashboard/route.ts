@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { currentUserHasPermission, requireAuthenticatedUser } from "@/lib/authz";
+import { currentUserHasPermission, requireStaffUser } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export async function GET(request: NextRequest) {
-  const { user, response } = await requireAuthenticatedUser();
+  const { user, response } = await requireStaffUser();
   if (!user || response) {
     return response;
   }
