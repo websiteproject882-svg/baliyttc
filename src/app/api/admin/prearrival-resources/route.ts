@@ -61,7 +61,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = resourceSchema.parse(await request.json());
+    const parsed = resourceSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const resource = await prisma.preArrivalResource.create({
       data: {
         title: data.title,
@@ -106,7 +111,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const data = updateSchema.parse(await request.json());
+    const parsed = updateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const existing = await prisma.preArrivalResource.findUnique({
       where: { id: data.id },
     });
