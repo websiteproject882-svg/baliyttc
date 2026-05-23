@@ -6,6 +6,7 @@ const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "";
 const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_baliyttc";
 const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_contact";
 const EMAILJS_ADMIN_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_ADMIN_TEMPLATE_ID || "template_admin_notification";
+const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@baliyttc.com";
 
 interface ContactFormData {
   phone?: string;
@@ -57,7 +58,7 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
       {
         ...templateParams,
         to_name: "Bali YTTC Team",
-        admin_email: "info@baliyttc.com",
+        admin_email: CONTACT_EMAIL,
       },
       EMAILJS_PUBLIC_KEY
     );

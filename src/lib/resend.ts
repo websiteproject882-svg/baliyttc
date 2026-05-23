@@ -1,15 +1,35 @@
 import { Resend } from "resend";
 import { isGmailConfigured, sendGmailEmail } from "@/lib/gmail-smtp";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+let resendClient: Resend | null = null;
+
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) return null;
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 export const isEmailConfigured = () => {
   return !!process.env.RESEND_API_KEY || isGmailConfigured();
 };
 
-const FROM_EMAIL = "Bali YTTC <noreply@baliyttc.com>";
+function getFromEmail() {
+  return process.env.EMAIL_FROM || "Bali YTTC <noreply@baliyttc.com>";
+}
+
+function getSupportEmail() {
+  return process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || "info@baliyttc.com";
+}
+
+function getAdminEmail() {
+  return process.env.ADMIN_EMAIL || getSupportEmail();
+}
+
+function getPublicBaseUrl() {
+  return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+}
 
 interface EmailOptions {
   to: string | string[];
@@ -29,13 +49,19 @@ export async function sendEmail(options: EmailOptions) {
     return { success: true, demo: true };
   }
 
+  const resend = getResendClient();
+
   if (!resend && isGmailConfigured()) {
     return sendGmailEmail(options);
   }
 
+  if (!resend) {
+    return { success: false, error: "Email provider is not configured" };
+  }
+
   try {
-    const result = await resend!.emails.send({
-      from: FROM_EMAIL,
+    const result = await resend.emails.send({
+      from: getFromEmail(),
       to: Array.isArray(options.to) ? options.to : [options.to],
       subject: options.subject,
       html: options.html,
@@ -95,7 +121,7 @@ export async function sendEnrollmentConfirmation(data: {
             </div>
           `}
 
-          <p>If you have any questions, don't hesitate to reach out to us at <a href="mailto:info@baliyttc.com">info@baliyttc.com</a> or via WhatsApp.</p>
+          <p>If you have any questions, don't hesitate to reach out to us at <a href="mailto:${getSupportEmail()}">${getSupportEmail()}</a> or via WhatsApp.</p>
 
           <p>See you in Bali!</p>
           <p><strong>The Bali YTTC Team</strong></p>
@@ -116,7 +142,7 @@ export async function sendAdminEnrollmentNotification(data: {
   paymentType: "deposit" | "full";
 }) {
   return sendEmail({
-    to: "info@baliyttc.com",
+    to: getAdminEmail(),
     subject: `New Enrollment: ${data.name} - ${data.course}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -138,7 +164,7 @@ export async function sendAdminEnrollmentNotification(data: {
             <p><strong>Payment:</strong> ${data.paymentType === "deposit" ? "Deposit" : "Full"} - $${data.amount}</p>
           </div>
 
-          <p><a href="/admin/enrollments" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View in Admin Dashboard</a></p>
+          <p><a href="${getPublicBaseUrl()}/en/admin/enrollments" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View in Admin Dashboard</a></p>
         </div>
       </div>
     `,
@@ -198,7 +224,7 @@ export async function sendReminderEmail(data: {
       subject: `Reminder: Complete Your Payment - ${data.course}`,
       content: `
         <p>This is a friendly reminder to complete your payment for ${data.course}. The remaining balance is due 30 days before your start date.</p>
-        <p><a href="/app/dashboard" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Complete Payment</a></p>
+          <p><a href="${getPublicBaseUrl()}/en/app/dashboard" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Complete Payment</a></p>
       `,
     },
     preparation: {
@@ -212,7 +238,7 @@ export async function sendReminderEmail(data: {
           <li>Complete your profile</li>
           <li>Join the batch WhatsApp group</li>
         </ul>
-        <p><a href="/app/dashboard" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Tasks</a></p>
+        <p><a href="${getPublicBaseUrl()}/en/app/dashboard" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Tasks</a></p>
       `,
     },
     general: {
@@ -237,7 +263,7 @@ export async function sendReminderEmail(data: {
         <div style="padding: 30px;">
           <h2>Hi ${data.name},</h2>
           ${reminder.content}
-          <p>If you have any questions, reach out at <a href="mailto:info@baliyttc.com">info@baliyttc.com</a>.</p>
+          <p>If you have any questions, reach out at <a href="mailto:${getSupportEmail()}">${getSupportEmail()}</a>.</p>
           <p>See you in Bali!</p>
         </div>
       </div>

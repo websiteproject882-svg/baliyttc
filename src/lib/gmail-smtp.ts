@@ -37,6 +37,18 @@ export const isGmailConfigured = () => {
   );
 };
 
+function getPublicBaseUrl() {
+  return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+}
+
+function getSupportEmail() {
+  return process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || process.env.GMAIL_EMAIL || "info@baliyttc.com";
+}
+
+function getAdminEmail() {
+  return process.env.ADMIN_EMAIL || getSupportEmail();
+}
+
 export async function sendGmailEmail(options: SendEmailOptions): Promise<{ success: boolean; error?: string; demo?: boolean }> {
   if (!isGmailConfigured()) {
     if (process.env.NODE_ENV === "production") {
@@ -144,14 +156,14 @@ export async function sendEnrollmentConfirmationEmail(data: {
       <p style="font-size: 14px; color: #666;">You'll receive access to your student portal within 24 hours after payment confirmation.</p>
 
       <div style="text-align: center; margin-top: 30px;">
-        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/en/app/dashboard" style="display: inline-block; background: #F04E23; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Access Student Portal</a>
+        <a href="${getPublicBaseUrl()}/en/app/dashboard" style="display: inline-block; background: #F04E23; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Access Student Portal</a>
       </div>
 
-      <p style="font-size: 14px; color: #666; margin-top: 30px;">Questions? Reply to this email or contact us at info@baliyttc.com</p>
+      <p style="font-size: 14px; color: #666; margin-top: 30px;">Questions? Reply to this email or contact us at ${getSupportEmail()}</p>
     </div>
     <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #999;">
       <p style="margin: 0;">Bali YTTC - Yoga Teacher Training in Ubud, Bali</p>
-      <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} All rights reserved</p>
+      <p style="margin: 5px 0 0;">Copyright ${new Date().getFullYear()} All rights reserved</p>
     </div>
   </div>
 </body>
@@ -205,7 +217,7 @@ export async function sendAdminNotificationEmail(data: {
         <tr><td style="padding: 8px; color: #666;">Time:</td><td style="padding: 8px;">${new Date().toLocaleString()}</td></tr>
       </table>
       <div style="margin-top: 20px;">
-        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/en/admin/${data.type === "enrollment" ? "enrollments" : data.type === "lead" ? "leads" : "leads"}" style="display: inline-block; background: #F04E23; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">View in Admin</a>
+        <a href="${getPublicBaseUrl()}/en/admin/${data.type === "enrollment" ? "enrollments" : data.type === "lead" ? "leads" : "leads"}" style="display: inline-block; background: #F04E23; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">View in Admin</a>
       </div>
     </div>
   </div>
@@ -214,7 +226,7 @@ export async function sendAdminNotificationEmail(data: {
 `;
 
   return sendGmailEmail({
-    to: process.env.ADMIN_EMAIL || "info@baliyttc.com",
+    to: getAdminEmail(),
     subject: `New ${data.type === "enrollment" ? "Enrollment" : data.type === "lead" ? "Lead" : "Contact"}: ${data.name}`,
     html,
   });
