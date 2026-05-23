@@ -161,6 +161,15 @@ describe("admin pre-arrival resources route", () => {
     expect(mocks.preArrivalResourceCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects plain http resource URLs so students do not hit broken redirects", async () => {
+    const response = await POST(request("POST", payload({ url: "http://example.com/visa.pdf" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.preArrivalResourceCreate).not.toHaveBeenCalled();
+  });
+
   it("updates an existing resource and writes an audit log", async () => {
     const response = await PATCH(request("PATCH", payload({ id: "resource_1", title: "Updated Guide" })));
     const body = await response?.json();

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 function isSafeResourceUrl(url: string) {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
+    return parsed.protocol === "https:";
   } catch {
     return url.startsWith("/");
   }
@@ -19,7 +19,7 @@ function isSafeResourceUrl(url: string) {
 const resourceSchema = z.object({
   title: z.string().min(3).max(160),
   description: z.string().max(2000).optional().nullable(),
-  url: z.string().min(1).refine(isSafeResourceUrl, "URL must be http(s) or a relative path"),
+  url: z.string().min(1).refine(isSafeResourceUrl, "URL must be https or a relative path"),
   type: z.nativeEnum(ResourceType),
   audience: z.nativeEnum(ResourceAudience),
   taskKey: z.string().max(100).optional().nullable(),
