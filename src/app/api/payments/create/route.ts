@@ -68,8 +68,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const data = paymentCreateSchema.parse(body);
+    const body = await request.json().catch(() => null);
+    const parsed = paymentCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: parsed.error.errors },
+        { status: 400 },
+        request,
+      );
+    }
+
+    const data = parsed.data;
     const storedEnrollment = await resolveStoredEnrollmentAmount(data.enrollmentId);
     if (data.email.trim().toLowerCase() !== storedEnrollment.email.toLowerCase()) {
       return jsonWithRequestId(

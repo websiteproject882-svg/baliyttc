@@ -122,6 +122,14 @@ function createRequest(body: Record<string, unknown>) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/payments/create", {
+    method: "POST",
+    headers: { "x-request-id": "req_payment_create" },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.rateLimit.mockReturnValue({ allowed: true, remaining: 11, resetAt: Date.now() + 60_000 });
@@ -146,6 +154,20 @@ beforeEach(() => {
 });
 
 describe("payment create route", () => {
+  it("rejects malformed JSON before resolving enrollment or creating provider orders", async () => {
+    const response = await POST(rawRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_payment_create");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.resolveStoredEnrollmentAmount).not.toHaveBeenCalled();
+    expect(mocks.razorpayOrdersCreate).not.toHaveBeenCalled();
+    expect(mocks.createPayPalOrder).not.toHaveBeenCalled();
+    expect(mocks.paymentCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("rejects payment creation when request email does not match the enrollment", async () => {
     const response = await POST(createRequest({ provider: "razorpay", email: "attacker@example.com" }));
     const body = await response.json();
