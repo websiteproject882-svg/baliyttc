@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import type { AccessLevel, PaymentStatus } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("students.approve");
   if (!user || response) {
     return response;
   }

@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { PATCH } from "../app/api/admin/students/access/route";
 
 const mocks = vi.hoisted(() => ({
-  requireAdminUser: vi.fn(),
+  requirePermission: vi.fn(),
   requireSameOrigin: vi.fn(),
   writeAuditLog: vi.fn(),
   enrollmentFindUnique: vi.fn(),
@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requireAdminUser: mocks.requireAdminUser,
+  requirePermission: mocks.requirePermission,
   requireSameOrigin: mocks.requireSameOrigin,
   writeAuditLog: mocks.writeAuditLog,
 }));
@@ -89,7 +89,7 @@ async function patch(body: Record<string, unknown>) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
-  mocks.requireAdminUser.mockResolvedValue({ user: adminUser, response: null });
+  mocks.requirePermission.mockResolvedValue({ user: adminUser, response: null });
   mocks.enrollmentFindUnique.mockResolvedValue(enrollment);
   mocks.batchFindUnique.mockResolvedValue({
     id: "batch_1",
@@ -120,7 +120,7 @@ beforeEach(() => {
 describe("admin student access route", () => {
   it("requires an admin session before changing access", async () => {
     const unauthorized = Response.json({ error: "Unauthorized" }, { status: 401 });
-    mocks.requireAdminUser.mockResolvedValue({ user: null, response: unauthorized });
+    mocks.requirePermission.mockResolvedValue({ user: null, response: unauthorized });
 
     const response = await patch({ enrollmentId: "enrollment_1", accessLevel: "PRE_ARRIVAL" });
     const body = await response?.json();
@@ -157,6 +157,7 @@ describe("admin student access route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("students.approve");
     expect(body.success).toBe(true);
     expect(mocks.studentUpdate).toHaveBeenCalledWith({
       where: { id: "student_1" },
