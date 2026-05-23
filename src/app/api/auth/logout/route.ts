@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { destroySession } from '@/lib/session';
 import { requireSameOrigin } from '@/lib/authz';
+import { jsonWithRequestId, logApiError } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,9 +11,9 @@ export async function POST(request: NextRequest) {
     }
 
     await destroySession();
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error('Logout error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    logApiError('auth.logout', error, request);
+    return jsonWithRequestId({ error: 'Internal server error' }, { status: 500 }, request);
   }
 }
