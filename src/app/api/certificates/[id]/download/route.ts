@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { generateCertificatePDF } from "@/lib/certificate";
 import { canManageStudentCertificates } from "@/lib/certificate-access";
 import { getCurrentUser } from "@/lib/authz";
 import { applySecurityHeaders, jsonWithRequestId, logApiError, withRequestId } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
+
+const certificateIdParamSchema = z.string().trim().min(1).max(120);
 
 export async function GET(
   request: NextRequest,
@@ -16,8 +19,14 @@ export async function GET(
       return jsonWithRequestId({ error: "Unauthorized" }, { status: 401 }, request);
     }
 
+    const parsedId = certificateIdParamSchema.safeParse(params.id);
+    if (!parsedId.success) {
+      return jsonWithRequestId({ error: "Invalid certificate id" }, { status: 400 }, request);
+    }
+    const certificateRecordId = parsedId.data;
+
     const certificate = await prisma.certificate.findUnique({
-      where: { id: params.id },
+      where: { id: certificateRecordId },
       include: {
         student: {
           include: {

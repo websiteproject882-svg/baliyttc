@@ -123,6 +123,16 @@ describe("certificate download route", () => {
     expect(mocks.generateCertificatePDF).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized certificate ids before lookup", async () => {
+    const response = await get("x".repeat(121));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({ error: "Invalid certificate id" });
+    expect(mocks.certificateFindUnique).not.toHaveBeenCalled();
+    expect(mocks.generateCertificatePDF).not.toHaveBeenCalled();
+  });
+
   it("blocks non-owner students from downloading another student's certificate", async () => {
     mocks.getCurrentUser.mockResolvedValue({
       ...studentUser,
