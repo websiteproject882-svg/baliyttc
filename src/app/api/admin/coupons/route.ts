@@ -1,27 +1,46 @@
 import { DiscountType } from "@prisma/client";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
-const couponSchema = z.object({
-  code: z.string().min(2).transform((value) => value.toUpperCase()),
+const optionalDateString = z
+  .string()
+  .refine((value) => value === "" || !Number.isNaN(Date.parse(value)), "Invalid date")
+  .nullable()
+  .optional();
+
+const couponBaseSchema = z.object({
+  code: z.string().min(2).transform((value) => value.trim().toUpperCase()),
   discountType: z.nativeEnum(DiscountType),
   discount: z.coerce.number().int().positive(),
   minAmount: z.coerce.number().int().nonnegative().nullable().optional(),
   maxDiscount: z.coerce.number().int().nonnegative().nullable().optional(),
   usageLimit: z.coerce.number().int().positive().nullable().optional(),
-  expiresAt: z.string().nullable().optional(),
+  expiresAt: optionalDateString,
   isActive: z.boolean().default(true),
 });
 
-const updateSchema = couponSchema.extend({
-  id: z.string(),
-});
+const validateDiscount = (data: { discountType: DiscountType; discount: number }, ctx: z.RefinementCtx) => {
+  if (data.discountType === DiscountType.PERCENTAGE && data.discount > 100) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["discount"],
+      message: "Percentage discount cannot exceed 100",
+    });
+  }
+};
 
-export async function GET() {
+const couponSchema = couponBaseSchema.superRefine(validateDiscount);
+
+const updateSchema = couponBaseSchema.extend({
+  id: z.string(),
+}).superRefine(validateDiscount);
+
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("coupons.view");
   if (response) {
     return response;
@@ -31,10 +50,10 @@ export async function GET() {
     const coupons = await prisma.coupon.findMany({
       orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
     });
-    return NextResponse.json({ coupons });
+    return jsonWithRequestId({ coupons }, undefined, request);
   } catch (error) {
-    console.error("GET admin coupons error:", error);
-    return NextResponse.json({ error: "Failed to fetch coupons" }, { status: 500 });
+    logApiError("admin.coupons.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch coupons" }, { status: 500 }, request);
   }
 }
 
@@ -70,13 +89,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, coupon });
+    return jsonWithRequestId({ success: true, coupon }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST admin coupon error:", error);
-    return NextResponse.json({ error: "Failed to create coupon" }, { status: 500 });
+    logApiError("admin.coupons.create", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to create coupon" }, { status: 500 }, request);
   }
 }
 
@@ -95,7 +114,7 @@ export async function PATCH(request: NextRequest) {
     const { id, ...data } = updateSchema.parse(await request.json());
     const existing = await prisma.coupon.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Coupon not found" }, { status: 404 }, request);
     }
 
     const coupon = await prisma.coupon.update({
@@ -119,13 +138,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, coupon });
+    return jsonWithRequestId({ success: true, coupon }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH admin coupon error:", error);
-    return NextResponse.json({ error: "Failed to update coupon" }, { status: 500 });
+    logApiError("admin.coupons.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update coupon" }, { status: 500 }, request);
   }
 }
 
@@ -144,12 +163,12 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+      return jsonWithRequestId({ error: "Coupon id is required" }, { status: 400 }, request);
     }
 
     const existing = await prisma.coupon.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Coupon not found" }, { status: 404 }, request);
     }
 
     await prisma.coupon.delete({ where: { id } });
@@ -163,9 +182,9 @@ export async function DELETE(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error("DELETE admin coupon error:", error);
-    return NextResponse.json({ error: "Failed to delete coupon" }, { status: 500 });
+    logApiError("admin.coupons.delete", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to delete coupon" }, { status: 500 }, request);
   }
 }
