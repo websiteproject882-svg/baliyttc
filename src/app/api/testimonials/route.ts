@@ -1,26 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+const DEFAULT_LIMIT = 6;
+const MAX_LIMIT = 20;
+
+function getLimit(request: NextRequest) {
+  const requestedLimit = Number(request.nextUrl.searchParams.get("limit") || DEFAULT_LIMIT);
+  if (!Number.isFinite(requestedLimit)) return DEFAULT_LIMIT;
+  return Math.min(Math.max(Math.trunc(requestedLimit), 1), MAX_LIMIT);
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const requestedLimit = parseInt(searchParams.get("limit") || "6", 10);
-    const limit = Number.isFinite(requestedLimit)
-      ? Math.min(Math.max(requestedLimit, 1), 20)
-      : 6;
+    const limit = getLimit(request);
 
     const [testimonials, aggregates] = await Promise.all([
       prisma.testimonial.findMany({
         where: { status: "APPROVED" },
-        include: {
+        select: {
+          id: true,
+          courseName: true,
+          quote: true,
+          rating: true,
+          location: true,
+          graduationYear: true,
           student: {
-            include: {
+            select: {
+              enrolledCourse: true,
               user: {
                 select: {
                   displayName: true,
-                  email: true,
                 },
               },
             },
@@ -36,7 +47,7 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       testimonials: testimonials.map((item) => ({
         id: item.id,
         name: item.student.user.displayName || "Bali YTTC Graduate",
@@ -50,9 +61,9 @@ export async function GET(request: NextRequest) {
         averageRating: Number((aggregates._avg.rating || 0).toFixed(1)),
         totalApproved: aggregates._count.id || 0,
       },
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET public testimonials error:", error);
-    return NextResponse.json({ error: "Failed to fetch testimonials" }, { status: 500 });
+    logApiError("testimonials.public", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch testimonials" }, { status: 500 }, request);
   }
 }
