@@ -204,52 +204,45 @@ const CourseCard = ({
     >
       <Link
         href={course.href}
-        className={`relative flex h-full min-h-[372px] flex-col rounded-[9px] bg-white p-5 shadow-[0_12px_30px_rgba(42,36,28,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(42,36,28,0.12)] ${course.featured || active ? "ring-1 ring-brand/80" : "ring-1 ring-stone-200"}`}
+        className={`relative flex h-full min-h-[440px] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_14px_34px_rgba(42,36,28,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(42,36,28,0.13)] ${course.featured || active ? "ring-1 ring-brand/80" : "ring-1 ring-stone-200"}`}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <span className="inline-flex rounded-[3px] bg-sage px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-white shadow-sm">
+        <div className="relative h-[184px] overflow-hidden bg-stone-200">
+          <CourseThumb course={course} />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/10" />
+          <div className="absolute left-4 top-4">
+            <span className="inline-flex rounded-[3px] bg-sage px-3 py-2 text-[10px] font-bold uppercase tracking-[0.13em] text-white shadow-sm">
               {getMobileBadge(course, labels)}
             </span>
-            <h3 className="mt-4 font-serif text-[1.35rem] font-semibold leading-[1.08] text-charcoal">
+          </div>
+        </div>
+
+        <div className="flex flex-1 flex-col p-5">
+          <div className="min-h-[88px]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">
+              {course.days}
+            </p>
+            <h3 className="mt-3 font-serif text-[1.25rem] font-semibold leading-[1.18] text-charcoal">
               {getCompactTitle(course.title)}
             </h3>
             <p className="mt-2 text-[13px] text-ink-soft">{course.duration} {labels.certificationTrack}</p>
           </div>
-          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-stone-100 shadow-sm">
-            <CourseThumb course={course} />
-          </div>
-        </div>
 
-        <div className="mt-5 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.14em]">
-          <span className="rounded-full bg-sand px-3 py-1.5 text-sage">{course.days}</span>
-          <span className="rounded-full bg-stone-100 px-3 py-1.5 text-stone-500">{course.seats}</span>
-        </div>
+          <p className="mt-4 line-clamp-3 text-[13px] leading-6 text-ink-soft">
+            {course.summary}
+          </p>
 
-        <p className="mt-5 line-clamp-3 text-[13px] leading-6 text-ink-soft">
-          {course.summary}
-        </p>
-
-        <div className="mt-5 grid gap-2">
-          {course.highlights.slice(0, 3).map((highlight) => (
-            <span key={highlight} className="flex items-start gap-2 text-xs leading-5 text-charcoal">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
-              {highlight}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-auto border-t border-stone-200 pt-4">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="price-label">{labels.startsFrom}</p>
-              <p className="price-value mt-1 text-[1.55rem]">
-                EUR {course.priceFrom.toLocaleString("en-US")}
-              </p>
+          <div className="mt-auto border-t border-stone-200 pt-4">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="price-label">{labels.startsFrom}</p>
+                <p className="price-value mt-1 text-[1.55rem]">
+                  EUR {course.priceFrom.toLocaleString("en-US")}
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand transition group-hover:text-brand-dark">
+                {labels.details} <ArrowUpRight className="h-3.5 w-3.5" />
+              </span>
             </div>
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand transition group-hover:text-brand-dark">
-              {labels.details} <ArrowUpRight className="h-3.5 w-3.5" />
-            </span>
           </div>
         </div>
       </Link>
