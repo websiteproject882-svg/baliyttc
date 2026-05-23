@@ -40,6 +40,18 @@ function request(body: unknown) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/coupons/validate", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -85,6 +97,16 @@ describe("public coupon validation", () => {
     expect(response.status).toBe(400);
     expect(body).toEqual({ valid: false, error: "Invalid request" });
     expect(mocks.couponFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed JSON before database lookup", async () => {
+    const response = await POST(rawRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({ valid: false, error: "Invalid request" });
+    expect(mocks.couponFindUnique).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("returns a generic failure and logs unexpected database errors", async () => {

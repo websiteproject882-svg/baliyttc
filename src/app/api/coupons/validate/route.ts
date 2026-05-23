@@ -28,8 +28,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { code, amount } = validateSchema.parse(body);
+    const parsed = validateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({
+        valid: false,
+        error: "Invalid request",
+      }, { status: 400 }, request);
+    }
+    const { code, amount } = parsed.data;
 
     const coupon = await prisma.coupon.findUnique({
       where: { code },
