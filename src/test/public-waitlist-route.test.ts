@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { POST } from "../app/api/waitlist/route";
+import { PATCH, POST } from "../app/api/waitlist/route";
 
 const mocks = vi.hoisted(() => ({
   requireSameOrigin: vi.fn(),
+  requirePermission: vi.fn(),
+  writeAuditLog: vi.fn(),
   waitlistFindFirst: vi.fn(),
   waitlistCreate: vi.fn(),
+  waitlistUpdate: vi.fn(),
   batchFindUnique: vi.fn(),
   sendEmail: vi.fn(),
   rateLimit: vi.fn(),
@@ -13,9 +16,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requirePermission: vi.fn(),
+  requirePermission: mocks.requirePermission,
   requireSameOrigin: mocks.requireSameOrigin,
-  writeAuditLog: vi.fn(),
+  writeAuditLog: mocks.writeAuditLog,
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -23,6 +26,7 @@ vi.mock("@/lib/prisma", () => ({
     waitlist: {
       findFirst: mocks.waitlistFindFirst,
       create: mocks.waitlistCreate,
+      update: mocks.waitlistUpdate,
     },
     batch: {
       findUnique: mocks.batchFindUnique,
@@ -63,9 +67,27 @@ function request(body: Record<string, unknown>) {
   });
 }
 
+function patchRequest(body: Record<string, unknown>) {
+  return new NextRequest("https://example.com/api/waitlist", {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+      "x-request-id": "req_admin_waitlist",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
+  mocks.requirePermission.mockResolvedValue({
+    user: { id: "admin_1", email: "admin@example.com" },
+    response: null,
+  });
+  mocks.writeAuditLog.mockResolvedValue(undefined);
   mocks.rateLimit.mockReturnValue({ allowed: true, resetAt: Date.now() + 60_000 });
   mocks.waitlistFindFirst.mockResolvedValue(null);
   mocks.batchFindUnique.mockResolvedValue({ id: "batch_1", status: "FULL" });
@@ -76,12 +98,25 @@ beforeEach(() => {
     priority: 0,
     status: "WAITING",
   });
+  mocks.waitlistUpdate.mockResolvedValue({
+    id: "waitlist_1",
+    status: "NOTIFIED",
+    priority: 5,
+    notes: "Call tomorrow",
+  });
   mocks.sendEmail.mockResolvedValue({ success: true });
 });
 
 describe("public waitlist route", () => {
   it("creates a waitlist entry with server-controlled priority", async () => {
-    const response = await POST(request({ batchId: "batch_1", priority: 999 }));
+    const response = await POST(request({
+      name: "  Asha Sharma  ",
+      email: " ASHA@Example.COM ",
+      phone: " +919999999999 ",
+      courseSlug: " 200hr ",
+      batchId: " batch_1 ",
+      priority: 999,
+    }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -98,6 +133,52 @@ describe("public waitlist route", () => {
         status: "WAITING",
       },
     });
+  });
+
+  it("rejects invalid public waitlist payloads before writing", async () => {
+    const response = await POST(request({ email: "not-an-email", name: "", courseSlug: "" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistCreate).not.toHaveBeenCalled();
+  });
+
+  it("validates admin waitlist updates and writes an audit log", async () => {
+    const response = await PATCH(patchRequest({
+      id: " waitlist_1 ",
+      status: "NOTIFIED",
+      priority: 5,
+      notes: " Call tomorrow ",
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(mocks.waitlistUpdate).toHaveBeenCalledWith({
+      where: { id: "waitlist_1" },
+      data: {
+        status: "NOTIFIED",
+        priority: 5,
+        notes: "Call tomorrow",
+        notifiedAt: expect.any(Date),
+      },
+    });
+    expect(mocks.writeAuditLog).toHaveBeenCalledWith(expect.objectContaining({
+      actorUserId: "admin_1",
+      action: "waitlist.updated",
+      entity: "waitlist",
+      entityId: "waitlist_1",
+    }));
+  });
+
+  it("rejects invalid admin waitlist updates before writing", async () => {
+    const response = await PATCH(patchRequest({ id: "waitlist_1", status: "INVALID", priority: 101 }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistUpdate).not.toHaveBeenCalled();
   });
 
   it("does not add a waitlist entry when the batch is open", async () => {

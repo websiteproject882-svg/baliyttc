@@ -1,3 +1,4 @@
+import { WaitlistStatus } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
@@ -6,11 +7,18 @@ import { sendEmail } from "@/lib/resend";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 
 const waitlistSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  courseSlug: z.string(),
-  batchId: z.string().optional(),
+  name: z.string().trim().min(1).max(120),
+  email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+  phone: z.string().trim().max(40).optional().transform((value) => value || undefined),
+  courseSlug: z.string().trim().min(1).max(80),
+  batchId: z.string().trim().min(1).max(120).optional().transform((value) => value || undefined),
+});
+
+const waitlistUpdateSchema = z.object({
+  id: z.string().trim().min(1).max(120),
+  status: z.nativeEnum(WaitlistStatus).optional(),
+  priority: z.number().int().min(0).max(100).optional(),
+  notes: z.string().trim().max(3000).nullable().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -132,7 +140,7 @@ export async function POST(request: NextRequest) {
         <p>In the meantime, feel free to reach out if you have questions!</p>
         <p>Namaste,<br>Bali YTTC Team</p>
       `,
-    }).catch(console.error);
+    }).catch((error) => logApiError("waitlist.confirmation-email", error, request));
 
     return jsonWithRequestId({
       success: true,
@@ -160,12 +168,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const { id, status, priority, notes } = body;
-
-    if (!id) {
-      return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
-    }
+    const { id, status, priority, notes } = waitlistUpdateSchema.parse(await request.json());
 
     const updateData: Record<string, unknown> = {};
     if (status) updateData.status = status;
@@ -190,6 +193,9 @@ export async function PATCH(request: NextRequest) {
 
     return jsonWithRequestId({ success: true, waitlist }, undefined, request);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
+    }
     logApiError("waitlist.update", error, request);
     return jsonWithRequestId({ error: "Failed to update waitlist" }, { status: 500 }, request);
   }
