@@ -221,4 +221,18 @@ describe("public enrollment creation", () => {
     expect(mocks.userCreate).not.toHaveBeenCalled();
     expect(mocks.enrollmentCreate).not.toHaveBeenCalled();
   });
+
+  it("logs async notification failures without failing enrollment creation", async () => {
+    mocks.sendEnrollmentConfirmation.mockRejectedValue(new Error("email provider down"));
+    mocks.sendEnrollmentConfirmationWhatsApp.mockRejectedValue(new Error("whatsapp provider down"));
+
+    const response = await POST(request(basePayload));
+    const body = await response.json();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(mocks.logApiError).toHaveBeenCalledWith("enrollments.student-email", expect.any(Error), expect.any(NextRequest));
+    expect(mocks.logApiError).toHaveBeenCalledWith("enrollments.student-whatsapp", expect.any(Error), expect.any(NextRequest));
+  });
 });

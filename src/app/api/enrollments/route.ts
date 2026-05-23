@@ -322,7 +322,7 @@ export async function POST(request: NextRequest) {
         amount: finalAmount,
         currency,
         paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
-      }).catch(console.error);
+      }).catch((error) => logApiError("enrollments.student-email", error, request));
     } else {
       sendEnrollmentConfirmation({
         name: data.name,
@@ -332,7 +332,7 @@ export async function POST(request: NextRequest) {
         amount: finalAmount,
         currency,
         paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
-      }).catch(console.error);
+      }).catch((error) => logApiError("enrollments.student-email", error, request));
     }
 
     // Send admin notification (async, don't wait)
@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
           name: data.name,
           email: data.email,
           course: `${courseName} - ${batchName || "TBD"}`,
-        }).catch(console.error);
+        }).catch((error) => logApiError("enrollments.admin-email", error, request));
       } else {
         sendAdminEnrollmentNotification({
           name: data.name,
@@ -354,7 +354,7 @@ export async function POST(request: NextRequest) {
           amount: finalAmount,
           currency,
           paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
-        }).catch(console.error);
+        }).catch((error) => logApiError("enrollments.admin-email", error, request));
       }
     }
 
@@ -364,7 +364,7 @@ export async function POST(request: NextRequest) {
       phone: data.phone,
       course: courseName,
       batch: batchName,
-    }).catch(console.error);
+    }).catch((error) => logApiError("enrollments.student-whatsapp", error, request));
 
     // Send welcome WhatsApp to admin (async, don't wait)
     if (settings.notifications.whatsappOnEnrollment) {
@@ -372,7 +372,7 @@ export async function POST(request: NextRequest) {
         name: data.name,
         phone: data.phone,
         course: courseName,
-      }).catch(console.error);
+      }).catch((error) => logApiError("enrollments.admin-whatsapp", error, request));
     }
 
     return jsonWithRequestId({
