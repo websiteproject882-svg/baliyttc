@@ -116,7 +116,16 @@ export async function capturePayPalOrder(orderId: string) {
     id: string;
     status: string;
     purchase_units?: Array<{
-      payments?: { captures?: Array<{ id: string; status: string }> };
+      payments?: {
+        captures?: Array<{
+          id: string;
+          status: string;
+          amount?: {
+            currency_code?: string;
+            value?: string;
+          };
+        }>;
+      };
     }>;
   };
 }

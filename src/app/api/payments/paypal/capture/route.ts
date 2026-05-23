@@ -10,6 +10,10 @@ const captureSchema = z.object({
   orderId: z.string(),
 });
 
+function toMinorUnits(value: number) {
+  return Math.round(value * 100);
+}
+
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
@@ -22,7 +26,8 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ success: false, status: capture.status }, { status: 402 }, request);
     }
 
-    const captureId = capture.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+    const capturedPayment = capture.purchase_units?.[0]?.payments?.captures?.[0];
+    const captureId = capturedPayment?.id;
     const payment = await prisma.payment.findFirst({
       where: { paypalOrderId: data.orderId },
       include: { enrollment: true },
@@ -30,6 +35,20 @@ export async function POST(request: NextRequest) {
 
     if (!payment) {
       return jsonWithRequestId({ error: "Payment not found" }, { status: 404 }, request);
+    }
+
+    const capturedAmount = Number(capturedPayment?.amount?.value);
+    const capturedCurrency = capturedPayment?.amount?.currency_code?.toUpperCase();
+    if (
+      Number.isFinite(capturedAmount) &&
+      capturedCurrency &&
+      (capturedCurrency !== payment.currency.toUpperCase() || toMinorUnits(capturedAmount) !== toMinorUnits(payment.amount))
+    ) {
+      return jsonWithRequestId(
+        { error: "Captured PayPal amount does not match the stored payment." },
+        { status: 409 },
+        request,
+      );
     }
 
     await prisma.payment.update({

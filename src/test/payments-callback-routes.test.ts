@@ -50,6 +50,8 @@ vi.mock("@/lib/security", () => ({
 
 const payment = {
   id: "payment_1",
+  amount: 499,
+  currency: "EUR",
   providerPayload: null,
   enrollment: {
     paymentType: "DEPOSIT",
@@ -85,7 +87,13 @@ beforeEach(() => {
   mocks.verifyRazorpayPaymentSignature.mockReturnValue(true);
   mocks.capturePayPalOrder.mockResolvedValue({
     status: "COMPLETED",
-    purchase_units: [{ payments: { captures: [{ id: "capture_123" }] } }],
+    purchase_units: [
+      {
+        payments: {
+          captures: [{ id: "capture_123", amount: { currency_code: "EUR", value: "499.00" } }],
+        },
+      },
+    ],
   });
   mocks.paymentFindFirst.mockResolvedValue(payment);
   mocks.paymentUpdate.mockResolvedValue({ id: "payment_1" });
@@ -189,7 +197,13 @@ describe("payment callback routes", () => {
         paypalCaptureId: "capture_123",
         providerPayload: {
           status: "COMPLETED",
-          purchase_units: [{ payments: { captures: [{ id: "capture_123" }] } }],
+          purchase_units: [
+            {
+              payments: {
+                captures: [{ id: "capture_123", amount: { currency_code: "EUR", value: "499.00" } }],
+              },
+            },
+          ],
         },
       },
     });
@@ -198,9 +212,36 @@ describe("payment callback routes", () => {
       paymentType: "deposit",
       providerPayload: {
         status: "COMPLETED",
-        purchase_units: [{ payments: { captures: [{ id: "capture_123" }] } }],
+        purchase_units: [
+          {
+            payments: {
+              captures: [{ id: "capture_123", amount: { currency_code: "EUR", value: "499.00" } }],
+            },
+          },
+        ],
       },
     });
+  });
+
+  it("rejects PayPal captures when provider amount does not match the local payment", async () => {
+    mocks.capturePayPalOrder.mockResolvedValue({
+      status: "COMPLETED",
+      purchase_units: [
+        {
+          payments: {
+            captures: [{ id: "capture_123", amount: { currency_code: "EUR", value: "1.00" } }],
+          },
+        },
+      ],
+    });
+
+    const response = await capturePayPalPayment(paypalRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("Captured PayPal amount does not match the stored payment.");
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+    expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
   });
 
   it("completes callbacks with stored full payment metadata after a deposit", async () => {
