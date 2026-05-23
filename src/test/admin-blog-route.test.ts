@@ -86,6 +86,18 @@ function request(
   });
 }
 
+function rawRequest(method: "POST" | "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/blog", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_blog",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     title: "Yoga Teacher Training in Bali",
@@ -194,6 +206,18 @@ describe("admin blog route", () => {
     expect(mocks.blogCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed blog create JSON before slug lookup", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_blog");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("updates existing blog posts and writes an audit log", async () => {
     mocks.blogFindUnique.mockResolvedValueOnce(post).mockResolvedValueOnce(null);
 
@@ -228,6 +252,18 @@ describe("admin blog route", () => {
     expect(response?.status).toBe(404);
     expect(body.error).toBe("Post not found");
     expect(mocks.blogUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed blog update JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_blog");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("blocks updates that collide with another slug and locale", async () => {
