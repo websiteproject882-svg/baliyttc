@@ -54,13 +54,43 @@ export async function getCurrentUser(authType?: AuthType): Promise<CurrentUser |
     return null;
   }
 
-  const role: ExpandedAppRole = user.staff?.status === "ACTIVE"
-    ? (user.staff.role as ExpandedAppRole)
-    : (user.role as ExpandedAppRole);
-  const permissions =
-    user.staff?.status === "ACTIVE"
-      ? ((user.staff.permissions as string[] | null) ?? getPermissions(user.staff.role))
-      : [];
+  const sessionAuthType = ((session as { authType?: AuthType }).authType ?? authType ?? "student") as AuthType;
+  const activeStaff = user.staff?.status === "ACTIVE" ? user.staff : null;
+
+  let role: ExpandedAppRole;
+  let permissions: string[] = [];
+  let staffId: string | undefined;
+
+  if (sessionAuthType === "student") {
+    if (activeStaff || user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+      return null;
+    }
+
+    role = user.role as ExpandedAppRole;
+  } else if (sessionAuthType === "admin") {
+    if (activeStaff) {
+      if (activeStaff.role !== "SUPER_ADMIN") {
+        return null;
+      }
+
+      role = activeStaff.role as ExpandedAppRole;
+      permissions = (activeStaff.permissions as string[] | null) ?? getPermissions(activeStaff.role);
+      staffId = activeStaff.id;
+    } else if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+      role = user.role as ExpandedAppRole;
+      permissions = getPermissions(user.role);
+    } else {
+      return null;
+    }
+  } else {
+    if (!activeStaff || activeStaff.role === "SUPER_ADMIN") {
+      return null;
+    }
+
+    role = activeStaff.role as ExpandedAppRole;
+    permissions = (activeStaff.permissions as string[] | null) ?? getPermissions(activeStaff.role);
+    staffId = activeStaff.id;
+  }
 
   return {
     id: user.id,
@@ -68,8 +98,8 @@ export async function getCurrentUser(authType?: AuthType): Promise<CurrentUser |
     displayName: user.displayName,
     role,
     permissions,
-    staffId: user.staff?.id,
-    authType: (session as any).authType || authType || 'student',
+    staffId,
+    authType: sessionAuthType,
   };
 }
 

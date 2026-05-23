@@ -135,8 +135,8 @@ describe("authz route guards", () => {
     const { user, response } = await requireAdminUser();
 
     expect(user).toBeNull();
-    expect(response?.status).toBe(403);
-    expect(await responseJson(response)).toEqual({ error: "Forbidden" });
+    expect(response?.status).toBe(401);
+    expect(await responseJson(response)).toEqual({ error: "Unauthorized" });
   });
 
   it("allows super admins through permission checks", async () => {
@@ -271,8 +271,8 @@ describe("authz route guards", () => {
     const { user, response } = await requirePermission("payments.refund");
 
     expect(user).toBeNull();
-    expect(response?.status).toBe(403);
-    expect(await responseJson(response)).toEqual({ error: "Forbidden" });
+    expect(response?.status).toBe(401);
+    expect(await responseJson(response)).toEqual({ error: "Unauthorized" });
   });
 
   it("allows teacher staff sessions for teacher routes", async () => {
@@ -312,6 +312,74 @@ describe("authz route guards", () => {
     expect(student).toBeNull();
     expect(response?.status).toBe(401);
     expect(mocks.userFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects active staff accounts even when a student cookie exists", async () => {
+    mocks.sessions.student = {
+      userId: "teacher_1",
+      role: "STUDENT",
+      email: "teacher@example.com",
+      authType: "student",
+    };
+    mockUser("STUDENT", {
+      staff: {
+        id: "staff_teacher_1",
+        role: "TEACHER",
+        status: "ACTIVE",
+        permissions: [],
+      },
+    });
+
+    const { user, student, response } = await requireStudentUser();
+
+    expect(user).toBeNull();
+    expect(student).toBeNull();
+    expect(response?.status).toBe(401);
+    expect(mocks.studentFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects inactive staff records from staff routes", async () => {
+    mocks.sessions.staff = {
+      userId: "teacher_1",
+      role: "TEACHER",
+      email: "teacher@example.com",
+      authType: "staff",
+    };
+    mockUser("STAFF", {
+      staff: {
+        id: "staff_teacher_1",
+        role: "TEACHER",
+        status: "INACTIVE",
+        permissions: [],
+      },
+    });
+
+    const { user, response } = await requireStaffUser();
+
+    expect(user).toBeNull();
+    expect(response?.status).toBe(401);
+  });
+
+  it("rejects non-owner staff records from admin sessions", async () => {
+    mocks.sessions.admin = {
+      userId: "seo_1",
+      role: "SUPER_ADMIN",
+      email: "seo@example.com",
+      authType: "admin",
+    };
+    mockUser("STAFF", {
+      staff: {
+        id: "staff_seo_1",
+        role: "SEO_EDITOR",
+        status: "ACTIVE",
+        permissions: ["blog.view"],
+      },
+    });
+
+    const { user, response } = await requireAdminUser();
+
+    expect(user).toBeNull();
+    expect(response?.status).toBe(401);
   });
 
   it("uses paid enrollment batch as the student batch fallback", async () => {
