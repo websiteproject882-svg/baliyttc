@@ -102,8 +102,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { batchId, teacherId, date, dayNumber, activities, ceremonyBlocked, notes } =
-      scheduleBaseSchema.parse(await request.json());
+    const parsed = scheduleBaseSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { batchId, teacherId, date, dayNumber, activities, ceremonyBlocked, notes } = parsed.data;
 
     const schedule = await prisma.scheduleEntry.create({
       data: {
@@ -155,7 +159,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const { id, ...data } = scheduleUpdateSchema.parse(await request.json());
+    const parsed = scheduleUpdateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, ...data } = parsed.data;
 
     const existing = await prisma.scheduleEntry.findUnique({
       where: { id },

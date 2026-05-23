@@ -75,6 +75,19 @@ function request(method: "GET" | "POST" | "PATCH" | "DELETE", body?: unknown, ur
   });
 }
 
+function rawRequest(method: "POST" | "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/teacher/schedule", {
+    method,
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+      "x-request-id": "req_teacher_schedule",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireAuthenticatedUser.mockResolvedValue({ user: teacher, response: null });
@@ -156,6 +169,18 @@ describe("teacher schedule route", () => {
     expect(mocks.scheduleCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed create JSON before writing", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_teacher_schedule");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.scheduleCreate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("updates existing schedule entries", async () => {
     const response = await PATCH(request("PATCH", {
       id: "schedule_1",
@@ -170,6 +195,18 @@ describe("teacher schedule route", () => {
       data: expect.objectContaining({ notes: "Updated" }),
     });
     expect(mocks.writeAuditLog).toHaveBeenCalledWith(expect.objectContaining({ action: "schedule.updated" }));
+  });
+
+  it("rejects malformed update JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_teacher_schedule");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.scheduleFindUnique).not.toHaveBeenCalled();
+    expect(mocks.scheduleUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("deletes existing schedule entries", async () => {
