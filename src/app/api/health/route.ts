@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/authz";
 import { validateRuntimeEnv } from "@/lib/env-validation";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
@@ -32,6 +33,8 @@ function alternativeProviderStatus(groups: string[][]) {
 export async function GET(request: NextRequest) {
   const startedAt = Date.now();
   const env = validateRuntimeEnv();
+  const adminUser = await getCurrentUser("admin").catch(() => null);
+  const canSeeDiagnostics = adminUser?.role === "SUPER_ADMIN";
   let database: "ok" | "error" = "ok";
 
   try {
@@ -43,11 +46,16 @@ export async function GET(request: NextRequest) {
 
   const healthy = database === "ok" && env.ok;
 
+  const baseResponse = {
+    status: healthy ? "ok" : "degraded",
+    timestamp: new Date().toISOString(),
+    durationMs: Date.now() - startedAt,
+  };
+
   return jsonWithRequestId(
-    {
-      status: healthy ? "ok" : "degraded",
-      timestamp: new Date().toISOString(),
-      durationMs: Date.now() - startedAt,
+    canSeeDiagnostics
+      ? {
+          ...baseResponse,
       runtime: {
         nodeEnv: process.env.NODE_ENV || "development",
         commit: process.env.VERCEL_GIT_COMMIT_SHA || process.env.RAILWAY_GIT_COMMIT_SHA || null,
@@ -65,7 +73,8 @@ export async function GET(request: NextRequest) {
       ),
       warnings: env.warnings,
       errors: env.errors,
-    },
+        }
+      : baseResponse,
     { status: healthy ? 200 : 503 },
     request,
   );
