@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   paymentUpdate: vi.fn(),
   paymentCreate: vi.fn(),
   resolveStoredEnrollmentAmount: vi.fn(),
+  resolveEnrollmentPricing: vi.fn(),
   createPayPalOrder: vi.fn(),
   isPayPalConfigured: vi.fn(),
   razorpayOrdersCreate: vi.fn(),
@@ -33,6 +34,7 @@ vi.mock("@/lib/site-settings", () => ({
 }));
 
 vi.mock("@/lib/payments/enrollment-pricing", () => ({
+  resolveEnrollmentPricing: mocks.resolveEnrollmentPricing,
   resolveStoredEnrollmentAmount: mocks.resolveStoredEnrollmentAmount,
 }));
 
@@ -95,6 +97,9 @@ const storedEnrollment = {
   paymentType: "DEPOSIT",
   paymentStatus: "PENDING",
   courseSlug: "200-hour-yttc",
+  batchId: "batch_1",
+  accommodation: "SHARED",
+  couponCode: null,
   name: "Stored Student",
   email: "stored@example.com",
   phone: "+911234567890",
@@ -122,6 +127,11 @@ beforeEach(() => {
   mocks.rateLimit.mockReturnValue({ allowed: true, remaining: 11, resetAt: Date.now() + 60_000 });
   mocks.getSiteSettings.mockResolvedValue({ payments: paymentSettings });
   mocks.resolveStoredEnrollmentAmount.mockResolvedValue(storedEnrollment);
+  mocks.resolveEnrollmentPricing.mockResolvedValue({
+    totalAmount: 1499,
+    depositAmount: 499,
+    remainingAmount: 1000,
+  });
   mocks.paymentFindFirst.mockResolvedValue(null);
   mocks.getBankTransferInstructions.mockReturnValue({
     accountName: "Bali YTTC",
@@ -184,6 +194,43 @@ describe("payment create route", () => {
     expect(body.error).toBe("This enrollment is already fully paid");
     expect(mocks.createPayPalOrder).not.toHaveBeenCalled();
     expect(mocks.paymentCreate).not.toHaveBeenCalled();
+  });
+
+  it("allows full remaining balance payments after a paid deposit", async () => {
+    mocks.resolveStoredEnrollmentAmount.mockResolvedValue({
+      ...storedEnrollment,
+      paymentStatus: "DEPOSIT_PAID",
+    });
+
+    const response = await POST(createRequest({ provider: "paypal", paymentType: "full" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.resolveEnrollmentPricing).toHaveBeenCalledWith({
+      courseSlug: "200-hour-yttc",
+      batchId: "batch_1",
+      accommodation: "SHARED",
+      couponCode: null,
+      email: "stored@example.com",
+    });
+    expect(mocks.createPayPalOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 1000,
+        currency: "EUR",
+        paymentType: "full",
+      }),
+    );
+    expect(mocks.paymentCreate).toHaveBeenCalledWith({
+      data: {
+        enrollmentId: "enrollment_1",
+        amount: 1000,
+        currency: "EUR",
+        paypalOrderId: "paypal_order_123",
+        method: "PAYPAL",
+        status: "PENDING",
+      },
+    });
+    expect(body).toEqual(expect.objectContaining({ success: true, provider: "paypal" }));
   });
 
   it("reuses a pending bank transfer payment and ignores client supplied amount", async () => {

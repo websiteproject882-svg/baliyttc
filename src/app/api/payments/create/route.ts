@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { toMinorUnits } from "@/lib/payments/pricing";
 import { createPayPalOrder, isPayPalConfigured } from "@/lib/payments/paypal";
 import { getRazorpayClient, getRazorpayKeyId, isRazorpayConfigured } from "@/lib/payments/razorpay";
-import { resolveStoredEnrollmentAmount } from "@/lib/payments/enrollment-pricing";
+import { resolveEnrollmentPricing, resolveStoredEnrollmentAmount } from "@/lib/payments/enrollment-pricing";
 import { getBankTransferInstructions } from "@/lib/payments/bank-transfer";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = paymentCreateSchema.parse(body);
     const storedEnrollment = await resolveStoredEnrollmentAmount(data.enrollmentId);
-    const amount = storedEnrollment.amount;
+    let amount = storedEnrollment.amount;
     const currency = storedEnrollment.currency.toUpperCase();
-    const paymentType = storedEnrollment.paymentType.toLowerCase();
+    let paymentType = storedEnrollment.paymentType.toLowerCase();
     const settings = await getSiteSettings();
 
     if (storedEnrollment.paymentStatus === "FULL_PAID") {
@@ -58,12 +58,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (storedEnrollment.paymentStatus === "DEPOSIT_PAID" && paymentType === "deposit") {
+    if (storedEnrollment.paymentStatus === "DEPOSIT_PAID" && data.paymentType !== "full") {
       return jsonWithRequestId(
         { error: "Deposit has already been paid for this enrollment" },
         { status: 409 },
         request,
       );
+    }
+
+    if (storedEnrollment.paymentStatus === "DEPOSIT_PAID" && data.paymentType === "full") {
+      const pricing = await resolveEnrollmentPricing({
+        courseSlug: storedEnrollment.courseSlug,
+        batchId: storedEnrollment.batchId,
+        accommodation: storedEnrollment.accommodation,
+        couponCode: storedEnrollment.couponCode,
+        email: storedEnrollment.email,
+      });
+      amount = Math.max(pricing.totalAmount - storedEnrollment.amount, 0);
+      paymentType = "full";
+
+      if (amount <= 0) {
+        return jsonWithRequestId(
+          { error: "No remaining balance is due for this enrollment" },
+          { status: 409 },
+          request,
+        );
+      }
     }
 
     if (paymentType === "deposit" && !settings.payments.depositEnabled) {
