@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { StaffRole, StaffStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { TEACHERS as STATIC_TEACHERS } from "@/data/site";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,7 +12,7 @@ const slugify = (value: string) =>
 
 const staticBySlug = new Map(STATIC_TEACHERS.map((teacher) => [slugify(teacher.name), teacher]));
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const [teachers, staffTeachers] = await Promise.all([
       prisma.teacher.findMany({
@@ -27,7 +28,6 @@ export async function GET() {
           user: {
             select: {
               displayName: true,
-              email: true,
             },
           },
         },
@@ -79,12 +79,12 @@ export async function GET() {
       ];
     });
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       teachers: [...mappedTeachers, ...staffBackedTeachers],
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET teachers error:", error);
-    return NextResponse.json({
+    logApiError("teachers.public", error, request);
+    return jsonWithRequestId({
       teachers: STATIC_TEACHERS.map((teacher, index) => ({
         id: `static-teacher-${index + 1}`,
         name: teacher.name,
@@ -97,6 +97,6 @@ export async function GET() {
         isActive: true,
       })),
       fallback: true,
-    });
+    }, undefined, request);
   }
 }

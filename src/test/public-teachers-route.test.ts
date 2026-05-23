@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 import { GET } from "../app/api/teachers/route";
 
 const mocks = vi.hoisted(() => ({
   teacherFindMany: vi.fn(),
   staffFindMany: vi.fn(),
+  logApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -29,6 +31,21 @@ vi.mock("@/data/site", () => ({
     },
   ],
 }));
+
+vi.mock("@/lib/security", () => ({
+  jsonWithRequestId: (body: unknown, init: ResponseInit | undefined, request: NextRequest) => {
+    const response = Response.json(body, init);
+    response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
+    return response;
+  },
+  logApiError: mocks.logApiError,
+}));
+
+function request() {
+  return new NextRequest("https://example.com/api/teachers", {
+    headers: { "x-request-id": "req_public_teachers" },
+  });
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -62,10 +79,11 @@ describe("public teachers route", () => {
       },
     ]);
 
-    const response = await GET();
+    const response = await GET(request());
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("X-Request-Id")).toBe("req_public_teachers");
     expect(mocks.staffFindMany).toHaveBeenCalledWith({
       where: {
         role: "TEACHER",
@@ -75,7 +93,6 @@ describe("public teachers route", () => {
         user: {
           select: {
             displayName: true,
-            email: true,
           },
         },
       },
@@ -126,10 +143,29 @@ describe("public teachers route", () => {
       },
     ]);
 
-    const response = await GET();
+    const response = await GET(request());
     const body = await response.json();
 
     expect(body.teachers).toHaveLength(1);
     expect(body.teachers[0]).toEqual(expect.objectContaining({ id: "teacher_1", slug: "admin-teacher" }));
+  });
+
+  it("falls back to static teachers when the database fails", async () => {
+    mocks.teacherFindMany.mockRejectedValue(new Error("database down"));
+    mocks.staffFindMany.mockResolvedValue([]);
+
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.fallback).toBe(true);
+    expect(body.teachers).toEqual([
+      expect.objectContaining({
+        id: "static-teacher-1",
+        name: "Static Teacher",
+        slug: "static-teacher",
+      }),
+    ]);
+    expect(mocks.logApiError).toHaveBeenCalledWith("teachers.public", expect.any(Error), expect.any(NextRequest));
   });
 });
