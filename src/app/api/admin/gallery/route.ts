@@ -40,7 +40,12 @@ export async function POST(request: NextRequest) {
   if (response) return response;
 
   try {
-    const { url, alt, caption, type, status } = galleryImageSchema.parse(await request.json());
+    const parsed = galleryImageSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { url, alt, caption, type, status } = parsed.data;
 
     const image = await prisma.galleryImage.create({
       data: {
@@ -79,7 +84,12 @@ export async function PATCH(request: NextRequest) {
   if (response) return response;
 
   try {
-    const { id, url, alt, caption, type, status, order } = galleryImageUpdateSchema.parse(await request.json());
+    const parsed = galleryImageUpdateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, url, alt, caption, type, status, order } = parsed.data;
 
     const existing = await prisma.galleryImage.findUnique({ where: { id } });
     if (!existing) {
