@@ -72,6 +72,8 @@ export const siteSettingsSchema = z.object({
     logoUrl: z.string().url().or(z.literal("")),
     courseManualUrl: z.string().url().or(z.literal("")),
     certificateTemplateUrl: z.string().url().or(z.literal("")),
+    mapsEmbedUrl: z.string().url().or(z.literal("")),
+    mapsLinkUrl: z.string().url().or(z.literal("")),
   }),
 });
 
@@ -114,6 +116,8 @@ export const defaultSiteSettings: SiteSettings = {
     logoUrl: "",
     courseManualUrl: "",
     certificateTemplateUrl: "",
+    mapsEmbedUrl: "",
+    mapsLinkUrl: "",
   },
 };
 

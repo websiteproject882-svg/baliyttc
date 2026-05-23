@@ -1,5 +1,4 @@
 "use client";
-import { SITE } from "@/data/site";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/shared/Reveal";
 import { MapPin, Phone, Mail, ExternalLink } from "lucide-react";
@@ -22,7 +21,7 @@ export const LocationMap = () => {
           <div className="rounded-lg overflow-hidden shadow-elev-md aspect-[16/10] border border-warm-dark/10 bg-warm-dark">
             <iframe
               title="Bali YTTC location"
-              src={SITE.mapsEmbed}
+              src={siteSettings.mapsEmbedUrl}
               width="100%" height="100%" loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="w-full h-full"
@@ -56,7 +55,7 @@ export const LocationMap = () => {
               </div>
             </div>
             <a
-              href={SITE.mapsLink} target="_blank" rel="noopener"
+              href={siteSettings.mapsLinkUrl} target="_blank" rel="noopener"
               className="mt-8 inline-flex items-center justify-center gap-2 bg-warm-dark text-cream py-3 rounded-md hover:bg-warm-mid transition-colors text-sm font-medium"
             >
               Get directions <ExternalLink className="w-4 h-4" />

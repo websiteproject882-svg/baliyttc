@@ -20,6 +20,8 @@ export type PublicSiteSettings = {
     logoUrl: string;
     courseManualUrl: string;
     certificateTemplateUrl: string;
+    mapsEmbedUrl: string;
+    mapsLinkUrl: string;
   };
 };
 
@@ -40,6 +42,8 @@ export const fallbackPublicSiteSettings: PublicSiteSettings = {
     logoUrl: "",
     courseManualUrl: "",
     certificateTemplateUrl: "",
+    mapsEmbedUrl: "",
+    mapsLinkUrl: "",
   },
 };
 
@@ -80,6 +84,8 @@ export function usePublicSiteSettings() {
     () => ({
       ...settings,
       logoUrl: settings.assets.logoUrl || "/images/brand/logo-512.png",
+      mapsEmbedUrl: settings.assets.mapsEmbedUrl || SITE.mapsEmbed,
+      mapsLinkUrl: settings.assets.mapsLinkUrl || SITE.mapsLink,
       whatsappNumber: getWhatsAppNumber(settings.general.phone),
     }),
     [settings],

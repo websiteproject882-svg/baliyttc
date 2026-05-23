@@ -46,6 +46,8 @@ type SiteSettings = {
     logoUrl: string;
     courseManualUrl: string;
     certificateTemplateUrl: string;
+    mapsEmbedUrl: string;
+    mapsLinkUrl: string;
   };
 };
 
@@ -369,6 +371,8 @@ export default function SettingsPage() {
                   <Field label="Logo URL" value={settings.assets.logoUrl} onChange={(logoUrl) => update("assets", { logoUrl })} placeholder="https://..." />
                   <Field label="Course Manual PDF URL" value={settings.assets.courseManualUrl} onChange={(courseManualUrl) => update("assets", { courseManualUrl })} placeholder="https://..." />
                   <Field label="Certificate Template URL" value={settings.assets.certificateTemplateUrl} onChange={(certificateTemplateUrl) => update("assets", { certificateTemplateUrl })} placeholder="https://..." />
+                  <Field label="Google Maps Embed URL" value={settings.assets.mapsEmbedUrl} onChange={(mapsEmbedUrl) => update("assets", { mapsEmbedUrl })} placeholder="https://www.google.com/maps?..." />
+                  <Field label="Google Maps Directions URL" value={settings.assets.mapsLinkUrl} onChange={(mapsLinkUrl) => update("assets", { mapsLinkUrl })} placeholder="https://maps.app.goo.gl/..." />
                   <Field label="Google Review URL" value={settings.reviews.googleReviewUrl} onChange={(googleReviewUrl) => update("reviews", { googleReviewUrl })} placeholder="https://..." />
                   <Field label="TripAdvisor Review URL" value={settings.reviews.tripadvisorReviewUrl} onChange={(tripadvisorReviewUrl) => update("reviews", { tripadvisorReviewUrl })} placeholder="https://..." />
                 </div>
