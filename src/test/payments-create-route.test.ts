@@ -93,6 +93,7 @@ const storedEnrollment = {
   amount: 499,
   currency: "EUR",
   paymentType: "DEPOSIT",
+  paymentStatus: "PENDING",
   courseSlug: "200-hour-yttc",
   name: "Stored Student",
   email: "stored@example.com",
@@ -152,6 +153,37 @@ describe("payment create route", () => {
     expect(mocks.razorpayOrdersCreate).not.toHaveBeenCalled();
     expect(mocks.paymentCreate).not.toHaveBeenCalled();
     expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+  });
+
+  it("blocks duplicate deposit payment attempts for already paid deposits", async () => {
+    mocks.resolveStoredEnrollmentAmount.mockResolvedValue({
+      ...storedEnrollment,
+      paymentStatus: "DEPOSIT_PAID",
+    });
+
+    const response = await POST(createRequest({ provider: "razorpay" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("Deposit has already been paid for this enrollment");
+    expect(mocks.razorpayOrdersCreate).not.toHaveBeenCalled();
+    expect(mocks.paymentCreate).not.toHaveBeenCalled();
+  });
+
+  it("blocks new payment attempts for fully paid enrollments", async () => {
+    mocks.resolveStoredEnrollmentAmount.mockResolvedValue({
+      ...storedEnrollment,
+      paymentType: "FULL",
+      paymentStatus: "FULL_PAID",
+    });
+
+    const response = await POST(createRequest({ provider: "paypal", paymentType: "full" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("This enrollment is already fully paid");
+    expect(mocks.createPayPalOrder).not.toHaveBeenCalled();
+    expect(mocks.paymentCreate).not.toHaveBeenCalled();
   });
 
   it("reuses a pending bank transfer payment and ignores client supplied amount", async () => {

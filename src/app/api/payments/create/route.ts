@@ -50,6 +50,22 @@ export async function POST(request: NextRequest) {
     const paymentType = storedEnrollment.paymentType.toLowerCase();
     const settings = await getSiteSettings();
 
+    if (storedEnrollment.paymentStatus === "FULL_PAID") {
+      return jsonWithRequestId(
+        { error: "This enrollment is already fully paid" },
+        { status: 409 },
+        request,
+      );
+    }
+
+    if (storedEnrollment.paymentStatus === "DEPOSIT_PAID" && paymentType === "deposit") {
+      return jsonWithRequestId(
+        { error: "Deposit has already been paid for this enrollment" },
+        { status: 409 },
+        request,
+      );
+    }
+
     if (paymentType === "deposit" && !settings.payments.depositEnabled) {
       return jsonWithRequestId(
         { error: "Deposit payments are currently disabled" },

@@ -151,6 +151,7 @@ export async function resolveStoredEnrollmentAmount(enrollmentId: string) {
       amount: true,
       currency: true,
       paymentType: true,
+      paymentStatus: true,
       courseSlug: true,
       name: true,
       email: true,
