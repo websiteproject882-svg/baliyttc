@@ -59,6 +59,8 @@ function webhookRequest(provider: "razorpay" | "paypal", body: unknown, headers:
 const pendingPayment = {
   id: "payment_1",
   enrollmentId: "enrollment_1",
+  amount: 499,
+  currency: "EUR",
   providerPayload: null,
   enrollment: {
     paymentType: "DEPOSIT",
@@ -122,6 +124,9 @@ describe("payment webhook route", () => {
           entity: {
             id: "pay_123",
             order_id: "order_123",
+            status: "captured",
+            amount: 49900,
+            currency: "EUR",
             notes: { paymentType: "deposit" },
           },
         },
@@ -191,7 +196,15 @@ describe("payment webhook route", () => {
         purchase_units: [
           {
             custom_id: "enrollment_1",
-            payments: { captures: [{ id: "capture_123", status: "COMPLETED" }] },
+            payments: {
+              captures: [
+                {
+                  id: "capture_123",
+                  status: "COMPLETED",
+                  amount: { value: "499.00", currency_code: "EUR" },
+                },
+              ],
+            },
           },
         ],
       },
@@ -240,7 +253,15 @@ describe("payment webhook route", () => {
         purchase_units: [
           {
             custom_id: "enrollment_1",
-            payments: { captures: [{ id: "capture_full", status: "COMPLETED" }] },
+            payments: {
+              captures: [
+                {
+                  id: "capture_full",
+                  status: "COMPLETED",
+                  amount: { value: "499.00", currency_code: "EUR" },
+                },
+              ],
+            },
           },
         ],
       },
@@ -258,5 +279,61 @@ describe("payment webhook route", () => {
         paymentType: "full",
       }),
     );
+  });
+
+  it("rejects Razorpay captured webhooks when provider amount does not match the stored payment", async () => {
+    const event = {
+      id: "evt_wrong_amount",
+      event: "payment.captured",
+      payload: {
+        payment: {
+          entity: {
+            id: "pay_123",
+            order_id: "order_123",
+            status: "captured",
+            amount: 100,
+            currency: "EUR",
+          },
+        },
+      },
+    };
+    mocks.paymentFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(pendingPayment);
+
+    const response = await POST(webhookRequest("razorpay", event, { "x-razorpay-signature": "valid_signature" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("Razorpay webhook payment does not match the stored payment.");
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+    expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
+  });
+
+  it("rejects PayPal completed webhooks when provider amount is missing", async () => {
+    const event = {
+      id: "WH-missing-amount",
+      event_type: "PAYMENT.CAPTURE.COMPLETED",
+      resource: {
+        id: "paypal_order_123",
+        purchase_units: [
+          {
+            custom_id: "enrollment_1",
+            payments: { captures: [{ id: "capture_123", status: "COMPLETED" }] },
+          },
+        ],
+      },
+    };
+    mocks.paymentFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(pendingPayment);
+
+    const response = await POST(webhookRequest("paypal", event));
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("PayPal webhook capture does not match the stored payment.");
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+    expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
   });
 });

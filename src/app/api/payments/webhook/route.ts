@@ -13,11 +13,45 @@ type RazorpayWebhookEvent = {
       entity?: {
         id?: string;
         order_id?: string;
+        status?: string;
+        amount?: number;
+        currency?: string;
         notes?: { paymentType?: string };
       };
     };
   };
 };
+
+type StoredPaymentForWebhook = {
+  amount: number;
+  currency: string;
+};
+
+function toMinorUnits(value: number) {
+  return Math.round(value * 100);
+}
+
+function providerMinorAmountMatches(payment: StoredPaymentForWebhook, amount: unknown, currency: unknown) {
+  const providerAmount = typeof amount === "number" ? amount : Number(amount);
+  const providerCurrency = typeof currency === "string" ? currency.toUpperCase() : "";
+
+  return (
+    Number.isFinite(providerAmount) &&
+    providerCurrency === payment.currency.toUpperCase() &&
+    providerAmount === toMinorUnits(payment.amount)
+  );
+}
+
+function providerMajorAmountMatches(payment: StoredPaymentForWebhook, amount: unknown, currency: unknown) {
+  const providerAmount = typeof amount === "number" ? amount : Number(amount);
+  const providerCurrency = typeof currency === "string" ? currency.toUpperCase() : "";
+
+  return (
+    Number.isFinite(providerAmount) &&
+    providerCurrency === payment.currency.toUpperCase() &&
+    toMinorUnits(providerAmount) === toMinorUnits(payment.amount)
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +67,13 @@ export async function POST(request: NextRequest) {
           status?: string;
           purchase_units?: Array<{
             custom_id?: string;
-            payments?: { captures?: Array<{ id?: string; status?: string }> };
+            payments?: {
+              captures?: Array<{
+                id?: string;
+                status?: string;
+                amount?: { value?: string; currency_code?: string };
+              }>;
+            };
           }>;
         };
       };
@@ -58,7 +98,8 @@ export async function POST(request: NextRequest) {
 
       if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
         const paypalOrderId = event.resource?.id;
-        const captureId = event.resource?.purchase_units?.[0]?.payments?.captures?.[0]?.id || event.resource?.id;
+        const capturedPayment = event.resource?.purchase_units?.[0]?.payments?.captures?.[0];
+        const captureId = capturedPayment?.id || event.resource?.id;
         const payment = await prisma.payment.findFirst({
           where: {
             OR: [
@@ -73,6 +114,17 @@ export async function POST(request: NextRequest) {
         });
 
         if (payment) {
+          if (
+            capturedPayment?.status !== "COMPLETED" ||
+            !providerMajorAmountMatches(payment, capturedPayment.amount?.value, capturedPayment.amount?.currency_code)
+          ) {
+            return jsonWithRequestId(
+              { error: "PayPal webhook capture does not match the stored payment." },
+              { status: 409 },
+              request,
+            );
+          }
+
           await prisma.payment.update({
             where: { id: payment.id },
             data: {
@@ -120,6 +172,17 @@ export async function POST(request: NextRequest) {
       });
 
       if (payment) {
+        if (
+          paymentEntity.status !== "captured" ||
+          !providerMinorAmountMatches(payment, paymentEntity.amount, paymentEntity.currency)
+        ) {
+          return jsonWithRequestId(
+            { error: "Razorpay webhook payment does not match the stored payment." },
+            { status: 409 },
+            request,
+          );
+        }
+
         await prisma.payment.update({
           where: { id: payment.id },
           data: {
