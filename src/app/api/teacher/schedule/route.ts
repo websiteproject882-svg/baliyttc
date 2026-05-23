@@ -1,21 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { currentUserHasPermission, requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const scheduleBaseSchema = z.object({
-  batchId: z.string().min(1),
-  teacherId: z.string().min(1).nullable().optional(),
+  batchId: z.string().trim().min(1).max(120),
+  teacherId: z.string().trim().min(1).max(120).nullable().optional(),
   date: z.string().datetime(),
   dayNumber: z.number().int().min(0),
-  activities: z.array(z.unknown()).default([]),
+  activities: z.array(z.unknown()).max(50).default([]),
   ceremonyBlocked: z.boolean().default(false),
-  notes: z.string().max(2000).nullable().optional(),
+  notes: z.string().trim().max(2000).nullable().optional(),
 });
 
 const scheduleUpdateSchema = scheduleBaseSchema.partial().extend({
-  id: z.string().min(1),
+  id: z.string().trim().min(1).max(120),
+});
+
+const scheduleQuerySchema = z.object({
+  batchId: z.string().trim().min(1).max(120).optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -25,22 +32,25 @@ export async function GET(request: NextRequest) {
   }
 
   if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.view")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
   }
 
   try {
     const { searchParams } = new URL(request.url);
-    const batchId = searchParams.get("batchId");
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
+    const { batchId, startDate, endDate } = scheduleQuerySchema.parse({
+      batchId: searchParams.get("batchId") || undefined,
+      startDate: searchParams.get("startDate") || undefined,
+      endDate: searchParams.get("endDate") || undefined,
+    });
 
     const where: Record<string, unknown> = {};
 
     if (batchId) where.batchId = batchId;
     if (startDate || endDate) {
-      where.date = {};
-      if (startDate) (where.date as any).gte = new Date(startDate);
-      if (endDate) (where.date as any).lte = new Date(endDate);
+      const dateFilter: { gte?: Date; lte?: Date } = {};
+      if (startDate) dateFilter.gte = new Date(startDate);
+      if (endDate) dateFilter.lte = new Date(endDate);
+      where.date = dateFilter;
     }
 
     const schedule = await prisma.scheduleEntry.findMany({
@@ -66,10 +76,13 @@ export async function GET(request: NextRequest) {
       orderBy: { date: "asc" },
     });
 
-    return NextResponse.json({ schedule });
+    return jsonWithRequestId({ schedule }, undefined, request);
   } catch (error) {
-    console.error("GET schedule error:", error);
-    return NextResponse.json({ error: "Failed to fetch schedule" }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
+    }
+    logApiError("teacher.schedule.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch schedule" }, { status: 500 }, request);
   }
 }
 
@@ -85,7 +98,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.create")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
   }
 
   try {
@@ -116,13 +129,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, schedule });
+    return jsonWithRequestId({ success: true, schedule }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST schedule error:", error);
-    return NextResponse.json({ error: "Failed to create schedule entry" }, { status: 500 });
+    logApiError("teacher.schedule.create", error, request);
+    return jsonWithRequestId({ error: "Failed to create schedule entry" }, { status: 500 }, request);
   }
 }
 
@@ -138,7 +151,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.edit")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
   }
 
   try {
@@ -149,7 +162,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Schedule entry not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Schedule entry not found" }, { status: 404 }, request);
     }
 
     const schedule = await prisma.scheduleEntry.update({
@@ -175,13 +188,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, schedule });
+    return jsonWithRequestId({ success: true, schedule }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH schedule error:", error);
-    return NextResponse.json({ error: "Failed to update schedule entry" }, { status: 500 });
+    logApiError("teacher.schedule.update", error, request);
+    return jsonWithRequestId({ error: "Failed to update schedule entry" }, { status: 500 }, request);
   }
 }
 
@@ -197,7 +210,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.edit")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
   }
 
   try {
@@ -205,7 +218,11 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+      return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
+    }
+
+    if (id.length > 120) {
+      return jsonWithRequestId({ error: "Invalid id" }, { status: 400 }, request);
     }
 
     const existing = await prisma.scheduleEntry.findUnique({
@@ -213,7 +230,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Schedule entry not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Schedule entry not found" }, { status: 404 }, request);
     }
 
     await prisma.scheduleEntry.delete({ where: { id } });
@@ -227,9 +244,9 @@ export async function DELETE(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error("DELETE schedule error:", error);
-    return NextResponse.json({ error: "Failed to delete schedule entry" }, { status: 500 });
+    logApiError("teacher.schedule.delete", error, request);
+    return jsonWithRequestId({ error: "Failed to delete schedule entry" }, { status: 500 }, request);
   }
 }
