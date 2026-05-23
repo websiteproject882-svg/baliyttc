@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, requireSameOrigin } from "@/lib/authz";
+import { requirePermission, requireSameOrigin } from "@/lib/authz";
 import { sendEnrollmentConfirmationEmail, sendAdminNotificationEmail, isGmailConfigured } from "@/lib/gmail-smtp";
 import { sendEnrollmentConfirmation, sendAdminEnrollmentNotification } from "@/lib/resend";
 import { sendEnrollmentConfirmationWhatsApp, sendWelcomeWhatsApp } from "@/lib/whatsapp";
@@ -26,7 +26,7 @@ const enrollmentSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminUser();
+  const { response } = await requirePermission("enrollments.view");
   if (response) {
     return response;
   }
