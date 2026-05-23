@@ -4,17 +4,29 @@ import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+const optionalTrimmedText = (max: number) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) return value;
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }, z.string().max(max).nullable().optional());
+
 const galleryImageSchema = z.object({
-  url: z.string().url(),
-  alt: z.string().max(300).optional(),
-  caption: z.string().max(500).nullable().optional(),
+  url: z.string().trim().url().max(2048),
+  alt: z.string().trim().max(300).optional(),
+  caption: optionalTrimmedText(500),
   type: z.enum(["PROFESSIONAL", "STUDENT"]).default("PROFESSIONAL"),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "ACTIVE"]).default("ACTIVE"),
 });
 
 const galleryImageUpdateSchema = galleryImageSchema.partial().extend({
-  id: z.string().min(1),
+  id: z.string().trim().min(1).max(120),
   order: z.coerce.number().int().min(0).optional(),
+});
+
+const deleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
 });
 
 export async function GET(request: NextRequest) {
@@ -137,11 +149,11 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
+    const parsedQuery = deleteQuerySchema.safeParse({ id: searchParams.get("id") });
+    if (!parsedQuery.success) {
       return jsonWithRequestId({ error: "Gallery image id is required" }, { status: 400 }, request);
     }
+    const { id } = parsedQuery.data;
 
     const existing = await prisma.galleryImage.findUnique({ where: { id } });
     if (!existing) {

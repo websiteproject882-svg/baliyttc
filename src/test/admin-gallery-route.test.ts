@@ -223,6 +223,16 @@ describe("admin gallery route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized gallery update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", { id: "x".repeat(121), order: 1 }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.galleryFindUnique).not.toHaveBeenCalled();
+    expect(mocks.galleryUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes gallery images and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/gallery?id=gallery_1"));
     const body = await response?.json();
@@ -246,6 +256,16 @@ describe("admin gallery route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Gallery image id is required");
+  });
+
+  it("rejects oversized gallery delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/admin/gallery?id=${"x".repeat(121)}`));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Gallery image id is required");
+    expect(mocks.galleryFindUnique).not.toHaveBeenCalled();
+    expect(mocks.galleryDelete).not.toHaveBeenCalled();
   });
 
   it("returns 404 when deleting a missing gallery image", async () => {
