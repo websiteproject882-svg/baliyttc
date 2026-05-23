@@ -4,6 +4,7 @@ import { applySecurityHeaders } from '@/lib/security';
 import { verifySessionToken } from '@/lib/session-edge';
 import { isSessionAllowedForAuthType } from '@/lib/session-access';
 import { defaultLocale, locales } from '@/i18n/routing';
+import { getProtectedRouteRequirement } from '@/lib/route-protection';
 
 const ADMIN_PANEL_SESSION_ROLES = new Set([
   "SUPER_ADMIN",
@@ -81,20 +82,19 @@ async function requireAdminPanelSession(request: NextRequest, locale: string) {
 
 export default async function middleware(request: NextRequest) {
   const { locale, pathWithoutLocale } = getLocalizedPath(request.nextUrl.pathname);
-  const isAdminLogin = pathWithoutLocale === '/admin/login';
-  const isStaffLogin = pathWithoutLocale === '/staff/login';
+  const routeRequirement = getProtectedRouteRequirement(pathWithoutLocale);
 
-  if (pathWithoutLocale.startsWith('/admin') && !isAdminLogin) {
+  if (routeRequirement === 'admin-panel') {
     const response = await requireAdminPanelSession(request, locale);
     if (response) return applySecurityHeaders(response);
   }
 
-  if (pathWithoutLocale.startsWith('/staff') && !isStaffLogin) {
+  if (routeRequirement === 'staff') {
     const response = await requireSession(request, 'staff_session', 'staff', locale);
     if (response) return applySecurityHeaders(response);
   }
 
-  if (pathWithoutLocale.startsWith('/app')) {
+  if (routeRequirement === 'student') {
     const response = await requireSession(request, 'student_session', 'student', locale);
     if (response) return applySecurityHeaders(response);
   }
