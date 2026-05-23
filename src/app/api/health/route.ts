@@ -5,6 +5,7 @@ import { validateRuntimeEnv } from "@/lib/env-validation";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+const noStoreHeaders = { "Cache-Control": "no-store" };
 
 const providerKeys = {
   razorpay: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET"],
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
       errors: env.errors,
         }
       : baseResponse,
-    { status: healthy ? 200 : 503 },
+    { status: healthy ? 200 : 503, headers: noStoreHeaders },
     request,
   );
 }
