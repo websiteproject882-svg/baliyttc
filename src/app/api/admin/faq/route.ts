@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -35,10 +36,10 @@ export async function GET(request: NextRequest) {
       orderBy: [{ locale: "asc" }, { category: "asc" }, { order: "asc" }, { createdAt: "desc" }],
     });
 
-    return NextResponse.json({ faqs });
+    return jsonWithRequestId({ faqs }, undefined, request);
   } catch (error) {
-    console.error("GET admin FAQ error:", error);
-    return NextResponse.json({ error: "Failed to fetch FAQs" }, { status: 500 });
+    logApiError("admin.faq.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch FAQs" }, { status: 500 }, request);
   }
 }
 
@@ -73,13 +74,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, faq });
+    return jsonWithRequestId({ success: true, faq }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST admin FAQ error:", error);
-    return NextResponse.json({ error: "Failed to create FAQ" }, { status: 500 });
+    logApiError("admin.faq.create", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to create FAQ" }, { status: 500 }, request);
   }
 }
 
@@ -94,7 +95,7 @@ export async function PATCH(request: NextRequest) {
     const data = updateSchema.parse(await request.json());
     const existing = await prisma.fAQ.findUnique({ where: { id: data.id } });
     if (!existing) {
-      return NextResponse.json({ error: "FAQ not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "FAQ not found" }, { status: 404 }, request);
     }
 
     const faq = await prisma.fAQ.update({
@@ -119,13 +120,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, faq });
+    return jsonWithRequestId({ success: true, faq }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH admin FAQ error:", error);
-    return NextResponse.json({ error: "Failed to update FAQ" }, { status: 500 });
+    logApiError("admin.faq.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update FAQ" }, { status: 500 }, request);
   }
 }
 
@@ -136,27 +137,32 @@ export async function DELETE(request: NextRequest) {
   const { user, response } = await requirePermission("faq.edit");
   if (!user || response) return response;
 
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-  if (!id) {
-    return NextResponse.json({ error: "FAQ id is required" }, { status: 400 });
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return jsonWithRequestId({ error: "FAQ id is required" }, { status: 400 }, request);
+    }
+
+    const existing = await prisma.fAQ.findUnique({ where: { id } });
+    if (!existing) {
+      return jsonWithRequestId({ error: "FAQ not found" }, { status: 404 }, request);
+    }
+
+    await prisma.fAQ.delete({ where: { id } });
+
+    await writeAuditLog({
+      actorUserId: user.id,
+      action: "faq.deleted",
+      entity: "faq",
+      entityId: id,
+      oldValue: existing,
+      request,
+    });
+
+    return jsonWithRequestId({ success: true }, undefined, request);
+  } catch (error) {
+    logApiError("admin.faq.delete", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to delete FAQ" }, { status: 500 }, request);
   }
-
-  const existing = await prisma.fAQ.findUnique({ where: { id } });
-  if (!existing) {
-    return NextResponse.json({ error: "FAQ not found" }, { status: 404 });
-  }
-
-  await prisma.fAQ.delete({ where: { id } });
-
-  await writeAuditLog({
-    actorUserId: user.id,
-    action: "faq.deleted",
-    entity: "faq",
-    entityId: id,
-    oldValue: existing,
-    request,
-  });
-
-  return NextResponse.json({ success: true });
 }
