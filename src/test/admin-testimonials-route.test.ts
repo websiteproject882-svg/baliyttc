@@ -78,6 +78,18 @@ function request(method: "GET" | "PATCH", body?: Record<string, unknown>) {
   });
 }
 
+function rawRequest(method: "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/testimonials", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_testimonials",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -205,6 +217,19 @@ describe("admin testimonials route", () => {
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.testimonialUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed testimonial moderation JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_testimonials");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.testimonialFindUnique).not.toHaveBeenCalled();
+    expect(mocks.testimonialUpdate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("logs list failures without leaking internals", async () => {
