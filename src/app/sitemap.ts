@@ -9,9 +9,14 @@ const staticRoutes = [
   '/courses',
   '/pricing',
   '/visa',
+  '/retreats',
+  '/workshops',
+  '/videos',
+  '/activities',
   '/gallery',
   '/instructors',
   '/yoga-alliance',
+  '/testimonials',
   '/blog',
   '/contact',
   '/terms',
@@ -38,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     if (courses.length > 0) {
-      courseSlugs = courses.map((course) => course.slug);
+      courseSlugs = Array.from(new Set(courses.map((course) => course.slug)));
     }
     blogSlugs = Array.from(new Set(posts.map((post) => post.slug)));
   } catch {
