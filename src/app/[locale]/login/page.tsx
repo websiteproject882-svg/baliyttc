@@ -27,6 +27,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const showTestCredentials = process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -125,7 +126,7 @@ export default function LoginPage() {
             <p className="text-gray-600 mt-2">Sign in to your Bali YTTC account</p>
           </div>
 
-          {!isFirebaseConfigured() && (
+          {showTestCredentials && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
               <p className="text-sm text-blue-800 font-medium mb-2">Test Credentials:</p>
               <div className="text-xs text-blue-700 space-y-1">

@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BalieytcLogo } from "@/components/shared/BalieytcLogo";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
-import { getRoleHomePath } from "@/lib/rbac";
 import { isFirebaseConfigured } from "@/lib/firebase";
 
 export default function AdminLoginPage() {
@@ -23,6 +22,7 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const canUseTestLogin = process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -44,32 +44,32 @@ export default function AdminLoginPage() {
   };
 
   const handleLogin = async (email: string, password: string) => {
-    if (!isFirebaseConfigured()) {
+    if (canUseTestLogin) {
       return handleTestLogin(email, password);
+    }
+
+    if (!isFirebaseConfigured()) {
+      throw new Error("Firebase auth is not configured. Contact support.");
     }
 
     const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");
     const auth = getAuth();
-    try {
-      const credential = await signInWithEmailAndPassword(auth, email, password);
-      const idToken = await credential.user.getIdToken();
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const idToken = await credential.user.getIdToken();
 
-      const response = await fetch("/api/auth/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
+    const response = await fetch("/api/auth/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed");
-      }
-
-      return data;
-    } catch (error) {
-      return handleTestLogin(email, password);
+    if (!response.ok) {
+      throw new Error(data.error || "Login failed");
     }
+
+    return data;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -171,7 +171,7 @@ export default function AdminLoginPage() {
             <p className="text-slate-400 mt-2">Owner access only</p>
           </div>
 
-          {!isFirebaseConfigured() && (
+          {canUseTestLogin && (
             <div className="mb-6 p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl">
               <p className="text-sm text-amber-400 font-medium mb-2">Test Credentials:</p>
               <div className="text-xs text-amber-300 space-y-1">

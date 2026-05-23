@@ -23,16 +23,52 @@ export default function StaffLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const canUseTestLogin = process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
+  const handleTestLogin = async (email: string, password: string) => {
+    const response = await fetch("/api/auth/test-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok || !data?.success || data?.authType !== "staff") {
+      throw new Error(data?.error || "Login failed");
+    }
+
+    return data;
+  };
+
   const handleLogin = async (email: string, password: string) => {
+    if (canUseTestLogin) {
+      return handleTestLogin(email, password);
+    }
+
+    if (!isFirebaseConfigured()) {
+      throw new Error("Firebase auth is not configured. Contact support.");
+    }
+
     const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");
     const auth = getAuth();
     const credential = await signInWithEmailAndPassword(auth, email, password);
-    return credential.user.getIdToken();
+    const idToken = await credential.user.getIdToken();
+    const response = await fetch("/api/auth/staff/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Login failed");
+    }
+
+    return data;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,19 +91,7 @@ export default function StaffLoginPage() {
     setIsLoading(true);
 
     try {
-      const idToken = await handleLogin(email, password);
-
-      const response = await fetch("/api/auth/staff/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed");
-      }
+      const data = await handleLogin(email, password);
 
       if (data.requiresTwoFactor && data.challengeToken) {
         setPendingChallenge(data.challengeToken);
@@ -146,14 +170,11 @@ export default function StaffLoginPage() {
             <p className="text-emerald-300 mt-2">Teacher, Editor & Manager Access</p>
           </div>
 
-          {!isFirebaseConfigured() && (
+          {canUseTestLogin && (
             <div className="mb-6 p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl">
               <p className="text-sm text-amber-400 font-medium mb-2">Test Credentials:</p>
               <div className="text-xs text-amber-300 space-y-1">
-                <p><strong>Teacher:</strong> teacher@baliyttc.com / password</p>
-                <p><strong>SEO Editor:</strong> seo@baliyttc.com / password</p>
-                <p><strong>Finance:</strong> finance@baliyttc.com / password</p>
-                <p><strong>Course Manager:</strong> course@baliyttc.com / password</p>
+                <p><strong>Teacher:</strong> teacher@test.com / teacher123</p>
               </div>
             </div>
           )}

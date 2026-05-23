@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
 
-  if (process.env.ENABLE_TEST_LOGIN !== "true") {
+  const productionTestLoginAllowed =
+    process.env.NODE_ENV !== "production" || process.env.ALLOW_PRODUCTION_TEST_LOGIN === "true";
+
+  if (process.env.ENABLE_TEST_LOGIN !== "true" || !productionTestLoginAllowed) {
     return jsonWithRequestId({ error: "Test login is disabled" }, { status: 404 }, request);
   }
 

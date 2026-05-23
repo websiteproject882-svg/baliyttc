@@ -66,7 +66,7 @@ export interface LoginResult {
 // Auth functions
 export async function loginWithEmail(email: string, password: string) {
   // No Firebase configured: use the explicit test-login route to create a server session.
-  if (!isFirebaseConfigured()) {
+  if (canUseLocalAuthFallback()) {
     const response = await fetch("/api/auth/test-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -89,33 +89,13 @@ export async function loginWithEmail(email: string, password: string) {
     throw new Error(data?.error || "Invalid credentials");
   }
 
+  if (!isFirebaseConfigured()) {
+    throw new Error("Firebase auth is not configured. Contact support.");
+  }
+
   // Real Firebase auth
   if (!auth) throw new Error("Auth not initialized");
-  let result;
-  try {
-    result = await signInWithEmailAndPassword(auth, email, password);
-  } catch (error) {
-    const fallback = await fetch("/api/auth/test-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const fallbackData = await fallback.json().catch(() => null);
-
-    if (fallback.ok && fallbackData?.success) {
-      return {
-        user: {
-          uid: email,
-          email,
-          displayName: email.split("@")[0],
-        },
-        role: fallbackData.role,
-        redirectTo: fallbackData.redirectTo,
-      };
-    }
-
-    throw error;
-  }
+  const result = await signInWithEmailAndPassword(auth, email, password);
   const idToken = await result.user.getIdToken();
   const response = await fetch("/api/auth/login", {
     method: "POST",
