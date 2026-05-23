@@ -11,16 +11,16 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { requireSameOrigin } from "@/lib/authz";
 
 const paymentCreateSchema = z.object({
-  enrollmentId: z.string().min(1),
+  enrollmentId: z.string().trim().min(1).max(120),
   amount: z.number().positive(),
-  currency: z.string().default("usd"),
-  email: z.string().email(),
-  name: z.string(),
-  courseName: z.string(),
+  currency: z.string().trim().min(2).max(10).default("usd"),
+  email: z.string().trim().email().max(254),
+  name: z.string().trim().min(1).max(120),
+  courseName: z.string().trim().min(1).max(160),
   paymentType: z.enum(["deposit", "full"]),
   provider: z.enum(["razorpay", "paypal", "bank_transfer"]).default("razorpay"),
-  returnUrl: z.string().url().optional(),
-  cancelUrl: z.string().url().optional(),
+  returnUrl: z.string().trim().url().max(2048).optional(),
+  cancelUrl: z.string().trim().url().max(2048).optional(),
 });
 
 function resolveAllowedRedirectUrl(value: string | undefined, request: NextRequest) {

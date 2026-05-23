@@ -168,6 +168,24 @@ describe("payment create route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized payment create fields before resolving enrollment", async () => {
+    const response = await POST(
+      createRequest({
+        enrollmentId: "x".repeat(121),
+        name: "Body Student",
+        courseName: "Body Course Name",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_payment_create");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.resolveStoredEnrollmentAmount).not.toHaveBeenCalled();
+    expect(mocks.razorpayOrdersCreate).not.toHaveBeenCalled();
+    expect(mocks.paymentCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects payment creation when request email does not match the enrollment", async () => {
     const response = await POST(createRequest({ provider: "razorpay", email: "attacker@example.com" }));
     const body = await response.json();
