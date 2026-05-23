@@ -98,6 +98,18 @@ function request(method: "GET" | "PATCH", body?: Record<string, unknown>) {
   });
 }
 
+function rawRequest(method: "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/social-proof", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_social_proof",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -240,6 +252,19 @@ describe("admin social proof route", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.siteSettingUpsert).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed social proof JSON before reading existing settings", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_admin_social_proof");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.siteSettingFindUnique).not.toHaveBeenCalled();
+    expect(mocks.siteSettingUpsert).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("logs fetch failures without leaking internals", async () => {

@@ -26,7 +26,12 @@ export async function PATCH(request: NextRequest) {
   if (response) return response;
 
   try {
-    const stats = socialProofSchema.parse(await request.json());
+    const parsed = socialProofSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const stats = parsed.data;
     const existing = await prisma.siteSetting.findUnique({ where: { key: SOCIAL_PROOF_SETTINGS_KEY } });
     await prisma.siteSetting.upsert({
       where: { key: SOCIAL_PROOF_SETTINGS_KEY },
