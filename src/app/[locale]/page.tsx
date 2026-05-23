@@ -1,7 +1,6 @@
 "use client";
 import { Hero } from "@/components/home/Hero";
 import { TrustStrip } from "@/components/home/TrustStrip";
-import { SanctuaryIntro } from "@/components/home/SanctuaryIntro";
 import { FeaturedCourses } from "@/components/home/FeaturedCourses";
 import { Manifesto } from "@/components/home/Manifesto";
 import { Pillars } from "@/components/home/Pillars";
@@ -19,7 +18,6 @@ export default function HomePage() {
     <NextLayoutWrapper>
       <Hero />
       <TrustStrip />
-      <SanctuaryIntro />
       <FeaturedCourses />
       <Manifesto />
       <Pillars />
