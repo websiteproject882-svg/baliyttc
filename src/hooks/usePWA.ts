@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
+
 export function usePWA() {
   const [isOnline, setIsOnline] = useState(true);
   const [isInstallable, setIsInstallable] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     // Check online status
@@ -20,7 +25,7 @@ export function usePWA() {
     // Handle install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
@@ -31,10 +36,14 @@ export function usePWA() {
       navigator.serviceWorker
         .register("/sw.js")
         .then((registration) => {
-          console.log("SW registered:", registration.scope);
+          if (process.env.NODE_ENV !== "production") {
+            console.info("SW registered:", registration.scope);
+          }
         })
         .catch((error) => {
-          console.log("SW registration failed:", error);
+          if (process.env.NODE_ENV !== "production") {
+            console.info("SW registration failed:", error);
+          }
         });
     }
 
@@ -49,8 +58,7 @@ export function usePWA() {
     if (!deferredPrompt) return;
 
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to the install prompt: ${outcome}`);
+    await deferredPrompt.userChoice;
     setDeferredPrompt(null);
     setIsInstallable(false);
   };

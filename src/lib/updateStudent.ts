@@ -1,7 +1,6 @@
 import prisma from "@/lib/prisma";
 
-async function updateStudent() {
-  // Get user by email
+export async function assignDemoStudentToBatch() {
   const user = await prisma.user.findUnique({
     where: { email: "student@test.com" },
   });
@@ -10,19 +9,18 @@ async function updateStudent() {
     where: { name: "May 2026 Batch" },
   });
 
-  if (user && batch) {
-    await prisma.student.update({
-      where: { userId: user.id },
-      data: {
-        batchId: batch.id,
-        enrolledCourse: "200-Hour Yoga Teacher Training",
-        enrollmentDate: new Date(),
-      },
-    });
-    console.log("Student updated with batch info");
-  } else {
-    console.log("User or batch not found:", { user, batch });
+  if (!user || !batch) {
+    return { updated: false, reason: "User or batch not found" };
   }
-}
 
-updateStudent().then(() => process.exit(0));
+  await prisma.student.update({
+    where: { userId: user.id },
+    data: {
+      batchId: batch.id,
+      enrolledCourse: "200-Hour Yoga Teacher Training",
+      enrollmentDate: new Date(),
+    },
+  });
+
+  return { updated: true };
+}
