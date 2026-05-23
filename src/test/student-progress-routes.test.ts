@@ -94,6 +94,14 @@ function taskRequest(body: Record<string, unknown>) {
   return request("https://example.com/api/app/tasks/read_manual", body);
 }
 
+function rawRequest(url: string, body: string) {
+  return new NextRequest(url, {
+    method: "PATCH",
+    headers: { "x-request-id": "req_student_progress" },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -207,6 +215,21 @@ describe("student progress routes", () => {
     expect(mocks.moduleProgressUpsert).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed module progress JSON before reading progress data", async () => {
+    const response = await patchModuleProgress(
+      rawRequest("https://example.com/api/app/modules/module_1", "{not-valid-json"),
+      { params: { moduleId: "module_1" } },
+    );
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_progress");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.studentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.moduleProgressUpsert).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("requires pre-arrival access for task updates and returns 404 for missing tasks", async () => {
     mocks.taskProgressFindUnique.mockResolvedValue(null);
 
@@ -218,6 +241,21 @@ describe("student progress routes", () => {
     expect(body).toEqual({ error: "Task not found" });
     expect(mocks.taskProgressUpdate).not.toHaveBeenCalled();
     expect(mocks.requireStudentUser).toHaveBeenCalledWith({ minimumAccess: "PRE_ARRIVAL" });
+  });
+
+  it("rejects malformed task progress JSON before reading task data", async () => {
+    const response = await patchTaskProgress(
+      rawRequest("https://example.com/api/app/tasks/read_manual", "{not-valid-json"),
+      { params: { taskKey: "read_manual" } },
+    );
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_progress");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.taskProgressFindUnique).not.toHaveBeenCalled();
+    expect(mocks.taskProgressUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("updates task completion and writes an audit log", async () => {

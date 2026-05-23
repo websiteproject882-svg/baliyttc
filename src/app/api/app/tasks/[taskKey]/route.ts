@@ -25,7 +25,13 @@ export async function PATCH(
   }
 
   try {
-    const { completed } = taskUpdateSchema.parse(await request.json());
+    const payload = await request.json().catch(() => null);
+    const result = taskUpdateSchema.safeParse(payload);
+    if (!result.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+    }
+
+    const { completed } = result.data;
     const existing = await prisma.taskProgress.findUnique({
       where: {
         studentId_taskKey: {
