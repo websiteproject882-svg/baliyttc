@@ -66,6 +66,14 @@ function request(url: string, body: Record<string, unknown>) {
   });
 }
 
+function rawRequest(url: string, body: string) {
+  return new NextRequest(url, {
+    method: "POST",
+    headers: { "x-request-id": "req_payment_callback" },
+    body,
+  });
+}
+
 function razorpayRequest(overrides: Record<string, unknown> = {}) {
   return request("https://example.com/api/payments/razorpay/verify", {
     razorpay_order_id: "order_123",
@@ -113,6 +121,19 @@ describe("payment callback routes", () => {
     expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
     expect(mocks.paymentUpdate).not.toHaveBeenCalled();
     expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed Razorpay verification JSON before provider checks", async () => {
+    const response = await verifyRazorpayPayment(
+      rawRequest("https://example.com/api/payments/razorpay/verify", "{not-valid-json"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.verifyRazorpayPaymentSignature).not.toHaveBeenCalled();
+    expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("returns 404 when Razorpay callback cannot find a payment", async () => {
@@ -166,6 +187,19 @@ describe("payment callback routes", () => {
     expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
     expect(mocks.paymentUpdate).not.toHaveBeenCalled();
     expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed PayPal capture JSON before provider calls", async () => {
+    const response = await capturePayPalPayment(
+      rawRequest("https://example.com/api/payments/paypal/capture", "{not-valid-json"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.capturePayPalOrder).not.toHaveBeenCalled();
+    expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("returns 404 when PayPal capture succeeds but local payment is missing", async () => {

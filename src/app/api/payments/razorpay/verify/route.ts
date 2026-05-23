@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getStoredPaymentType, markPaymentComplete } from "@/lib/payments/complete";
@@ -17,7 +17,11 @@ export async function POST(request: NextRequest) {
   if (sameOriginResponse) return sameOriginResponse;
 
   try {
-    const data = verifySchema.parse(await request.json());
+    const parsed = verifySchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+    const data = parsed.data;
     const valid = verifyRazorpayPaymentSignature({
       orderId: data.razorpay_order_id,
       paymentId: data.razorpay_payment_id,
