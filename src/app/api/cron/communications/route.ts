@@ -1,6 +1,7 @@
 import { CommunicationCampaign } from "@prisma/client";
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { runCommunicationCampaign } from "@/lib/communications";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
@@ -19,30 +20,38 @@ function isAuthorized(request: NextRequest) {
 
   const headerSecret = request.headers.get("x-cron-secret");
   const bearerToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  return headerSecret === configuredSecret || bearerToken === configuredSecret;
+  return safeSecretEquals(headerSecret, configuredSecret) || safeSecretEquals(bearerToken, configuredSecret);
 }
 
-export async function POST(request: NextRequest) {
+function safeSecretEquals(received: string | null | undefined, expected: string) {
+  if (!received || received.length !== expected.length) {
+    return false;
+  }
+
+  return timingSafeEqual(Buffer.from(received), Buffer.from(expected));
+}
+
+async function runCron(request: NextRequest, payload: z.infer<typeof cronSchema>) {
   if (!isAuthorized(request)) {
     return jsonWithRequestId({ error: "Unauthorized" }, { status: 401 }, request);
   }
 
   try {
-    const payload = cronSchema.parse(await request.json().catch(() => ({})));
-    const campaigns = payload.campaign
-      ? [payload.campaign]
+    const data = cronSchema.parse(payload);
+    const campaigns = data.campaign
+      ? [data.campaign]
       : ["PAYMENT_REMINDER", "PREPARATION_REMINDER", "REVIEW_REQUEST"] satisfies CommunicationCampaign[];
 
     const results = [];
     for (const campaign of campaigns) {
-      results.push(await runCommunicationCampaign({ campaign, limit: payload.limit }));
+      results.push(await runCommunicationCampaign({ campaign, limit: data.limit }));
     }
 
     return jsonWithRequestId({
       success: true,
       executedAt: new Date().toISOString(),
       results,
-    }, undefined, request);
+    }, { headers: { "Cache-Control": "no-store" } }, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
@@ -50,4 +59,13 @@ export async function POST(request: NextRequest) {
     logApiError("cron.communications", error, request);
     return jsonWithRequestId({ error: "Failed to execute communication cron" }, { status: 500 }, request);
   }
+}
+
+export async function GET(request: NextRequest) {
+  return runCron(request, {});
+}
+
+export async function POST(request: NextRequest) {
+  const payload = await request.json().catch(() => ({}));
+  return runCron(request, payload);
 }
