@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const galleryImageSchema = z.object({
   url: z.string().url(),
@@ -13,10 +14,10 @@ const galleryImageSchema = z.object({
 
 const galleryImageUpdateSchema = galleryImageSchema.partial().extend({
   id: z.string().min(1),
-  order: z.number().int().min(0).optional(),
+  order: z.coerce.number().int().min(0).optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requireAdminUser();
   if (response) return response;
 
@@ -24,10 +25,10 @@ export async function GET() {
     const images = await prisma.galleryImage.findMany({
       orderBy: { order: "asc" },
     });
-    return NextResponse.json({ images });
+    return jsonWithRequestId({ images }, undefined, request);
   } catch (error) {
-    console.error("Gallery fetch error:", error);
-    return NextResponse.json({ error: "Failed to fetch gallery" }, { status: 500 });
+    logApiError("admin.gallery.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch gallery" }, { status: 500 }, request);
   }
 }
 
@@ -60,13 +61,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ image });
+    return jsonWithRequestId({ image }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("Gallery create error:", error);
-    return NextResponse.json({ error: "Failed to create gallery image" }, { status: 500 });
+    logApiError("admin.gallery.create", error, request, { userId: user!.id });
+    return jsonWithRequestId({ error: "Failed to create gallery image" }, { status: 500 }, request);
   }
 }
 
@@ -79,6 +80,11 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const { id, url, alt, caption, type, status, order } = galleryImageUpdateSchema.parse(await request.json());
+
+    const existing = await prisma.galleryImage.findUnique({ where: { id } });
+    if (!existing) {
+      return jsonWithRequestId({ error: "Gallery image not found" }, { status: 404 }, request);
+    }
 
     const updateData: Record<string, unknown> = {};
     if (url !== undefined) updateData.url = url;
@@ -102,13 +108,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ image });
+    return jsonWithRequestId({ image }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("Gallery update error:", error);
-    return NextResponse.json({ error: "Failed to update gallery image" }, { status: 500 });
+    logApiError("admin.gallery.update", error, request, { userId: user!.id });
+    return jsonWithRequestId({ error: "Failed to update gallery image" }, { status: 500 }, request);
   }
 }
 
@@ -124,7 +130,12 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "Image ID required" }, { status: 400 });
+      return jsonWithRequestId({ error: "Gallery image id is required" }, { status: 400 }, request);
+    }
+
+    const existing = await prisma.galleryImage.findUnique({ where: { id } });
+    if (!existing) {
+      return jsonWithRequestId({ error: "Gallery image not found" }, { status: 404 }, request);
     }
 
     await prisma.galleryImage.delete({ where: { id } });
@@ -134,12 +145,13 @@ export async function DELETE(request: NextRequest) {
       action: "gallery.deleted",
       entity: "galleryImage",
       entityId: id,
+      oldValue: existing,
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error("Gallery delete error:", error);
-    return NextResponse.json({ error: "Failed to delete gallery image" }, { status: 500 });
+    logApiError("admin.gallery.delete", error, request, { userId: user!.id });
+    return jsonWithRequestId({ error: "Failed to delete gallery image" }, { status: 500 }, request);
   }
 }
