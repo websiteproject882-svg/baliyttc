@@ -147,6 +147,51 @@ describe("authz route guards", () => {
     expect(user?.role).toBe("SUPER_ADMIN");
   });
 
+  it("allows active staff admin-panel roles through permission checks", async () => {
+    mocks.sessions.staff = {
+      userId: "seo_1",
+      role: "SEO_EDITOR",
+      email: "seo@example.com",
+      authType: "staff",
+    };
+    mockUser("STAFF", {
+      staff: {
+        id: "staff_seo_1",
+        role: "SEO_EDITOR",
+        status: "ACTIVE",
+        permissions: ["blog.view", "blog.create", "blog.edit"],
+      },
+    });
+
+    const { user, response } = await requirePermission("blog.edit");
+
+    expect(response).toBeNull();
+    expect(user?.role).toBe("SEO_EDITOR");
+    expect(user?.authType).toBe("staff");
+  });
+
+  it("rejects teacher staff sessions from admin routes", async () => {
+    mocks.sessions.staff = {
+      userId: "teacher_1",
+      role: "TEACHER",
+      email: "teacher@example.com",
+      authType: "staff",
+    };
+    mockUser("STAFF", {
+      staff: {
+        id: "staff_teacher_1",
+        role: "TEACHER",
+        status: "ACTIVE",
+        permissions: [],
+      },
+    });
+
+    const { user, response } = await requireAdminUser();
+
+    expect(user).toBeNull();
+    expect(response?.status).toBe(403);
+  });
+
   it("rejects admin roles without the requested permission", async () => {
     mocks.sessions.admin = {
       userId: "seo_1",

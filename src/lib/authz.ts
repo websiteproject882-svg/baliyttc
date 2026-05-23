@@ -127,7 +127,7 @@ export async function requireStudentUser(options?: { minimumAccess?: "PRE_ARRIVA
 }
 
 export async function requireAdminUser() {
-  const user = await getCurrentUser('admin');
+  const user = (await getCurrentUser('admin')) ?? (await getCurrentUser('staff'));
   if (!user) {
     return { user: null, response: jsonError("Unauthorized", 401) };
   }

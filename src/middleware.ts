@@ -4,6 +4,15 @@ import { applySecurityHeaders } from '@/lib/security';
 import { verifySessionToken } from '@/lib/session-edge';
 import { defaultLocale, locales } from '@/i18n/routing';
 
+const ADMIN_PANEL_SESSION_ROLES = new Set([
+  "SUPER_ADMIN",
+  "ADMIN",
+  "STUDENT_MANAGER",
+  "SEO_EDITOR",
+  "FINANCE_MANAGER",
+  "COURSE_MANAGER",
+]);
+
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,
@@ -49,13 +58,33 @@ async function requireSession(
   return null;
 }
 
+async function requireAdminPanelSession(request: NextRequest, locale: string) {
+  const adminSession = request.cookies.get('admin_session')?.value;
+  if (adminSession) {
+    const decrypted = await verifySessionToken(adminSession);
+    if (decrypted?.authType === 'admin' && ADMIN_PANEL_SESSION_ROLES.has(String(decrypted.role))) {
+      return null;
+    }
+  }
+
+  const staffSession = request.cookies.get('staff_session')?.value;
+  if (staffSession) {
+    const decrypted = await verifySessionToken(staffSession);
+    if (decrypted?.authType === 'staff' && ADMIN_PANEL_SESSION_ROLES.has(String(decrypted.role))) {
+      return null;
+    }
+  }
+
+  return redirectToLogin(request, locale, 'admin');
+}
+
 export default async function middleware(request: NextRequest) {
   const { locale, pathWithoutLocale } = getLocalizedPath(request.nextUrl.pathname);
   const isAdminLogin = pathWithoutLocale === '/admin/login';
   const isStaffLogin = pathWithoutLocale === '/staff/login';
 
   if (pathWithoutLocale.startsWith('/admin') && !isAdminLogin) {
-    const response = await requireSession(request, 'admin_session', 'admin', locale);
+    const response = await requireAdminPanelSession(request, locale);
     if (response) return applySecurityHeaders(response);
   }
 
