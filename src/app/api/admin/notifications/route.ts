@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { NotificationAudience, NotificationType } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -20,18 +21,23 @@ const updateSchema = notificationSchema.extend({
   id: z.string(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("announcements.view");
   if (response) {
     return response;
   }
 
-  const notifications = await prisma.notification.findMany({
-    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-    take: 50,
-  });
+  try {
+    const notifications = await prisma.notification.findMany({
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+      take: 50,
+    });
 
-  return NextResponse.json({ notifications });
+    return jsonWithRequestId({ notifications }, undefined, request);
+  } catch (error) {
+    logApiError("admin.notifications.list", error, request);
+    return jsonWithRequestId({ error: "Failed to load notifications" }, { status: 500 }, request);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -66,13 +72,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, notification });
+    return jsonWithRequestId({ success: true, notification }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST admin notifications error:", error);
-    return NextResponse.json({ error: "Failed to create notification" }, { status: 500 });
+    logApiError("admin.notifications.create", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to create notification" }, { status: 500 }, request);
   }
 }
 
@@ -91,7 +97,7 @@ export async function PATCH(request: NextRequest) {
     const data = updateSchema.parse(await request.json());
     const existing = await prisma.notification.findUnique({ where: { id: data.id } });
     if (!existing) {
-      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Notification not found" }, { status: 404 }, request);
     }
 
     const notification = await prisma.notification.update({
@@ -117,13 +123,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, notification });
+    return jsonWithRequestId({ success: true, notification }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH admin notifications error:", error);
-    return NextResponse.json({ error: "Failed to update notification" }, { status: 500 });
+    logApiError("admin.notifications.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update notification" }, { status: 500 }, request);
   }
 }
 
@@ -141,24 +147,29 @@ export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) {
-    return NextResponse.json({ error: "Notification id is required" }, { status: 400 });
+    return jsonWithRequestId({ error: "Notification id is required" }, { status: 400 }, request);
   }
 
-  const existing = await prisma.notification.findUnique({ where: { id } });
-  if (!existing) {
-    return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+  try {
+    const existing = await prisma.notification.findUnique({ where: { id } });
+    if (!existing) {
+      return jsonWithRequestId({ error: "Notification not found" }, { status: 404 }, request);
+    }
+
+    await prisma.notification.delete({ where: { id } });
+
+    await writeAuditLog({
+      actorUserId: user.id,
+      action: "notification.deleted",
+      entity: "notification",
+      entityId: id,
+      oldValue: existing,
+      request,
+    });
+
+    return jsonWithRequestId({ success: true }, undefined, request);
+  } catch (error) {
+    logApiError("admin.notifications.delete", error, request, { notificationId: id, userId: user.id });
+    return jsonWithRequestId({ error: "Failed to delete notification" }, { status: 500 }, request);
   }
-
-  await prisma.notification.delete({ where: { id } });
-
-  await writeAuditLog({
-    actorUserId: user.id,
-    action: "notification.deleted",
-    entity: "notification",
-    entityId: id,
-    oldValue: existing,
-    request,
-  });
-
-  return NextResponse.json({ success: true });
 }
