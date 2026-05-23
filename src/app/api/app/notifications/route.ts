@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireStudentUser } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -42,54 +43,63 @@ function notificationWhereForStudent(student: {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { student, response } = await requireStudentUser({ minimumAccess: "PRE_ARRIVAL" });
   if (!student || response) {
     return response;
   }
 
-  const notifications = await prisma.notification.findMany({
-    where: notificationWhereForStudent(student),
-    include: {
-      receipts: {
-        where: { studentId: student.id },
-        select: { id: true, readAt: true },
-        take: 1,
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: notificationWhereForStudent(student),
+      include: {
+        receipts: {
+          where: { studentId: student.id },
+          select: { id: true, readAt: true },
+          take: 1,
+        },
       },
-    },
-    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-    take: 30,
-  });
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+      take: 30,
+    });
 
-  const unreadCount = notifications.filter((item) => !item.receipts[0]?.readAt).length;
-  const currentStudent = await prisma.student.findUnique({
-    where: { id: student.id },
-    select: {
-      emailNotificationsEnabled: true,
-      browserPushEnabled: true,
-    },
-  });
+    const unreadCount = notifications.filter((item) => !item.receipts[0]?.readAt).length;
+    const currentStudent = await prisma.student.findUnique({
+      where: { id: student.id },
+      select: {
+        emailNotificationsEnabled: true,
+        browserPushEnabled: true,
+      },
+    });
 
-  return NextResponse.json({
-    preferences: {
-      emailNotificationsEnabled: currentStudent?.emailNotificationsEnabled ?? true,
-      browserPushEnabled: currentStudent?.browserPushEnabled ?? false,
-    },
-    notifications: notifications.map((item) => ({
-      id: item.id,
-      title: item.title,
-      message: item.message,
-      type: item.type,
-      audience: item.audience,
-      batchId: item.batchId,
-      studentId: item.studentId,
-      actionUrl: item.actionUrl,
-      publishedAt: item.publishedAt,
-      createdAt: item.createdAt,
-      readAt: item.receipts[0]?.readAt || null,
-    })),
-    unreadCount,
-  });
+    return jsonWithRequestId(
+      {
+        preferences: {
+          emailNotificationsEnabled: currentStudent?.emailNotificationsEnabled ?? true,
+          browserPushEnabled: currentStudent?.browserPushEnabled ?? false,
+        },
+        notifications: notifications.map((item) => ({
+          id: item.id,
+          title: item.title,
+          message: item.message,
+          type: item.type,
+          audience: item.audience,
+          batchId: item.batchId,
+          studentId: item.studentId,
+          actionUrl: item.actionUrl,
+          publishedAt: item.publishedAt,
+          createdAt: item.createdAt,
+          readAt: item.receipts[0]?.readAt || null,
+        })),
+        unreadCount,
+      },
+      undefined,
+      request,
+    );
+  } catch (error) {
+    logApiError("app.notifications.list", error, request, { studentId: student.id });
+    return jsonWithRequestId({ error: "Failed to load notifications" }, { status: 500 }, request);
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -124,7 +134,7 @@ export async function PATCH(request: NextRequest) {
         },
       });
 
-      return NextResponse.json({ success: true, preferences: updated });
+      return jsonWithRequestId({ success: true, preferences: updated }, undefined, request);
     }
 
     const { notificationId } = markReadSchema.parse(body);
@@ -138,7 +148,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Notification not found" }, { status: 404 }, request);
     }
 
     const receipt = await prisma.notificationReceipt.upsert({
@@ -158,12 +168,12 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, receipt });
+    return jsonWithRequestId({ success: true, receipt }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH app notifications error:", error);
-    return NextResponse.json({ error: "Failed to update notification settings" }, { status: 500 });
+    logApiError("app.notifications.update", error, request, { studentId: student.id });
+    return jsonWithRequestId({ error: "Failed to update notification settings" }, { status: 500 }, request);
   }
 }
