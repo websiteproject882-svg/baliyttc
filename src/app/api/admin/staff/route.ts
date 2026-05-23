@@ -1,57 +1,68 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { StaffRole, StaffStatus, UserRole } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireSuperAdmin, writeAuditLog } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/rbac";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
 const createStaffSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(2),
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+  name: z.string().trim().min(2),
   role: z.nativeEnum(StaffRole),
 });
 
 const updateStaffSchema = z.object({
-  id: z.string(),
+  id: z.string().min(1),
   role: z.nativeEnum(StaffRole).optional(),
   status: z.nativeEnum(StaffStatus).optional(),
-  name: z.string().min(2).optional(),
+  name: z.string().trim().min(2).optional(),
 });
 
-export async function GET() {
+const toggleStaffSchema = z.object({
+  staffId: z.string().min(1),
+  enabled: z.boolean(),
+});
+
+export async function GET(request: NextRequest) {
   const { response } = await requireSuperAdmin();
   if (response) {
     return response;
   }
 
-  const staff = await prisma.staff.findMany({
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          displayName: true,
+  try {
+    const staff = await prisma.staff.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+          },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({
-    staff: staff.map((member) => ({
-      id: member.id,
-      userId: member.userId,
-      email: member.user.email,
-      name: member.user.displayName,
-      role: member.role,
-      status: member.status,
-      permissions: (member.permissions as string[] | null) ?? PERMISSIONS[member.role] ?? [],
-      invitedAt: member.invitedAt,
-      lastLogin: member.lastLogin,
-    })),
-  });
+    return jsonWithRequestId({
+      staff: staff.map((member) => ({
+        id: member.id,
+        userId: member.userId,
+        email: member.user.email,
+        name: member.user.displayName,
+        role: member.role,
+        status: member.status,
+        permissions: (member.permissions as string[] | null) ?? PERMISSIONS[member.role] ?? [],
+        invitedAt: member.invitedAt,
+        lastLogin: member.lastLogin,
+      })),
+    }, undefined, request);
+  } catch (error) {
+    logApiError("admin.staff.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch staff" }, { status: 500 }, request);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -132,7 +143,7 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       success: true,
       staff: {
         id: staffRecord.id,
@@ -145,14 +156,14 @@ export async function POST(request: NextRequest) {
         invitedAt: staffRecord.invitedAt,
         lastLogin: staffRecord.lastLogin,
       },
-    });
+    }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
 
-    console.error("POST admin staff error:", error);
-    return NextResponse.json({ error: "Failed to create staff" }, { status: 500 });
+    logApiError("admin.staff.create", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to create staff" }, { status: 500 }, request);
   }
 }
 
@@ -177,7 +188,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Staff member not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Staff member not found" }, { status: 404 }, request);
     }
 
     const updated = await prisma.staff.update({
@@ -224,14 +235,14 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
 
-    console.error("PATCH admin staff error:", error);
-    return NextResponse.json({ error: "Failed to update staff" }, { status: 500 });
+    logApiError("admin.staff.update", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update staff" }, { status: 500 }, request);
   }
 }
 
@@ -248,14 +259,7 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const { staffId, enabled } = await request.json();
-
-    if (!staffId || typeof enabled !== 'boolean') {
-      return NextResponse.json(
-        { error: "Missing staffId or enabled status" },
-        { status: 400 }
-      );
-    }
+    const { staffId, enabled } = toggleStaffSchema.parse(await request.json());
 
     const existing = await prisma.staff.findUnique({
       where: { id: staffId },
@@ -263,18 +267,19 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Staff member not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Staff member not found" }, { status: 404 }, request);
     }
 
     // Prevent disabling the last SUPER_ADMIN
-    if (existing.role === 'SUPER_ADMIN' && !enabled) {
+    if (existing.role === StaffRole.SUPER_ADMIN && !enabled) {
       const superAdminCount = await prisma.staff.count({
-        where: { role: 'SUPER_ADMIN', status: 'ACTIVE' },
+        where: { role: StaffRole.SUPER_ADMIN, status: StaffStatus.ACTIVE },
       });
       if (superAdminCount <= 1) {
-        return NextResponse.json(
+        return jsonWithRequestId(
           { error: "Cannot disable the last admin account" },
-          { status: 400 }
+          { status: 400 },
+          request,
         );
       }
     }
@@ -296,7 +301,7 @@ export async function PUT(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       success: true,
       staff: {
         id: updated.id,
@@ -311,9 +316,13 @@ export async function PUT(request: NextRequest) {
       message: enabled
         ? `${updated.user.displayName || 'Staff'} access has been enabled`
         : `${updated.user.displayName || 'Staff'} access has been disabled`,
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("PUT admin staff toggle error:", error);
-    return NextResponse.json({ error: "Failed to toggle staff access" }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
+    }
+
+    logApiError("admin.staff.toggle", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to toggle staff access" }, { status: 500 }, request);
   }
 }
