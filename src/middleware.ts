@@ -2,6 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { applySecurityHeaders } from '@/lib/security';
 import { verifySessionToken } from '@/lib/session-edge';
+import { isSessionAllowedForAuthType } from '@/lib/session-access';
 import { defaultLocale, locales } from '@/i18n/routing';
 
 const ADMIN_PANEL_SESSION_ROLES = new Set([
@@ -51,7 +52,7 @@ async function requireSession(
   }
 
   const decrypted = await verifySessionToken(session);
-  if (!decrypted || decrypted.authType !== authType) {
+  if (!isSessionAllowedForAuthType(decrypted, authType)) {
     return redirectToLogin(request, locale, authType === 'student' ? undefined : authType);
   }
 
