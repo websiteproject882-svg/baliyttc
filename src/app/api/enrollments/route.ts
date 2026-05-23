@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin } from "@/lib/authz";
@@ -6,24 +6,61 @@ import { sendEnrollmentConfirmationEmail, sendAdminNotificationEmail, isGmailCon
 import { sendEnrollmentConfirmation, sendAdminEnrollmentNotification } from "@/lib/resend";
 import { sendEnrollmentConfirmationWhatsApp, sendWelcomeWhatsApp } from "@/lib/whatsapp";
 import { resolveEnrollmentPricing } from "@/lib/payments/enrollment-pricing";
-import { createRateLimitResponse, getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
+import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
 
+const optionalTrimmed = (max: number) =>
+  z.string().trim().max(max).transform((value) => value || undefined).optional();
+
 const enrollmentSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(6),
-  course: z.string(),
-  batchId: z.string().optional(),
+  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+  phone: z.string().trim().min(6).max(40),
+  course: z.string().trim().min(1).max(80),
+  batchId: optionalTrimmed(120),
   accommodation: z.enum(["SHARED", "PRIVATE"]).default("SHARED"),
   paymentType: z.enum(["DEPOSIT", "FULL"]).default("DEPOSIT"),
   amount: z.number().optional(),
-  currency: z.string().default("USD"),
-  couponCode: z.string().optional(),
-  preferredDate: z.string().optional(),
-  message: z.string().optional(),
-  referralSource: z.string().optional(),
+  currency: z.string().trim().max(10).optional(),
+  couponCode: optionalTrimmed(80),
+  preferredDate: optionalTrimmed(120),
+  message: optionalTrimmed(3000),
+  referralSource: optionalTrimmed(120),
 });
+
+function getPositiveInt(value: string | null, fallback: number, max: number) {
+  const parsed = Number.parseInt(value || "", 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  return Math.min(parsed, max);
+}
+
+type PublicEnrollment = {
+  id: string;
+  courseSlug: string;
+  batchId: string | null;
+  paymentType: string;
+  paymentStatus: string;
+  amount: number;
+  currency: string;
+  couponCode: string | null;
+  discount: number | null;
+  accessLevel: string;
+};
+
+function toPublicEnrollment(enrollment: PublicEnrollment) {
+  return {
+    id: enrollment.id,
+    courseSlug: enrollment.courseSlug,
+    batchId: enrollment.batchId,
+    paymentType: enrollment.paymentType,
+    paymentStatus: enrollment.paymentStatus,
+    amount: enrollment.amount,
+    currency: enrollment.currency,
+    couponCode: enrollment.couponCode,
+    discount: enrollment.discount,
+    accessLevel: enrollment.accessLevel,
+  };
+}
 
 export async function GET(request: NextRequest) {
   const { response } = await requirePermission("enrollments.view");
@@ -35,8 +72,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const course = searchParams.get("course");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = getPositiveInt(searchParams.get("page"), 1, 10_000);
+    const limit = getPositiveInt(searchParams.get("limit"), 20, 100);
 
     const where: Record<string, unknown> = {};
     if (status) where.paymentStatus = status.toUpperCase();
@@ -90,7 +127,7 @@ export async function GET(request: NextRequest) {
       prisma.enrollment.count({ where }),
     ]);
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       enrollments,
       pagination: {
         page,
@@ -98,12 +135,13 @@ export async function GET(request: NextRequest) {
         total,
         totalPages: Math.ceil(total / limit),
       },
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET enrollments error:", error);
-    return NextResponse.json(
+    logApiError("enrollments.list", error, request);
+    return jsonWithRequestId(
       { error: "Failed to fetch enrollments" },
-      { status: 500 }
+      { status: 500 },
+      request,
     );
   }
 }
@@ -151,7 +189,7 @@ export async function POST(request: NextRequest) {
         data: {
           email: data.email,
           displayName: data.name,
-          uid: `user-${Date.now()}`,
+          uid: `local-${crypto.randomUUID()}`,
           role: "STUDENT",
         },
       });
@@ -218,7 +256,7 @@ export async function POST(request: NextRequest) {
 
       return jsonWithRequestId({
         success: true,
-        enrollment,
+        enrollment: toPublicEnrollment(enrollment),
         duplicate: true,
         message: "Existing pending enrollment found. Complete payment to unlock access.",
       }, undefined, request);
@@ -339,7 +377,7 @@ export async function POST(request: NextRequest) {
 
     return jsonWithRequestId({
       success: true,
-      enrollment,
+      enrollment: toPublicEnrollment(enrollment),
       message: "Enrollment created. Complete payment to unlock access.",
     }, undefined, request);
   } catch (error) {
