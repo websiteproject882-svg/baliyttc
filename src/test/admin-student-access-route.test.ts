@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   writeAuditLog: vi.fn(),
   enrollmentFindUnique: vi.fn(),
   enrollmentUpdate: vi.fn(),
+  batchFindUnique: vi.fn(),
   studentUpdate: vi.fn(),
   studentCreate: vi.fn(),
   logApiError: vi.fn(),
@@ -24,6 +25,9 @@ vi.mock("@/lib/prisma", () => ({
     enrollment: {
       findUnique: mocks.enrollmentFindUnique,
       update: mocks.enrollmentUpdate,
+    },
+    batch: {
+      findUnique: mocks.batchFindUnique,
     },
     student: {
       update: mocks.studentUpdate,
@@ -55,6 +59,8 @@ const enrollment = {
   userId: "user_1",
   studentId: "student_1",
   phone: "+911234567890",
+  batchId: "batch_1",
+  courseSlug: "200hr",
   accessLevel: "NONE",
   paymentStatus: "PENDING",
   student: {
@@ -85,6 +91,13 @@ beforeEach(() => {
   mocks.requireSameOrigin.mockReturnValue(null);
   mocks.requireAdminUser.mockResolvedValue({ user: adminUser, response: null });
   mocks.enrollmentFindUnique.mockResolvedValue(enrollment);
+  mocks.batchFindUnique.mockResolvedValue({
+    id: "batch_1",
+    course: {
+      name: "200-Hour Hatha Ashtanga Vinyasa YTT",
+      modules: [{ hours: 80 }, { hours: 120 }],
+    },
+  });
   mocks.studentUpdate.mockResolvedValue({
     id: "student_1",
     accessLevel: "PRE_ARRIVAL",
@@ -150,6 +163,10 @@ describe("admin student access route", () => {
       data: {
         accessLevel: "PRE_ARRIVAL",
         paymentStatus: "DEPOSIT_PAID",
+        batchId: "batch_1",
+        enrolledCourse: "200-Hour Hatha Ashtanga Vinyasa YTT",
+        totalHours: 200,
+        phone: "+911234567890",
       },
     });
     expect(mocks.enrollmentUpdate).toHaveBeenCalledWith({
@@ -198,6 +215,9 @@ describe("admin student access route", () => {
         userId: "user_1",
         accessLevel: "FULL",
         paymentStatus: "FULL_PAID",
+        batchId: "batch_1",
+        enrolledCourse: "200-Hour Hatha Ashtanga Vinyasa YTT",
+        totalHours: 200,
         phone: "+911234567890",
       },
     });
@@ -233,6 +253,10 @@ describe("admin student access route", () => {
       data: {
         accessLevel: "ALUMNI",
         paymentStatus: "FULL_PAID",
+        batchId: "batch_1",
+        enrolledCourse: "200-Hour Hatha Ashtanga Vinyasa YTT",
+        totalHours: 200,
+        phone: "+911234567890",
       },
     });
     expect(mocks.enrollmentUpdate).toHaveBeenCalledWith({

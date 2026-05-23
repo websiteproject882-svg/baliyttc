@@ -84,6 +84,15 @@ export async function PATCH(
           accessLevel: "NONE",
         },
       });
+      if (payment.enrollment.studentId) {
+        await prisma.student.update({
+          where: { id: payment.enrollment.studentId },
+          data: {
+            paymentStatus: "FAILED",
+            accessLevel: "NONE",
+          },
+        });
+      }
       await writeAuditLog({
         actorUserId: user.id,
         action: "payment.mark_failed",
@@ -145,6 +154,15 @@ export async function PATCH(
         accessLevel: "NONE",
       },
     });
+    if (payment.enrollment.studentId) {
+      await prisma.student.update({
+        where: { id: payment.enrollment.studentId },
+        data: {
+          paymentStatus: payment.enrollment.paymentStatus === previousStatus ? "REFUNDED" : payment.enrollment.paymentStatus,
+          accessLevel: "NONE",
+        },
+      });
+    }
     await writeAuditLog({
       actorUserId: user.id,
       action: "payment.refund",

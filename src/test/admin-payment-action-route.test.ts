@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   paymentFindUnique: vi.fn(),
   paymentUpdate: vi.fn(),
   enrollmentUpdate: vi.fn(),
+  studentUpdate: vi.fn(),
   markPaymentComplete: vi.fn(),
   refundRazorpayPayment: vi.fn(),
   refundPayPalCapture: vi.fn(),
@@ -29,6 +30,9 @@ vi.mock("@/lib/prisma", () => ({
     },
     enrollment: {
       update: mocks.enrollmentUpdate,
+    },
+    student: {
+      update: mocks.studentUpdate,
     },
   },
 }));
@@ -78,6 +82,7 @@ const payment = {
   paypalCaptureId: null,
   enrollment: {
     id: "enrollment_1",
+    studentId: "student_1",
     paymentType: "DEPOSIT",
     paymentStatus: "PENDING",
   },
@@ -102,6 +107,7 @@ beforeEach(() => {
   mocks.paymentFindUnique.mockResolvedValue(payment);
   mocks.paymentUpdate.mockResolvedValue({ id: "payment_1" });
   mocks.enrollmentUpdate.mockResolvedValue({ id: "enrollment_1" });
+  mocks.studentUpdate.mockResolvedValue({ id: "student_1" });
   mocks.markPaymentComplete.mockResolvedValue({ id: "payment_1", status: "DEPOSIT_PAID" });
   mocks.refundRazorpayPayment.mockResolvedValue({ id: "refund_1", status: "processed" });
   mocks.refundPayPalCapture.mockResolvedValue({ id: "paypal_refund_1", status: "COMPLETED" });
@@ -169,6 +175,13 @@ describe("admin payment action route", () => {
         accessLevel: "NONE",
       },
     });
+    expect(mocks.studentUpdate).toHaveBeenCalledWith({
+      where: { id: "student_1" },
+      data: {
+        paymentStatus: "FAILED",
+        accessLevel: "NONE",
+      },
+    });
     expect(mocks.refundRazorpayPayment).not.toHaveBeenCalled();
     expect(mocks.refundPayPalCapture).not.toHaveBeenCalled();
   });
@@ -222,6 +235,13 @@ describe("admin payment action route", () => {
     });
     expect(mocks.enrollmentUpdate).toHaveBeenCalledWith({
       where: { id: "enrollment_1" },
+      data: {
+        paymentStatus: "REFUNDED",
+        accessLevel: "NONE",
+      },
+    });
+    expect(mocks.studentUpdate).toHaveBeenCalledWith({
+      where: { id: "student_1" },
       data: {
         paymentStatus: "REFUNDED",
         accessLevel: "NONE",

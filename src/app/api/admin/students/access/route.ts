@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import type { AccessLevel, PaymentStatus } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
@@ -11,7 +12,7 @@ const schema = z.object({
   accessLevel: z.enum(["NONE", "PRE_ARRIVAL", "FULL", "ALUMNI"]),
 });
 
-function paymentStatusForAccess(accessLevel: "NONE" | "PRE_ARRIVAL" | "FULL" | "ALUMNI") {
+function paymentStatusForAccess(accessLevel: AccessLevel): PaymentStatus {
   switch (accessLevel) {
     case "PRE_ARRIVAL":
       return "DEPOSIT_PAID";
@@ -50,21 +51,39 @@ export async function PATCH(request: NextRequest) {
     }
 
     const targetPaymentStatus = paymentStatusForAccess(data.accessLevel);
+    const batch = enrollment.batchId
+      ? await prisma.batch.findUnique({
+          where: { id: enrollment.batchId },
+          include: {
+            course: {
+              include: {
+                modules: { select: { hours: true } },
+              },
+            },
+          },
+        })
+      : null;
+    const totalHours =
+      batch?.course.modules.reduce((sum, module) => sum + (module.hours ?? 0), 0) ||
+      Number(enrollment.courseSlug.match(/\d+/)?.[0] || 0);
+    const studentSyncData = {
+      accessLevel: data.accessLevel,
+      paymentStatus: targetPaymentStatus,
+      batchId: enrollment.batchId,
+      enrolledCourse: batch?.course.name || enrollment.courseSlug,
+      totalHours,
+      phone: enrollment.phone,
+    };
 
     const updatedStudent = enrollment.student
       ? await prisma.student.update({
           where: { id: enrollment.student.id },
-          data: {
-            accessLevel: data.accessLevel,
-            paymentStatus: targetPaymentStatus,
-          },
+          data: studentSyncData,
         })
       : await prisma.student.create({
           data: {
             userId: enrollment.userId,
-            accessLevel: data.accessLevel,
-            paymentStatus: targetPaymentStatus,
-            phone: enrollment.phone,
+            ...studentSyncData,
           },
         });
 
