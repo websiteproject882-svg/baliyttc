@@ -202,7 +202,7 @@ export const Teachers = () => {
         <div
           ref={sliderRef}
           onScroll={() => updateActiveTeacher(sliderRef.current, setActiveIndex)}
-          className="-mx-4 flex snap-x snap-mandatory gap-7 overflow-x-auto px-4 pb-8 pt-3 [perspective:1500px] [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-[max(2.5rem,calc((100vw-1180px)/2))] [&::-webkit-scrollbar]:hidden"
+          className="-mx-4 flex snap-x snap-proximity gap-7 overflow-x-auto overscroll-y-auto px-4 pb-8 pt-3 [perspective:1500px] [scrollbar-width:none] [touch-action:pan-x_pan-y] sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-[max(2.5rem,calc((100vw-1180px)/2))] [&::-webkit-scrollbar]:hidden"
         >
           {teachers.map((teacher, index) => (
             <TeacherCard

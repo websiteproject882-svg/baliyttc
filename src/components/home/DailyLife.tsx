@@ -23,7 +23,7 @@ export const DailyLife = () => (
     </div>
 
     <div className="container-wide relative z-10">
-      <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-5 [scrollbar-width:none] md:gap-5 md:px-0 md:mx-0 [&::-webkit-scrollbar]:hidden">
+      <div className="-mx-4 flex snap-x snap-proximity gap-4 overflow-x-auto overscroll-y-auto px-4 pb-5 [scrollbar-width:none] [touch-action:pan-x_pan-y] md:gap-5 md:px-0 md:mx-0 [&::-webkit-scrollbar]:hidden">
         {DAILY_LIFE.map((d, i) => (
           <Reveal key={d.title} delay={i * 0.05}>
             <motion.article

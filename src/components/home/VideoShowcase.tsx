@@ -147,7 +147,7 @@ export const VideoShowcase = () => {
 
             <div
               ref={journalRef}
-              className="-mx-4 flex snap-x snap-mandatory scroll-pl-4 gap-5 overflow-x-auto px-4 pb-4 [scrollbar-width:none] md:gap-6 [&::-webkit-scrollbar]:hidden"
+              className="-mx-4 flex snap-x snap-proximity scroll-pl-4 gap-5 overflow-x-auto overscroll-y-auto px-4 pb-4 [scrollbar-width:none] [touch-action:pan-x_pan-y] md:gap-6 [&::-webkit-scrollbar]:hidden"
             >
               {videos.map((video, index) => {
                 const isPlaying = playingIndex === index;

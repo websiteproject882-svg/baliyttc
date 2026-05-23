@@ -50,7 +50,7 @@ export const Manifesto = () => {
 
           <div
             ref={sliderRef}
-            className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth px-4 pb-5 [scrollbar-width:none] md:gap-6 md:px-1 [&::-webkit-scrollbar]:hidden"
+            className="-mx-4 flex snap-x snap-proximity gap-5 overflow-x-auto overscroll-y-auto scroll-smooth px-4 pb-5 [scrollbar-width:none] [touch-action:pan-x_pan-y] md:gap-6 md:px-1 [&::-webkit-scrollbar]:hidden"
           >
             {whyCards.map((card, index) => (
               <motion.article

@@ -374,7 +374,7 @@ export const FeaturedCourses = () => {
           </button>
           <div
             ref={mobileSliderRef}
-            className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-6 pb-6 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="-mx-4 flex snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain overscroll-y-auto scroll-smooth px-6 pb-6 pt-2 [scrollbar-width:none] [touch-action:pan-x_pan-y] [&::-webkit-scrollbar]:hidden"
           >
             {courses.map((course) => (
               <MobileCourseCard key={course.slug} course={course} labels={labels} />
