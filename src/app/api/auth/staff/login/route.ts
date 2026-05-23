@@ -32,7 +32,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { idToken } = loginSchema.parse(await request.json());
+    const parsed = loginSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: 'Invalid login request' }, { status: 400 }, request);
+    }
+    const { idToken } = parsed.data;
 
     if (!auth) {
       return jsonWithRequestId({ error: 'Firebase admin is not configured' }, { status: 503 }, request);

@@ -90,6 +90,19 @@ function request(body: unknown) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/auth/login", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+      "x-request-id": "req_student_login",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.rateLimit.mockReturnValue({ allowed: true, resetAt: Date.now() + 60_000 });
@@ -161,6 +174,17 @@ describe("student auth login", () => {
     expect(response.status).toBe(400);
     expect(body).toEqual({ error: "Invalid login request" });
     expect(mocks.verifyIdToken).not.toHaveBeenCalled();
+    expect(mocks.createSession).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed login JSON before Firebase verification", async () => {
+    const response = await POST(rawRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({ error: "Invalid login request" });
+    expect(mocks.verifyIdToken).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
     expect(mocks.createSession).not.toHaveBeenCalled();
   });
 });
