@@ -1,6 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { AnnouncementType } from "@prisma/client";
+import { z } from "zod";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { currentUserHasPermission, requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
+
+const announcementSchema = z.object({
+  title: z.string().trim().min(1).max(160),
+  content: z.string().trim().min(1).max(5000),
+  type: z.nativeEnum(AnnouncementType).default("GENERAL"),
+  batchId: z.string().trim().min(1).max(120).optional().transform((value) => value || undefined),
+});
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireAuthenticatedUser();
@@ -9,7 +19,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (user.role !== "TEACHER" && !currentUserHasPermission(user, "announcements.view")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
   }
 
   try {
@@ -25,10 +35,10 @@ export async function GET(request: NextRequest) {
       take: 20,
     });
 
-    return NextResponse.json({ announcements });
+    return jsonWithRequestId({ announcements }, undefined, request);
   } catch (error) {
-    console.error("GET announcements error:", error);
-    return NextResponse.json({ error: "Failed to fetch announcements" }, { status: 500 });
+    logApiError("teacher.announcements.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch announcements" }, { status: 500 }, request);
   }
 }
 
@@ -44,16 +54,11 @@ export async function POST(request: NextRequest) {
   }
 
   if (user.role !== "TEACHER" && !currentUserHasPermission(user, "announcements.create")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
   }
 
   try {
-    const body = await request.json();
-    const { title, content, type = "GENERAL", batchId } = body;
-
-    if (!title || !content) {
-      return NextResponse.json({ error: "title and content are required" }, { status: 400 });
-    }
+    const { title, content, type, batchId } = announcementSchema.parse(await request.json());
 
     const announcement = await prisma.announcement.create({
       data: {
@@ -75,10 +80,13 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, announcement });
+    return jsonWithRequestId({ success: true, announcement }, undefined, request);
   } catch (error) {
-    console.error("POST announcement error:", error);
-    return NextResponse.json({ error: "Failed to create announcement" }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
+    }
+    logApiError("teacher.announcements.create", error, request);
+    return jsonWithRequestId({ error: "Failed to create announcement" }, { status: 500 }, request);
   }
 }
 
@@ -97,20 +105,20 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
-    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+    if (!id) return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
 
     const existing = await prisma.announcement.findUnique({
       where: { id },
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Announcement not found" }, { status: 404 }, request);
     }
 
     const canManageAny = currentUserHasPermission(user, "announcements.edit");
     const canManageOwn = user.role === "TEACHER" && existing.authorId === user.id;
     if (!canManageAny && !canManageOwn) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
     }
 
     await prisma.announcement.delete({ where: { id } });
@@ -124,9 +132,9 @@ export async function DELETE(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true });
+    return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
-    console.error("DELETE announcement error:", error);
-    return NextResponse.json({ error: "Failed to delete announcement" }, { status: 500 });
+    logApiError("teacher.announcements.delete", error, request);
+    return jsonWithRequestId({ error: "Failed to delete announcement" }, { status: 500 }, request);
   }
 }
