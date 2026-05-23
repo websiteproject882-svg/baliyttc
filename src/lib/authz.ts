@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession, getAdminSession, getStaffSession, getStudentSession, AuthType } from "@/lib/session";
 import { getPermissions, hasPermission, isAdminPanelRole, type AppRole } from "@/lib/rbac";
+import { createApiErrorResponse } from "@/lib/security";
 export { requireSameOrigin } from "@/lib/security";
 
 // Expand AppRole to include all possible roles
@@ -27,7 +29,14 @@ export type CurrentStudent = {
 };
 
 function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+  let requestId: string | undefined;
+  try {
+    requestId = headers().get("x-request-id") || undefined;
+  } catch {
+    requestId = undefined;
+  }
+
+  return createApiErrorResponse(message, status, requestId);
 }
 
 export async function getCurrentUser(authType?: AuthType): Promise<CurrentUser | null> {
