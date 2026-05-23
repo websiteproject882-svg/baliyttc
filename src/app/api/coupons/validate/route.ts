@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin } from "@/lib/authz";
-import { getClientIp, jsonWithRequestId, rateLimit } from "@/lib/security";
+import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 
 const validateSchema = z.object({
-  code: z.string().min(1),
-  amount: z.number().positive(),
+  code: z.string().trim().min(1).max(80).transform((value) => value.toUpperCase()),
+  amount: z.number().int().positive().max(10_000_000),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,45 +32,45 @@ export async function POST(request: NextRequest) {
     const { code, amount } = validateSchema.parse(body);
 
     const coupon = await prisma.coupon.findUnique({
-      where: { code: code.toUpperCase() },
+      where: { code },
     });
 
     if (!coupon) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         valid: false,
         error: "Invalid coupon code",
-      }, { status: 400 });
+      }, { status: 400 }, request);
     }
 
     if (!coupon.isActive) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         valid: false,
         error: "This coupon is no longer active",
-      }, { status: 400 });
+      }, { status: 400 }, request);
     }
 
     // Check expiration
     if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         valid: false,
         error: "This coupon has expired",
-      }, { status: 400 });
+      }, { status: 400 }, request);
     }
 
     // Check usage limit
     if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         valid: false,
         error: "This coupon has reached its usage limit",
-      }, { status: 400 });
+      }, { status: 400 }, request);
     }
 
     // Check minimum amount
     if (coupon.minAmount && amount < coupon.minAmount) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         valid: false,
-        error: `Minimum order amount of $${coupon.minAmount} required for this coupon`,
-      }, { status: 400 });
+        error: `Minimum order amount of ${coupon.minAmount} required for this coupon`,
+      }, { status: 400 }, request);
     }
 
     // Calculate discount
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     // Ensure discount doesn't exceed amount
     discount = Math.min(discount, amount);
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       valid: true,
       coupon: {
         code: coupon.code,
@@ -99,18 +99,18 @@ export async function POST(request: NextRequest) {
         finalAmount: amount - discount,
         savings: discount,
       },
-    });
+    }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         valid: false,
         error: "Invalid request",
-      }, { status: 400 });
+      }, { status: 400 }, request);
     }
-    console.error("Coupon validation error:", error);
-    return NextResponse.json({
+    logApiError("coupons.validate", error, request);
+    return jsonWithRequestId({
       valid: false,
       error: "Failed to validate coupon",
-    }, { status: 500 });
+    }, { status: 500 }, request);
   }
 }
