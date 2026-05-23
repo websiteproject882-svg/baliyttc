@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { GET, PATCH } from "../app/api/admin/social-proof/route";
 
 const mocks = vi.hoisted(() => ({
-  requireAdminUser: vi.fn(),
+  requirePermission: vi.fn(),
   requireSameOrigin: vi.fn(),
   writeAuditLog: vi.fn(),
   getSocialProofStats: vi.fn(),
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requireAdminUser: mocks.requireAdminUser,
+  requirePermission: mocks.requirePermission,
   requireSameOrigin: mocks.requireSameOrigin,
   writeAuditLog: mocks.writeAuditLog,
 }));
@@ -101,7 +101,7 @@ function request(method: "GET" | "PATCH", body?: Record<string, unknown>) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
-  mocks.requireAdminUser.mockResolvedValue({ user: admin, response: null });
+  mocks.requirePermission.mockResolvedValue({ user: admin, response: null });
   mocks.certificateCount.mockResolvedValue(250);
   mocks.testimonialAggregate.mockResolvedValue({
     _count: { id: 620 },
@@ -167,6 +167,7 @@ describe("admin social proof route", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("X-Request-Id")).toBe("req_admin_social_proof");
+    expect(mocks.requirePermission).toHaveBeenCalledWith("social_proof.view");
     expect(body).toEqual({
       stats,
       computedStats: {
@@ -212,6 +213,7 @@ describe("admin social proof route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(mocks.requirePermission).toHaveBeenCalledWith("social_proof.edit");
     expect(body).toEqual({
       success: true,
       stats: { ...stats, totalGraduates: 275, averageRating: 4.8 },
