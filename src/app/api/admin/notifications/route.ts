@@ -7,18 +7,30 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const optionalTrimmed = (max: number) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }, z.string().min(1).max(max).optional());
+
 const notificationSchema = z.object({
-  title: z.string().min(3).max(160),
-  message: z.string().min(5).max(4000),
+  title: z.string().trim().min(3).max(160),
+  message: z.string().trim().min(5).max(4000),
   type: z.nativeEnum(NotificationType),
   audience: z.nativeEnum(NotificationAudience),
-  batchId: z.string().optional().nullable(),
-  studentId: z.string().optional().nullable(),
-  actionUrl: z.string().optional().nullable(),
+  batchId: optionalTrimmed(120),
+  studentId: optionalTrimmed(120),
+  actionUrl: optionalTrimmed(2048),
 });
 
 const updateSchema = notificationSchema.extend({
-  id: z.string(),
+  id: z.string().trim().min(1).max(120),
+});
+
+const deleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
 });
 
 export async function GET(request: NextRequest) {
@@ -155,10 +167,11 @@ export async function DELETE(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-  if (!id) {
+  const parsedQuery = deleteQuerySchema.safeParse({ id: searchParams.get("id") });
+  if (!parsedQuery.success) {
     return jsonWithRequestId({ error: "Notification id is required" }, { status: 400 }, request);
   }
+  const { id } = parsedQuery.data;
 
   try {
     const existing = await prisma.notification.findUnique({ where: { id } });

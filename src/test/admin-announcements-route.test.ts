@@ -242,6 +242,16 @@ describe("admin announcements route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized announcement update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121), title: "Updated" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.announcementFindUnique).not.toHaveBeenCalled();
+    expect(mocks.announcementUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes announcements and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/announcements?id=announcement_1"));
     const body = await response?.json();
@@ -264,6 +274,18 @@ describe("admin announcements route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Announcement id is required");
+  });
+
+  it("rejects oversized announcement delete ids before lookup", async () => {
+    const response = await DELETE(
+      request("DELETE", undefined, `https://example.com/api/admin/announcements?id=${"x".repeat(121)}`),
+    );
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Announcement id is required");
+    expect(mocks.announcementFindUnique).not.toHaveBeenCalled();
+    expect(mocks.announcementDelete).not.toHaveBeenCalled();
   });
 
   it("logs delete failures without leaking internals", async () => {

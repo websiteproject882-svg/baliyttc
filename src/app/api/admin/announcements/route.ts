@@ -7,15 +7,27 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const optionalTrimmed = (max: number) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }, z.string().min(1).max(max).optional());
+
 const announcementSchema = z.object({
-  title: z.string().min(3).max(160),
-  content: z.string().min(10).max(5000),
+  title: z.string().trim().min(3).max(160),
+  content: z.string().trim().min(10).max(5000),
   type: z.nativeEnum(AnnouncementType),
-  batchId: z.string().optional().nullable(),
+  batchId: optionalTrimmed(120),
 });
 
 const announcementUpdateSchema = announcementSchema.extend({
-  id: z.string(),
+  id: z.string().trim().min(1).max(120),
+});
+
+const deleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
 });
 
 export async function GET(request: NextRequest) {
@@ -154,11 +166,11 @@ export async function DELETE(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-
-  if (!id) {
+  const parsedQuery = deleteQuerySchema.safeParse({ id: searchParams.get("id") });
+  if (!parsedQuery.success) {
     return jsonWithRequestId({ error: "Announcement id is required" }, { status: 400 }, request);
   }
+  const { id } = parsedQuery.data;
 
   try {
     const existing = await prisma.announcement.findUnique({

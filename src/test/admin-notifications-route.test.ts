@@ -233,6 +233,16 @@ describe("admin notifications route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized notification update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121), title: "Updated" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.notificationFindUnique).not.toHaveBeenCalled();
+    expect(mocks.notificationUpdate).not.toHaveBeenCalled();
+  });
+
   it("deletes notifications and writes an audit log", async () => {
     const response = await DELETE(request("DELETE", undefined, "https://example.com/api/admin/notifications?id=notification_1"));
     const body = await response?.json();
@@ -255,6 +265,18 @@ describe("admin notifications route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Notification id is required");
+  });
+
+  it("rejects oversized notification delete ids before lookup", async () => {
+    const response = await DELETE(
+      request("DELETE", undefined, `https://example.com/api/admin/notifications?id=${"x".repeat(121)}`),
+    );
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Notification id is required");
+    expect(mocks.notificationFindUnique).not.toHaveBeenCalled();
+    expect(mocks.notificationDelete).not.toHaveBeenCalled();
   });
 
   it("logs delete failures without leaking internals", async () => {
