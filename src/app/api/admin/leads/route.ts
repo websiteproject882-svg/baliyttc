@@ -76,7 +76,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const { id, status, notes, assignedTo, followUpAt } = leadUpdateSchema.parse(await request.json());
+    const parsed = leadUpdateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, status, notes, assignedTo, followUpAt } = parsed.data;
 
     const existing = await prisma.lead.findUnique({
       where: { id },
