@@ -75,6 +75,19 @@ function request(method: "GET" | "PATCH" | "POST", body?: Record<string, unknown
   });
 }
 
+function rawRequest(method: "PATCH" | "POST", body: string) {
+  return new NextRequest("https://example.com/api/admin/abandoned", {
+    method,
+    headers: {
+      "content-type": "application/json",
+      "x-request-id": "req_admin_abandoned",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -197,6 +210,18 @@ describe("admin abandoned enrollment route", () => {
     expect(mocks.siteSettingUpsert).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed settings JSON before saving", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_abandoned");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.siteSettingUpsert).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("sends one manual reminder and writes an audit log", async () => {
     const response = await POST(request("POST", { key: "abandoned:enrollment_1" }));
     const body = await response?.json();
@@ -226,6 +251,18 @@ describe("admin abandoned enrollment route", () => {
       recipientKeys: undefined,
       limit: 25,
     });
+  });
+
+  it("rejects malformed reminder JSON before sending", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_abandoned");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.runCommunicationCampaign).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("logs list failures without leaking internals", async () => {

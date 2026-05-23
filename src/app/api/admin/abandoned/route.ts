@@ -21,6 +21,8 @@ const settingsSchema = z.object({
   }),
 });
 
+const reminderRequestSchema = z.object({ key: z.string().optional() });
+
 const defaultSettings = {
   enabled: false,
   reminder1Hours: 1,
@@ -37,6 +39,19 @@ async function getSettings() {
   const row = await prisma.siteSetting.findUnique({ where: { key: SETTINGS_KEY } });
   const parsed = settingsSchema.safeParse(row?.value);
   return parsed.success ? parsed.data : defaultSettings;
+}
+
+async function readJsonBody(request: NextRequest, emptyFallback: unknown) {
+  const text = await request.text();
+  if (!text.trim()) {
+    return { ok: true as const, data: emptyFallback };
+  }
+
+  try {
+    return { ok: true as const, data: JSON.parse(text) as unknown };
+  } catch {
+    return { ok: false as const };
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -84,7 +99,17 @@ export async function PATCH(request: NextRequest) {
   if (!user || response) return response;
 
   try {
-    const settings = settingsSchema.parse(await request.json());
+    const body = await readJsonBody(request, null);
+    const parsed = body.ok ? settingsSchema.safeParse(body.data) : null;
+    if (!parsed?.success) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: parsed?.error.errors ?? [] },
+        { status: 400 },
+        request,
+      );
+    }
+
+    const settings = parsed.data;
     const saved = await prisma.siteSetting.upsert({
       where: { key: SETTINGS_KEY },
       create: { key: SETTINGS_KEY, value: settings },
@@ -118,7 +143,17 @@ export async function POST(request: NextRequest) {
   if (!user || response) return response;
 
   try {
-    const payload = z.object({ key: z.string().optional() }).parse(await request.json().catch(() => ({})));
+    const body = await readJsonBody(request, {});
+    const parsed = body.ok ? reminderRequestSchema.safeParse(body.data) : null;
+    if (!parsed?.success) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: parsed?.error.errors ?? [] },
+        { status: 400 },
+        request,
+      );
+    }
+
+    const payload = parsed.data;
     const result = await runCommunicationCampaign({
       campaign: "ABANDONED_ENROLLMENT",
       recipientKeys: payload.key ? [payload.key] : undefined,
