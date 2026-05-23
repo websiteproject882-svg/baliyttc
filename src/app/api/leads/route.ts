@@ -19,7 +19,7 @@ const leadSchema = z.object({
 
 const leadUpdateSchema = z
   .object({
-    id: z.string().trim().min(1),
+    id: z.string().trim().min(1).max(120),
     status: z.enum(["NEW", "CONTACTED", "INTERESTED", "ENROLLED", "NOT_INTERESTED", "SPAM"]).optional(),
     notes: z.string().trim().max(5000).nullable().optional(),
     assignedTo: z.string().trim().max(120).nullable().optional(),
@@ -34,6 +34,16 @@ const leadUpdateSchema = z
       status !== undefined || notes !== undefined || assignedTo !== undefined || followUpAt !== undefined,
     "At least one update field is required",
   );
+
+const leadStatuses = ["NEW", "CONTACTED", "INTERESTED", "ENROLLED", "NOT_INTERESTED", "SPAM"] as const;
+
+const leadListQuerySchema = z.object({
+  status: z.preprocess((value) => {
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return trimmed ? trimmed.toUpperCase() : undefined;
+  }, z.enum(leadStatuses).optional()),
+});
 
 function getPositiveInt(value: string | null, fallback: number, max: number) {
   const parsed = Number(value || fallback);
@@ -61,7 +71,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
+    const parsedQuery = leadListQuerySchema.safeParse({
+      status: searchParams.get("status"),
+    });
+    if (!parsedQuery.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsedQuery.error.errors }, { status: 400 }, request);
+    }
+    const { status } = parsedQuery.data;
     const page = getPositiveInt(searchParams.get("page"), 1, 10_000);
     const limit = getPositiveInt(searchParams.get("limit"), 20, 100);
 

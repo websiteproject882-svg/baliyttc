@@ -106,6 +106,28 @@ describe("legacy management routes", () => {
     expect(mocks.writeAuditLog).toHaveBeenCalledWith(expect.objectContaining({ action: "lead.updated.legacy_route" }));
   });
 
+  it("rejects invalid legacy lead list filters before querying", async () => {
+    const response = await getLeads(request("GET", "https://example.com/api/leads?status=bad"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.leadFindMany).not.toHaveBeenCalled();
+    expect(mocks.leadCount).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized legacy lead update ids before lookup", async () => {
+    const response = await patchLead(
+      request("PATCH", "https://example.com/api/leads", { id: "x".repeat(121), status: "CONTACTED" }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.leadFindUnique).not.toHaveBeenCalled();
+    expect(mocks.leadUpdate).not.toHaveBeenCalled();
+  });
+
   it("uses waitlist permissions for legacy waitlist management", async () => {
     await getWaitlist(request("GET", "https://example.com/api/waitlist?status=WAITING&course=200hr"));
     await patchWaitlist(request("PATCH", "https://example.com/api/waitlist", { id: "wait_1", status: "NOTIFIED" }));
