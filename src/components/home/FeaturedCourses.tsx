@@ -15,10 +15,10 @@ const fallbackCourseImages: Record<string, string> = {
 };
 
 const cardCourseImages: Record<string, string> = {
-  "50hr": IMG.certified,
+  "50hr": IMG.yogaStudio,
   "100hr": IMG.classMain,
   "200hr": IMG.course200,
-  "300hr": IMG.templePurification,
+  "300hr": IMG.course300,
 };
 
 type ApiCourse = {
@@ -150,7 +150,7 @@ const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: C
     href={course.href}
     className="group flex w-[calc(100vw-48px)] max-w-[350px] shrink-0 snap-center flex-col overflow-hidden rounded-[14px] border border-stone-200 bg-white shadow-[0_12px_28px_rgba(22,33,37,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(22,33,37,0.13)]"
   >
-    <div className="relative aspect-[1.42/1] min-h-[196px] overflow-hidden bg-stone-100">
+    <div className="relative aspect-[1.45/1] min-h-[176px] overflow-hidden bg-stone-100">
       <CourseThumb course={course} />
       <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-transparent" />
       <div className="absolute left-5 top-5">
@@ -160,17 +160,17 @@ const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: C
       </div>
     </div>
 
-    <div className="flex min-h-[382px] flex-col p-5">
+    <div className="flex min-h-[326px] flex-col p-5">
       <div className="inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.08em] text-sage">
         <CalendarDays className="h-4 w-4" />
         <span>{course.days}</span>
       </div>
-      <h3 className="mt-5 font-sans text-[1.45rem] font-semibold leading-[1.18] tracking-tight text-charcoal">
+      <h3 className="mt-4 font-sans text-[1.35rem] font-semibold leading-[1.18] tracking-tight text-charcoal">
         {getCompactTitle(course.title)}
       </h3>
-      <p className="mt-3 text-[15px] leading-6 text-charcoal">{course.duration} {labels.certificationTrack}</p>
-      <div className="my-5 h-px bg-stone-200" />
-      <p className="line-clamp-5 text-[15px] leading-7 text-charcoal/85">{course.summary}</p>
+      <p className="mt-2 text-sm leading-6 text-charcoal">{course.duration} {labels.certificationTrack}</p>
+      <div className="my-4 h-px bg-stone-200" />
+      <p className="line-clamp-3 text-sm leading-6 text-charcoal/80">{course.summary}</p>
 
       <div className="mt-auto border-t border-stone-200 pt-5">
         <div>
@@ -179,7 +179,7 @@ const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: C
             EUR {course.priceFrom.toLocaleString("en-US")}
           </p>
         </div>
-        <span className="mt-4 inline-flex h-12 w-full items-center justify-between rounded-[7px] border border-sage px-5 text-base font-semibold text-sage transition group-hover:bg-sage group-hover:text-white">
+        <span className="mt-4 inline-flex h-11 w-full items-center justify-between rounded-[7px] border border-terra bg-terra px-5 text-sm font-semibold text-white transition group-hover:bg-terra-deep">
           {labels.details} <ArrowRight className="h-5 w-5" />
         </span>
       </div>
@@ -217,9 +217,9 @@ const CourseCard = ({
     >
       <Link
         href={course.href}
-        className={`relative flex h-full min-h-[620px] flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_14px_34px_rgba(22,33,37,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(22,33,37,0.14)] ${course.featured || active ? "ring-1 ring-brand/75" : "ring-1 ring-stone-200"}`}
+        className={`relative flex h-full min-h-[520px] flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_14px_34px_rgba(22,33,37,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(22,33,37,0.14)] ${course.featured || active ? "ring-1 ring-terra" : "ring-1 ring-stone-200"}`}
       >
-        <div className="relative h-[250px] overflow-hidden bg-stone-100">
+        <div className="relative h-[198px] overflow-hidden bg-stone-100">
           <CourseThumb course={course} />
           <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-transparent" />
           <div className="absolute left-4 top-4">
@@ -229,36 +229,36 @@ const CourseCard = ({
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col p-6">
-          <div className="inline-flex items-center gap-3 text-sm font-bold uppercase tracking-[0.08em] text-sage">
-            <CalendarDays className="h-5 w-5" />
+        <div className="flex flex-1 flex-col p-5">
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-sage">
+            <CalendarDays className="h-4 w-4" />
             <span>{course.days}</span>
           </div>
 
-          <div className="mt-7 min-h-[102px]">
-            <h3 className="font-sans text-[1.55rem] font-semibold leading-[1.22] tracking-tight text-charcoal">
+          <div className="mt-4 min-h-[78px]">
+            <h3 className="font-sans text-[1.38rem] font-semibold leading-[1.18] tracking-tight text-charcoal">
               {getCompactTitle(course.title)}
             </h3>
-            <p className="mt-4 text-[15px] leading-6 text-charcoal">
+            <p className="mt-2 text-sm leading-6 text-charcoal">
               {course.duration} {labels.certificationTrack}
             </p>
           </div>
 
-          <div className="my-6 h-px bg-stone-200" />
+          <div className="my-4 h-px bg-stone-200" />
 
-          <p className="line-clamp-5 text-[15px] leading-8 text-charcoal/85">
+          <p className="line-clamp-2 text-sm leading-6 text-charcoal/80">
             {course.summary}
           </p>
 
-          <div className="mt-auto border-t border-stone-200 pt-6">
+          <div className="mt-auto border-t border-stone-200 pt-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-soft">{labels.startsFrom}</p>
-              <p className="mt-2 font-sans text-[1.75rem] font-semibold tracking-tight text-charcoal">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-soft">{labels.startsFrom}</p>
+              <p className="mt-1 font-sans text-[1.58rem] font-semibold tracking-tight text-charcoal">
                 EUR {course.priceFrom.toLocaleString("en-US")}
               </p>
             </div>
-            <span className="mt-5 inline-flex h-12 w-full items-center justify-between rounded-[7px] border border-sage px-5 text-base font-semibold text-sage transition group-hover:bg-sage group-hover:text-white">
-              {labels.details} <ArrowRight className="h-5 w-5" />
+            <span className="mt-4 inline-flex h-11 w-full items-center justify-between rounded-[7px] border border-terra bg-terra px-5 text-sm font-semibold text-white transition group-hover:bg-terra-deep">
+              {labels.details} <ArrowRight className="h-4 w-4" />
             </span>
           </div>
         </div>
@@ -350,11 +350,11 @@ export const FeaturedCourses = () => {
   };
 
   return (
-    <section id="courses" className="relative overflow-hidden bg-white py-12 md:py-16">
+    <section id="courses" className="relative overflow-hidden bg-white py-10 md:py-12">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-px bg-stone-100" />
 
       <div className="container-edit relative z-10">
-        <div className="mx-auto mb-10 max-w-4xl text-center md:mb-12">
+        <div className="mx-auto mb-8 max-w-4xl text-center md:mb-10">
           <h2 className="font-sans text-[2.45rem] font-semibold leading-tight tracking-tight text-charcoal md:text-[3.35rem]">
             {t("title")}
           </h2>
