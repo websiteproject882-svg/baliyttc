@@ -159,6 +159,26 @@ describe("enrollments route", () => {
     expect(mocks.enrollmentCount).not.toHaveBeenCalled();
   });
 
+  it("rejects invalid admin list filters before querying enrollments", async () => {
+    const response = await GET(request("https://example.com/api/enrollments?status=paid&course=200hr"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.enrollmentFindMany).not.toHaveBeenCalled();
+    expect(mocks.enrollmentCount).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized admin list course filters before querying enrollments", async () => {
+    const response = await GET(request(`https://example.com/api/enrollments?course=${"x".repeat(81)}`));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.enrollmentFindMany).not.toHaveBeenCalled();
+    expect(mocks.enrollmentCount).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed public enrollment JSON as validation failure", async () => {
     const response = await POST(postRequest("{not-valid-json"));
     const body = await response.json();

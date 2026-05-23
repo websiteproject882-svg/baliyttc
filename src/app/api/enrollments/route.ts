@@ -28,6 +28,21 @@ const enrollmentSchema = z.object({
   referralSource: optionalTrimmed(120),
 });
 
+const paymentStatuses = ["PENDING", "DEPOSIT_PAID", "FULL_PAID", "FAILED", "REFUNDED"] as const;
+
+const enrollmentListQuerySchema = z.object({
+  status: z.preprocess((value) => {
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return trimmed ? trimmed.toUpperCase() : undefined;
+  }, z.enum(paymentStatuses).optional()),
+  course: z.preprocess((value) => {
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }, z.string().min(1).max(80).optional()),
+});
+
 function getPositiveInt(value: string | null, fallback: number, max: number) {
   const parsed = Number.parseInt(value || "", 10);
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
@@ -89,13 +104,23 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const course = searchParams.get("course");
+    const parsedQuery = enrollmentListQuerySchema.safeParse({
+      status: searchParams.get("status"),
+      course: searchParams.get("course"),
+    });
+    if (!parsedQuery.success) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: parsedQuery.error.errors },
+        { status: 400 },
+        request,
+      );
+    }
+    const { status, course } = parsedQuery.data;
     const page = getPositiveInt(searchParams.get("page"), 1, 10_000);
     const limit = getPositiveInt(searchParams.get("limit"), 20, 100);
 
     const where: Record<string, unknown> = {};
-    if (status) where.paymentStatus = status.toUpperCase();
+    if (status) where.paymentStatus = status;
     if (course) where.courseSlug = course;
 
     const [enrollments, total] = await Promise.all([
