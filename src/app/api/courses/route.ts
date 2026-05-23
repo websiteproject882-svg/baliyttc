@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { BATCHES, COURSES as STATIC_COURSES } from "@/data/site";
 import { applyCourseTranslation, normalizeLocale } from "@/lib/localized-content";
 import type { Locale } from "@/i18n/routing";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 function getStaticCourses() {
   return STATIC_COURSES.map((course, index) => ({
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
         },
         batches: {
           where: {
-            status: { in: ["OPEN", "DRAFT"] },
+            status: "OPEN",
             endDate: { gte: new Date() },
           },
           include: {
@@ -82,23 +83,23 @@ export async function GET(request: NextRequest) {
     });
 
     if (slug && courses.length === 0) {
-      return NextResponse.json({
+      return jsonWithRequestId({
         courses: getStaticCourses().filter((course) => course.slug === slug),
         locale,
         fallback: true,
-      });
+      }, undefined, request);
     }
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       courses: slug ? courses.map((course) => applyCourseTranslation(course, locale)) : mergeStaticMissing(courses, locale),
       locale,
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("GET courses error:", error);
+    logApiError("courses.public", error, request, { slug, locale });
     const staticCourses = getStaticCourses().filter((course) => (slug ? course.slug === slug : true));
-    return NextResponse.json({
+    return jsonWithRequestId({
       courses: staticCourses,
       fallback: true,
-    });
+    }, undefined, request);
   }
 }
