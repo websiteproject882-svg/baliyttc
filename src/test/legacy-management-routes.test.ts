@@ -119,6 +119,26 @@ describe("legacy management routes", () => {
     );
   });
 
+  it("rejects invalid waitlist list filters before querying", async () => {
+    const response = await getWaitlist(request("GET", "https://example.com/api/waitlist?status=bad&course=200hr"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistFindMany).not.toHaveBeenCalled();
+    expect(mocks.waitlistCount).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized waitlist delete ids before lookup", async () => {
+    const response = await deleteWaitlist(request("DELETE", `https://example.com/api/waitlist?id=${"x".repeat(121)}`));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("id is required");
+    expect(mocks.waitlistFindUnique).not.toHaveBeenCalled();
+    expect(mocks.waitlistDelete).not.toHaveBeenCalled();
+  });
+
   it("returns permission errors before reading legacy lead data", async () => {
     const forbidden = Response.json({ error: "Forbidden" }, { status: 403 });
     mocks.requirePermission.mockResolvedValue({ user: null, response: forbidden });

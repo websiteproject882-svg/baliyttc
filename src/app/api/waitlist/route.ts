@@ -21,6 +21,27 @@ const waitlistUpdateSchema = z.object({
   notes: z.string().trim().max(3000).nullable().optional(),
 });
 
+const optionalTrimmedQuery = (max: number) =>
+  z.preprocess((value) => {
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }, z.string().min(1).max(max).optional());
+
+const waitlistListQuerySchema = z.object({
+  batchId: optionalTrimmedQuery(120),
+  status: z.preprocess((value) => {
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return trimmed ? trimmed.toUpperCase() : undefined;
+  }, z.nativeEnum(WaitlistStatus).optional()),
+  course: optionalTrimmedQuery(80),
+});
+
+const waitlistDeleteQuerySchema = z.object({
+  id: z.string().trim().min(1).max(120),
+});
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -38,9 +59,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const batchId = searchParams.get("batchId");
-    const status = searchParams.get("status");
-    const courseSlug = searchParams.get("course");
+    const parsedQuery = waitlistListQuerySchema.safeParse({
+      batchId: searchParams.get("batchId"),
+      status: searchParams.get("status"),
+      course: searchParams.get("course"),
+    });
+    if (!parsedQuery.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsedQuery.error.errors }, { status: 400 }, request);
+    }
+    const { batchId, status, course: courseSlug } = parsedQuery.data;
 
     const where: Record<string, unknown> = {};
     if (batchId) where.batchId = batchId;
@@ -231,11 +258,13 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return jsonWithRequestId({ error: "id is required" }, { status: 400 }, request);
+    const parsedQuery = waitlistDeleteQuerySchema.safeParse({
+      id: searchParams.get("id"),
+    });
+    if (!parsedQuery.success) {
+      return jsonWithRequestId({ error: "id is required", details: parsedQuery.error.errors }, { status: 400 }, request);
     }
+    const { id } = parsedQuery.data;
 
     const existing = await prisma.waitlist.findUnique({
       where: { id },
