@@ -22,6 +22,8 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/payments/complete", () => ({
+  getStoredPaymentType: (payment: { providerPayload?: { paymentType?: string }; enrollment: { paymentType: string } }) =>
+    payment.providerPayload?.paymentType || payment.enrollment.paymentType.toLowerCase(),
   markPaymentComplete: mocks.markPaymentComplete,
 }));
 
@@ -48,6 +50,7 @@ vi.mock("@/lib/security", () => ({
 
 const payment = {
   id: "payment_1",
+  providerPayload: null,
   enrollment: {
     paymentType: "DEPOSIT",
   },
@@ -198,5 +201,22 @@ describe("payment callback routes", () => {
         purchase_units: [{ payments: { captures: [{ id: "capture_123" }] } }],
       },
     });
+  });
+
+  it("completes callbacks with stored full payment metadata after a deposit", async () => {
+    mocks.paymentFindFirst.mockResolvedValue({
+      ...payment,
+      providerPayload: { paymentType: "full" },
+    });
+
+    const response = await capturePayPalPayment(paypalRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.markPaymentComplete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paymentId: "payment_1",
+        paymentType: "full",
+      }),
+    );
   });
 });

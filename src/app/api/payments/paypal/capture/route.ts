@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { markPaymentComplete } from "@/lib/payments/complete";
+import { getStoredPaymentType, markPaymentComplete } from "@/lib/payments/complete";
 import { capturePayPalOrder } from "@/lib/payments/paypal";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { requireSameOrigin } from "@/lib/authz";
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     await markPaymentComplete({
       paymentId: payment.id,
-      paymentType: payment.enrollment.paymentType.toLowerCase(),
+      paymentType: getStoredPaymentType(payment),
       providerPayload: capture,
     });
 

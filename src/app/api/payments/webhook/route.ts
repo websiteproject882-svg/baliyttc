@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { markPaymentComplete } from "@/lib/payments/complete";
+import { getStoredPaymentType, markPaymentComplete } from "@/lib/payments/complete";
 import { verifyPayPalWebhook } from "@/lib/payments/paypal";
 import { verifyRazorpayWebhookSignature } from "@/lib/payments/razorpay";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
           });
           await markPaymentComplete({
             paymentId: payment.id,
-            paymentType: payment.enrollment.paymentType.toLowerCase(),
+            paymentType: getStoredPaymentType(payment),
             providerPayload: event,
           });
         }
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         });
         await markPaymentComplete({
           paymentId: payment.id,
-          paymentType: paymentEntity.notes?.paymentType || payment.enrollment.paymentType.toLowerCase(),
+          paymentType: paymentEntity.notes?.paymentType || getStoredPaymentType(payment),
           providerPayload: event,
         });
       }

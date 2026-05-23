@@ -17,6 +17,18 @@ function isPaidStatus(status: PaymentStatus) {
   return status === "DEPOSIT_PAID" || status === "FULL_PAID";
 }
 
+export function getStoredPaymentType(payment: { providerPayload?: unknown; enrollment: { paymentType: string } }) {
+  const providerPayload = payment.providerPayload;
+  if (providerPayload && typeof providerPayload === "object" && !Array.isArray(providerPayload)) {
+    const paymentType = (providerPayload as { paymentType?: unknown }).paymentType;
+    if (paymentType === "deposit" || paymentType === "full") {
+      return paymentType;
+    }
+  }
+
+  return payment.enrollment.paymentType.toLowerCase();
+}
+
 export async function markPaymentComplete(params: {
   paymentId: string;
   paymentType?: string;

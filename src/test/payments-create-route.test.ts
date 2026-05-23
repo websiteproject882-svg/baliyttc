@@ -228,6 +228,11 @@ describe("payment create route", () => {
         paypalOrderId: "paypal_order_123",
         method: "PAYPAL",
         status: "PENDING",
+        providerPayload: {
+          paymentType: "full",
+          displayAmount: 1000,
+          displayCurrency: "EUR",
+        },
       },
     });
     expect(body).toEqual(expect.objectContaining({ success: true, provider: "paypal" }));
@@ -242,7 +247,15 @@ describe("payment create route", () => {
     expect(response.status).toBe(200);
     expect(mocks.paymentUpdate).toHaveBeenCalledWith({
       where: { id: "payment_existing" },
-      data: { amount: 499, currency: "EUR" },
+      data: {
+        amount: 499,
+        currency: "EUR",
+        providerPayload: {
+          paymentType: "deposit",
+          displayAmount: 499,
+          displayCurrency: "EUR",
+        },
+      },
     });
     expect(mocks.paymentCreate).not.toHaveBeenCalled();
     expect(body.instructions).toEqual(
@@ -280,6 +293,11 @@ describe("payment create route", () => {
         razorpayOrderId: "order_123",
         method: "RAZORPAY",
         status: "PENDING",
+        providerPayload: {
+          paymentType: "deposit",
+          displayAmount: 499,
+          displayCurrency: "EUR",
+        },
       },
     });
     expect(body).toEqual(

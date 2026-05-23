@@ -102,6 +102,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const paymentMetadata = {
+      paymentType,
+      displayAmount: amount,
+      displayCurrency: currency,
+    };
+
     if (data.provider === "razorpay") {
       if (!settings.payments.razorpayEnabled) {
         return jsonWithRequestId(
@@ -160,6 +166,7 @@ export async function POST(request: NextRequest) {
             razorpayOrderId: order.id,
             razorpayPaymentId: null,
             razorpaySignature: null,
+            providerPayload: paymentMetadata,
           },
         });
       } else {
@@ -171,6 +178,7 @@ export async function POST(request: NextRequest) {
             razorpayOrderId: order.id,
             method: "RAZORPAY",
             status: "PENDING",
+            providerPayload: paymentMetadata,
           },
         });
       }
@@ -208,7 +216,7 @@ export async function POST(request: NextRequest) {
       if (existingPayment) {
         await prisma.payment.update({
           where: { id: existingPayment.id },
-          data: { amount, currency },
+          data: { amount, currency, providerPayload: paymentMetadata },
         });
       } else {
         await prisma.payment.create({
@@ -218,6 +226,7 @@ export async function POST(request: NextRequest) {
             currency,
             method: "BANK_TRANSFER",
             status: "PENDING",
+            providerPayload: paymentMetadata,
           },
         });
       }
@@ -278,6 +287,7 @@ export async function POST(request: NextRequest) {
           currency,
           paypalOrderId: order.id,
           paypalCaptureId: null,
+          providerPayload: paymentMetadata,
         },
       });
     } else {
@@ -289,6 +299,7 @@ export async function POST(request: NextRequest) {
           paypalOrderId: order.id,
           method: "PAYPAL",
           status: "PENDING",
+          providerPayload: paymentMetadata,
         },
       });
     }

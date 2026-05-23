@@ -23,6 +23,8 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/payments/complete", () => ({
+  getStoredPaymentType: (payment: { providerPayload?: { paymentType?: string }; enrollment: { paymentType: string } }) =>
+    payment.providerPayload?.paymentType || payment.enrollment.paymentType.toLowerCase(),
   markPaymentComplete: mocks.markPaymentComplete,
 }));
 
@@ -57,6 +59,7 @@ function webhookRequest(provider: "razorpay" | "paypal", body: unknown, headers:
 const pendingPayment = {
   id: "payment_1",
   enrollmentId: "enrollment_1",
+  providerPayload: null,
   enrollment: {
     paymentType: "DEPOSIT",
   },
@@ -226,5 +229,34 @@ describe("payment webhook route", () => {
       paymentType: "deposit",
       providerPayload: event,
     });
+  });
+
+  it("uses stored payment metadata for PayPal remaining-balance webhooks", async () => {
+    const event = {
+      id: "WH-full",
+      event_type: "PAYMENT.CAPTURE.COMPLETED",
+      resource: {
+        id: "paypal_order_full",
+        purchase_units: [
+          {
+            custom_id: "enrollment_1",
+            payments: { captures: [{ id: "capture_full", status: "COMPLETED" }] },
+          },
+        ],
+      },
+    };
+    mocks.paymentFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...pendingPayment, providerPayload: { paymentType: "full" } });
+
+    const response = await POST(webhookRequest("paypal", event));
+
+    expect(response.status).toBe(200);
+    expect(mocks.markPaymentComplete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paymentId: "payment_1",
+        paymentType: "full",
+      }),
+    );
   });
 });
