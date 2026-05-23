@@ -9,7 +9,23 @@ import { useHomeCopy } from "@/lib/use-home-copy";
 import { useEffect, useRef, useState } from "react";
 
 type TeacherItem = (typeof TEACHERS)[number] & {
+  id?: string;
+  slug?: string;
+  credentials?: string;
+  image?: string;
+  styles?: string[];
   experience?: string;
+};
+
+type PublicTeacher = {
+  id: string;
+  name: string;
+  slug: string;
+  role: string;
+  credentials: string;
+  bio: string;
+  image: string;
+  styles: string[];
 };
 
 const updateActiveTeacher = (
@@ -129,9 +145,45 @@ const TeacherCard = ({
 
 export const Teachers = () => {
   const copy = useHomeCopy();
-  const teachers = TEACHERS.map((teacher, index) => ({ ...teacher, ...copy.teachers.items[index] }));
+  const fallbackTeachers = TEACHERS.map((teacher, index) => ({ ...teacher, ...copy.teachers.items[index] }));
+  const [teachers, setTeachers] = useState<TeacherItem[]>(fallbackTeachers);
   const [activeIndex, setActiveIndex] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTeachers = async () => {
+      try {
+        const response = await fetch("/api/teachers");
+        if (!response.ok) return;
+        const data = (await response.json()) as { teachers?: PublicTeacher[] };
+        if (!Array.isArray(data.teachers) || data.teachers.length === 0 || cancelled) return;
+
+        setTeachers(
+          data.teachers.map((teacher, index) => ({
+            name: teacher.name,
+            cred: teacher.credentials,
+            role: teacher.role,
+            img: teacher.image,
+            bio: teacher.bio,
+            style: teacher.styles,
+            experience: copy.teachers.items[index]?.experience || "Senior teaching faculty",
+            id: teacher.id,
+            slug: teacher.slug,
+          })),
+        );
+      } catch (error) {
+        console.error("Failed to load public teachers", error);
+      }
+    };
+
+    void loadTeachers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [copy.teachers.items]);
 
   useEffect(() => {
     const refresh = () => updateActiveTeacher(sliderRef.current, setActiveIndex);
