@@ -100,6 +100,15 @@ describe("public courses route", () => {
     expect(body.courses).toEqual([expect.objectContaining({ slug: "50hr", name: "50 Hour YTT" })]);
   });
 
+  it("rejects invalid slugs before querying", async () => {
+    const response = await GET(request("https://example.com/api/courses?slug=Bad Slug!&locale=en"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseFindMany).not.toHaveBeenCalled();
+  });
+
   it("logs database failures without leaking internals", async () => {
     mocks.courseFindMany.mockRejectedValue(new Error("database down"));
 

@@ -136,6 +136,16 @@ describe("public blog list route", () => {
     );
   });
 
+  it("rejects oversized category filters before querying", async () => {
+    const response = await GET(request(`https://example.com/api/blog?locale=en&category=${"x".repeat(81)}`));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogPostFindMany).not.toHaveBeenCalled();
+    expect(mocks.blogPostCount).not.toHaveBeenCalled();
+  });
+
   it("uses clamped pagination and filtered totals for static fallback", async () => {
     mocks.blogPostFindMany.mockRejectedValue(new Error("database down"));
 

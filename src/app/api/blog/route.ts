@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { PostStatus } from "@prisma/client";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
@@ -9,6 +10,7 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 30;
+const categorySchema = z.string().trim().min(1).max(80).optional();
 
 const publicBlogWhere = (locale: string, category: string | null) => ({
   status: PostStatus.PUBLISHED,
@@ -27,7 +29,15 @@ function getPositiveInt(value: string | null, fallback: number, max?: number) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category");
+    const parsedCategory = categorySchema.safeParse(searchParams.get("category") ?? undefined);
+    if (!parsedCategory.success) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: parsedCategory.error.errors },
+        { status: 400 },
+        request,
+      );
+    }
+    const category = parsedCategory.data ?? null;
     const limit = getPositiveInt(searchParams.get("limit"), DEFAULT_LIMIT, MAX_LIMIT);
     const page = getPositiveInt(searchParams.get("page"), 1);
     const locale = normalizeLocale(searchParams.get("locale"));
@@ -104,7 +114,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = getPositiveInt(searchParams.get("limit"), DEFAULT_LIMIT, MAX_LIMIT);
     const page = getPositiveInt(searchParams.get("page"), 1);
-    const category = searchParams.get("category");
+    const category = categorySchema.safeParse(searchParams.get("category") ?? undefined).success
+      ? categorySchema.parse(searchParams.get("category") ?? undefined) ?? null
+      : null;
     const filteredPosts = STATIC_BLOG_POSTS.filter((post) => !category || post.category === category);
     const posts = filteredPosts
       .slice((page - 1) * limit, page * limit);

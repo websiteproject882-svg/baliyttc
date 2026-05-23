@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { BATCHES, COURSES as STATIC_COURSES } from "@/data/site";
 import { applyCourseTranslation, normalizeLocale } from "@/lib/localized-content";
 import type { Locale } from "@/i18n/routing";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+
+const courseSlugSchema = z.string().trim().min(1).max(180).regex(/^[a-z0-9-]+$/).optional();
 
 function getStaticCourses() {
   return STATIC_COURSES.map((course, index) => ({
@@ -54,7 +57,15 @@ type CourseWithTranslations<T extends Record<string, unknown>> = T & {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const slug = searchParams.get("slug");
+  const parsedSlug = courseSlugSchema.safeParse(searchParams.get("slug") ?? undefined);
+  if (!parsedSlug.success) {
+    return jsonWithRequestId(
+      { error: "Validation failed", details: parsedSlug.error.errors },
+      { status: 400 },
+      request,
+    );
+  }
+  const slug = parsedSlug.data;
   const locale = normalizeLocale(searchParams.get("locale"));
 
   try {

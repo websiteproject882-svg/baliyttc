@@ -84,6 +84,15 @@ describe("public blog post route", () => {
     expect(body.error).toBe("Post not found");
   });
 
+  it("rejects invalid slugs before querying", async () => {
+    const response = await GET(request(), { params: { slug: "Bad Slug!" } });
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogPostFindFirst).not.toHaveBeenCalled();
+  });
+
   it("falls back to the default locale using the same public-only filter", async () => {
     const post = {
       id: "post_en",
