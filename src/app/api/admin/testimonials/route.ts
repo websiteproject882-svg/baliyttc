@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { TestimonialStatus } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -11,46 +12,55 @@ const updateSchema = z.object({
   status: z.nativeEnum(TestimonialStatus),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("testimonials.view");
   if (response) {
     return response;
   }
 
-  const testimonials = await prisma.testimonial.findMany({
-    include: {
-      student: {
-        include: {
-          user: {
-            select: {
-              email: true,
-              displayName: true,
+  try {
+    const testimonials = await prisma.testimonial.findMany({
+      include: {
+        student: {
+          include: {
+            user: {
+              select: {
+                email: true,
+                displayName: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({
-    testimonials: testimonials.map((item) => ({
-      id: item.id,
-      rating: item.rating,
-      quote: item.quote,
-      location: item.location,
-      courseName: item.courseName,
-      graduationYear: item.graduationYear,
-      status: item.status,
-      approvedAt: item.approvedAt,
-      createdAt: item.createdAt,
-      student: {
-        id: item.student.id,
-        name: item.student.user.displayName || item.student.user.email,
-        email: item.student.user.email,
+    return jsonWithRequestId(
+      {
+        testimonials: testimonials.map((item) => ({
+          id: item.id,
+          rating: item.rating,
+          quote: item.quote,
+          location: item.location,
+          courseName: item.courseName,
+          graduationYear: item.graduationYear,
+          status: item.status,
+          approvedAt: item.approvedAt,
+          createdAt: item.createdAt,
+          student: {
+            id: item.student.id,
+            name: item.student.user.displayName || item.student.user.email,
+            email: item.student.user.email,
+          },
+        })),
       },
-    })),
-  });
+      undefined,
+      request,
+    );
+  } catch (error) {
+    logApiError("admin.testimonials.list", error, request);
+    return jsonWithRequestId({ error: "Failed to load testimonials" }, { status: 500 }, request);
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -71,7 +81,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Testimonial not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Testimonial not found" }, { status: 404 }, request);
     }
 
     const testimonial = await prisma.testimonial.update({
@@ -92,12 +102,12 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, testimonial });
+    return jsonWithRequestId({ success: true, testimonial }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH admin testimonial error:", error);
-    return NextResponse.json({ error: "Failed to update testimonial" }, { status: 500 });
+    logApiError("admin.testimonials.moderate", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to update testimonial" }, { status: 500 }, request);
   }
 }
