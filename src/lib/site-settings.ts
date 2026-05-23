@@ -5,6 +5,25 @@ export const SITE_SETTINGS_KEY = "site_settings";
 export const PAYMENT_PROVIDERS = ["paypal", "razorpay", "bank_transfer"] as const;
 type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
 
+const emptyString = z.literal("");
+const httpsUrl = z.string().url().refine((value) => {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, {
+  message: "URL must use https",
+});
+const httpsOrRelativeUrl = z.string().refine((value) => {
+  if (value.startsWith("/")) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, "URL must use https or start with /");
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -65,15 +84,15 @@ export const siteSettingsSchema = z.object({
     whatsappOnPayment: z.boolean(),
   }),
   reviews: z.object({
-    googleReviewUrl: z.string().url().or(z.literal("")),
-    tripadvisorReviewUrl: z.string().url().or(z.literal("")),
+    googleReviewUrl: httpsUrl.or(emptyString),
+    tripadvisorReviewUrl: httpsUrl.or(emptyString),
   }),
   assets: z.object({
-    logoUrl: z.string().url().or(z.literal("")),
-    courseManualUrl: z.string().url().or(z.literal("")),
-    certificateTemplateUrl: z.string().url().or(z.literal("")),
-    mapsEmbedUrl: z.string().url().or(z.literal("")),
-    mapsLinkUrl: z.string().url().or(z.literal("")),
+    logoUrl: httpsOrRelativeUrl.or(emptyString),
+    courseManualUrl: httpsOrRelativeUrl.or(emptyString),
+    certificateTemplateUrl: httpsOrRelativeUrl.or(emptyString),
+    mapsEmbedUrl: httpsUrl.or(emptyString),
+    mapsLinkUrl: httpsUrl.or(emptyString),
   }),
 });
 

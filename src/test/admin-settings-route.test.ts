@@ -182,6 +182,40 @@ describe("admin settings route", () => {
     expect(mocks.saveSiteSettings).not.toHaveBeenCalled();
   });
 
+  it("rejects insecure public asset and review URLs", async () => {
+    const response = await PATCH(
+      request("PATCH", {
+        ...defaultSiteSettings,
+        reviews: {
+          ...defaultSiteSettings.reviews,
+          googleReviewUrl: "http://example.com/review",
+        },
+        assets: {
+          ...defaultSiteSettings.assets,
+          logoUrl: "http://example.com/logo.png",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect((await json(response)).error).toBe("Invalid settings payload");
+    expect(mocks.saveSiteSettings).not.toHaveBeenCalled();
+  });
+
+  it("allows relative local asset URLs for files served by the app", () => {
+    const parsed = siteSettingsSchema.parse({
+      ...defaultSiteSettings,
+      assets: {
+        ...defaultSiteSettings.assets,
+        logoUrl: "/images/brand/logo-512.png",
+        courseManualUrl: "/downloads/course-manual.pdf",
+        certificateTemplateUrl: "/images/certificate-template.png",
+      },
+    });
+
+    expect(parsed.assets.logoUrl).toBe("/images/brand/logo-512.png");
+  });
+
   it("logs and returns request-id errors when saving fails", async () => {
     mocks.saveSiteSettings.mockRejectedValue(new Error("database offline"));
 
