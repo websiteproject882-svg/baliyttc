@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireStudentUser, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ const profileSchema = z.object({
   emergencyContact: z.string().max(500).optional().or(z.literal("")),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { user, student, response } = await requireStudentUser({ minimumAccess: "PRE_ARRIVAL" });
   if (!user || !student || response) {
     return response;
@@ -51,7 +52,7 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({
+  return jsonWithRequestId({
     email: user.email,
     displayName: user.displayName || "",
     photoURL: (await prisma.user.findUnique({
@@ -68,7 +69,7 @@ export async function GET() {
     enrollmentDate: current?.enrollmentDate || null,
     paymentStatus: current?.paymentStatus || "",
     accessLevel: current?.accessLevel || "NONE",
-  });
+  }, undefined, request);
 }
 
 export async function PATCH(request: NextRequest) {
@@ -135,12 +136,12 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, profile: updated });
+    return jsonWithRequestId({ success: true, profile: updated }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH app profile error:", error);
-    return NextResponse.json({ error: "Failed to save profile" }, { status: 500 });
+    logApiError("app.profile", error, request, { studentId: student.id });
+    return jsonWithRequestId({ error: "Failed to save profile" }, { status: 500 }, request);
   }
 }

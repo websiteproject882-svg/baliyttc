@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireStudentUser, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,7 @@ const notesSchema = z.object({
   personalNotes: z.string().max(10000),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { student, response } = await requireStudentUser({ minimumAccess: "PRE_ARRIVAL" });
   if (!student || response) {
     return response;
@@ -20,7 +21,7 @@ export async function GET() {
     select: { personalNotes: true },
   });
 
-  return NextResponse.json({ personalNotes: current?.personalNotes || "" });
+  return jsonWithRequestId({ personalNotes: current?.personalNotes || "" }, undefined, request);
 }
 
 export async function PATCH(request: NextRequest) {
@@ -57,12 +58,12 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, personalNotes: updated.personalNotes || "" });
+    return jsonWithRequestId({ success: true, personalNotes: updated.personalNotes || "" }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH app notes error:", error);
-    return NextResponse.json({ error: "Failed to save notes" }, { status: 500 });
+    logApiError("app.notes", error, request, { studentId: student.id });
+    return jsonWithRequestId({ error: "Failed to save notes" }, { status: 500 }, request);
   }
 }
