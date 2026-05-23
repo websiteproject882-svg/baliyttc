@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { sendEmail } from "@/lib/resend";
 import { createRateLimitResponse, getClientIp, rateLimit } from "@/lib/security";
 
@@ -15,7 +15,7 @@ const waitlistSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminUser();
+  const { response } = await requirePermission("waitlist.view");
   if (response) {
     return response;
   }
@@ -151,7 +151,7 @@ export async function PATCH(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("waitlist.edit");
   if (!user || response) {
     return response;
   }
@@ -198,7 +198,7 @@ export async function DELETE(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("waitlist.edit");
   if (!user || response) {
     return response;
   }

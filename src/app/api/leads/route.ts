@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { applyDeprecationHeaders, getClientIp, jsonWithRequestId, LEGACY_API_SUNSET, logApiError, logLegacyRouteAccess, rateLimit } from "@/lib/security";
 
 // Mixed route: public POST stays valid for website lead capture.
@@ -30,7 +30,7 @@ function withLeadsDeprecation(request: NextRequest, response: NextResponse) {
 }
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminUser();
+  const { response } = await requirePermission("leads.view");
   if (response) {
     return response;
   }
@@ -114,7 +114,7 @@ export async function PATCH(request: NextRequest) {
     return sameOriginResponse;
   }
 
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requirePermission("leads.edit");
   if (!user || response) {
     return response;
   }
