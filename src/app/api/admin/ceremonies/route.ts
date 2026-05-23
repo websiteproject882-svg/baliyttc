@@ -84,7 +84,12 @@ export async function POST(request: NextRequest) {
   if (response) return response;
 
   try {
-    const { name, date, description, type, noClass, batchIds } = ceremonySchema.parse(await request.json());
+    const parsed = ceremonySchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { name, date, description, type, noClass, batchIds } = parsed.data;
     const batchId = await resolveBatchId(batchIds);
     if (!batchId) {
       return jsonWithRequestId({ error: "At least one batch is required before adding ceremonies" }, { status: 400 }, request);
@@ -139,7 +144,12 @@ export async function PATCH(request: NextRequest) {
   if (response) return response;
 
   try {
-    const { id, name, date, batchIds } = ceremonyUpdateSchema.parse(await request.json());
+    const parsed = ceremonyUpdateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const { id, name, date, batchIds } = parsed.data;
     const updateData: Prisma.ScheduleEntryUncheckedUpdateInput = {};
     if (date) updateData.date = parseCeremonyDate(date);
     if (name) updateData.notes = name;

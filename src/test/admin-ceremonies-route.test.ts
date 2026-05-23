@@ -79,6 +79,18 @@ function request(
   });
 }
 
+function rawRequest(method: "POST" | "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/ceremonies", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_ceremonies",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     name: "Full Moon Ceremony",
@@ -196,6 +208,19 @@ describe("admin ceremonies route", () => {
     expect(mocks.scheduleCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed ceremony create JSON before batch lookup", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_ceremonies");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.batchFindFirst).not.toHaveBeenCalled();
+    expect(mocks.scheduleCreate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("updates ceremonies and writes an audit log", async () => {
     const response = await PATCH(request("PATCH", payload({ id: "ceremony_1", name: "Updated Ceremony" })));
     const body = await response?.json();
@@ -227,6 +252,19 @@ describe("admin ceremonies route", () => {
 
     expect(response?.status).toBe(404);
     expect(body.error).toBe("Ceremony not found");
+  });
+
+  it("rejects malformed ceremony update JSON before update", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_ceremonies");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.batchFindFirst).not.toHaveBeenCalled();
+    expect(mocks.scheduleUpdate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("deletes ceremonies and writes an audit log", async () => {
