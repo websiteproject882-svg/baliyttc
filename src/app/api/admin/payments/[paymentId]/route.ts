@@ -31,7 +31,12 @@ export async function PATCH(
   }
 
   try {
-    const data = actionSchema.parse(await request.json());
+    const parsed = actionSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const payment = await prisma.payment.findUnique({
       where: { id: params.paymentId },
       include: { enrollment: true },

@@ -96,6 +96,14 @@ function request(body: Record<string, unknown>) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/admin/payments/payment_1", {
+    method: "PATCH",
+    headers: { "x-request-id": "req_admin_payment" },
+    body,
+  });
+}
+
 async function patch(body: Record<string, unknown>, paymentId = "payment_1") {
   return PATCH(request(body), { params: { paymentId } });
 }
@@ -125,6 +133,19 @@ describe("admin payment action route", () => {
     expect(response?.status).toBe(403);
     expect(body).toEqual({ error: "Forbidden" });
     expect(mocks.paymentFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed payment action JSON before payment lookup", async () => {
+    const response = await PATCH(rawRequest("{not-valid-json"), { params: { paymentId: "payment_1" } });
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_payment");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.paymentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.paymentUpdate).not.toHaveBeenCalled();
+    expect(mocks.markPaymentComplete).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("marks a payment paid through the shared completion workflow and audits it", async () => {
