@@ -9,9 +9,23 @@ interface CertificateData {
   schoolName: string;
   schoolLocation: string;
   instructorName?: string;
+  templateImageUrl?: string;
 }
 
-export function generateCertificatePDF(data: CertificateData): Promise<Buffer> {
+export async function generateCertificatePDF(data: CertificateData): Promise<Buffer> {
+  let templateImageBuffer: Buffer | null = null;
+  if (data.templateImageUrl) {
+    try {
+      const response = await fetch(data.templateImageUrl);
+      const contentType = response.headers.get("content-type") || "";
+      if (response.ok && contentType.startsWith("image/")) {
+        templateImageBuffer = Buffer.from(await response.arrayBuffer());
+      }
+    } catch {
+      // Keep generated certificate available if the optional template image is unreachable.
+    }
+  }
+
   return new Promise((resolve, reject) => {
     try {
       const chunks: Buffer[] = [];
@@ -27,6 +41,14 @@ export function generateCertificatePDF(data: CertificateData): Promise<Buffer> {
 
       const pageWidth = doc.page.width;
       const pageHeight = doc.page.height;
+
+      if (templateImageBuffer) {
+        try {
+          doc.image(templateImageBuffer, 0, 0, { width: pageWidth, height: pageHeight });
+        } catch {
+          // Keep fallback certificate design if the configured image is unsupported.
+        }
+      }
 
       // Border decoration
       doc.strokeColor("#F04E23", 0.8);

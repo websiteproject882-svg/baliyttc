@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   certificateFindUnique: vi.fn(),
   generateCertificatePDF: vi.fn(),
+  getSiteSettings: vi.fn(),
   logApiError: vi.fn(),
 }));
 
@@ -23,6 +24,10 @@ vi.mock("@/lib/prisma", () => ({
 
 vi.mock("@/lib/certificate", () => ({
   generateCertificatePDF: mocks.generateCertificatePDF,
+}));
+
+vi.mock("@/lib/site-settings", () => ({
+  getSiteSettings: mocks.getSiteSettings,
 }));
 
 vi.mock("@/lib/security", () => ({
@@ -70,6 +75,15 @@ beforeEach(() => {
   mocks.getCurrentUser.mockResolvedValue(studentUser);
   mocks.certificateFindUnique.mockResolvedValue(certificate);
   mocks.generateCertificatePDF.mockResolvedValue(Buffer.from("%PDF-test"));
+  mocks.getSiteSettings.mockResolvedValue({
+    general: {
+      schoolName: "Bali YTTC",
+      address: "Ubud, Bali, Indonesia",
+    },
+    assets: {
+      certificateTemplateUrl: "",
+    },
+  });
 });
 
 describe("certificate download route", () => {
@@ -126,10 +140,34 @@ describe("certificate download route", () => {
       courseHours: 200,
       completionDate: new Date("2026-05-23T00:00:00.000Z"),
       certificateId: "BALI-200-2026-001",
-      schoolName: "Bali Yoga Teacher Training Center",
+      schoolName: "Bali YTTC",
       schoolLocation: "Ubud, Bali, Indonesia",
       instructorName: "Vivek Kalura",
+      templateImageUrl: undefined,
     });
+  });
+
+  it("passes configured certificate template images to PDF generation", async () => {
+    mocks.getSiteSettings.mockResolvedValue({
+      general: {
+        schoolName: "Client School",
+        address: "Client Address",
+      },
+      assets: {
+        certificateTemplateUrl: "https://example.com/certificate-template.png",
+      },
+    });
+
+    const response = await get();
+
+    expect(response.status).toBe(200);
+    expect(mocks.generateCertificatePDF).toHaveBeenCalledWith(
+      expect.objectContaining({
+        schoolName: "Client School",
+        schoolLocation: "Client Address",
+        templateImageUrl: "https://example.com/certificate-template.png",
+      }),
+    );
   });
 
   it("allows privileged admin roles to download certificates", async () => {

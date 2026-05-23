@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { generateCertificatePDF } from "@/lib/certificate";
 import { getCurrentUser } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export async function GET(
   request: NextRequest,
@@ -35,15 +36,18 @@ export async function GET(
       return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
     }
 
+    const siteSettings = await getSiteSettings();
+
     const pdfBuffer = await generateCertificatePDF({
       studentName: certificate.student.user.displayName || certificate.student.user.email || "Student",
       courseName: certificate.course,
       courseHours: parseInt(certificate.course.replace(/\D/g, "")) || 200,
       completionDate: certificate.issuedAt || new Date(),
       certificateId: certificate.certificateId,
-      schoolName: "Bali Yoga Teacher Training Center",
-      schoolLocation: "Ubud, Bali, Indonesia",
+      schoolName: siteSettings.general.schoolName,
+      schoolLocation: siteSettings.general.address,
       instructorName: "Vivek Kalura",
+      templateImageUrl: siteSettings.assets.certificateTemplateUrl || undefined,
     });
 
     return new NextResponse(pdfBuffer, {
