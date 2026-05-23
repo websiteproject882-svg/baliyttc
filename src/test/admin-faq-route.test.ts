@@ -75,6 +75,18 @@ function request(method: "GET" | "POST" | "PATCH" | "DELETE", body?: Record<stri
   });
 }
 
+function rawRequest(method: "POST" | "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/admin/faq", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_faq",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     question: "What is included?",
@@ -174,6 +186,18 @@ describe("admin FAQ route", () => {
     expect(mocks.faqCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed FAQ create JSON before order lookup", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_faq");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.faqFindFirst).not.toHaveBeenCalled();
+    expect(mocks.faqCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("updates existing FAQs and writes an audit log", async () => {
     const response = await PATCH(request("PATCH", payload({ id: "faq_1", question: "Updated question?" })));
     const body = await response?.json();
@@ -208,6 +232,18 @@ describe("admin FAQ route", () => {
     expect(response?.status).toBe(404);
     expect(body.error).toBe("FAQ not found");
     expect(mocks.faqUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed FAQ update JSON before lookup", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_admin_faq");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.faqFindUnique).not.toHaveBeenCalled();
+    expect(mocks.faqUpdate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("deletes FAQs and writes an audit log", async () => {

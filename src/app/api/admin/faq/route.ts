@@ -51,7 +51,12 @@ export async function POST(request: NextRequest) {
   if (!user || response) return response;
 
   try {
-    const data = faqSchema.parse(await request.json());
+    const parsed = faqSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const lastFaq = await prisma.fAQ.findFirst({
       where: { locale: data.locale, category: data.category },
       orderBy: { order: "desc" },
@@ -92,7 +97,12 @@ export async function PATCH(request: NextRequest) {
   if (!user || response) return response;
 
   try {
-    const data = updateSchema.parse(await request.json());
+    const parsed = updateSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
     const existing = await prisma.fAQ.findUnique({ where: { id: data.id } });
     if (!existing) {
       return jsonWithRequestId({ error: "FAQ not found" }, { status: 404 }, request);
