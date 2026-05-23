@@ -3,13 +3,13 @@ import { NextRequest } from "next/server";
 import { GET } from "../app/api/admin/audit/route";
 
 const mocks = vi.hoisted(() => ({
-  requireAdminUser: vi.fn(),
+  requireSuperAdmin: vi.fn(),
   auditFindMany: vi.fn(),
   logApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/authz", () => ({
-  requireAdminUser: mocks.requireAdminUser,
+  requireSuperAdmin: mocks.requireSuperAdmin,
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -33,7 +33,7 @@ const admin = {
   id: "admin_1",
   email: "admin@example.com",
   displayName: "Admin One",
-  role: "ADMIN",
+  role: "SUPER_ADMIN",
   permissions: ["admin"],
   authType: "admin",
 };
@@ -65,7 +65,7 @@ function request(url = "https://example.com/api/admin/audit") {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.requireAdminUser.mockResolvedValue({ user: admin, response: null });
+  mocks.requireSuperAdmin.mockResolvedValue({ user: admin, response: null });
   mocks.auditFindMany.mockResolvedValue([auditLog]);
 });
 
@@ -77,6 +77,7 @@ describe("admin audit route", () => {
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
+    expect(mocks.requireSuperAdmin).toHaveBeenCalled();
     expect(response?.headers.get("X-Request-Id")).toBe("req_admin_audit");
     expect(body.logs).toEqual([
       {

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminUser } from "@/lib/authz";
+import { requireSuperAdmin } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ const querySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { user, response } = await requireAdminUser();
+  const { user, response } = await requireSuperAdmin();
   if (!user || response) {
     return response;
   }
