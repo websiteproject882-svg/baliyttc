@@ -1,12 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { GET } from "../app/api/enrollments/route";
+import { GET, POST } from "../app/api/enrollments/route";
 
 const mocks = vi.hoisted(() => ({
   requirePermission: vi.fn(),
   requireSameOrigin: vi.fn(),
+  userFindUnique: vi.fn(),
+  userCreate: vi.fn(),
+  studentFindUnique: vi.fn(),
+  studentCreate: vi.fn(),
+  enrollmentFindFirst: vi.fn(),
   enrollmentFindMany: vi.fn(),
   enrollmentCount: vi.fn(),
+  enrollmentUpdate: vi.fn(),
+  enrollmentCreate: vi.fn(),
+  batchFindUnique: vi.fn(),
+  courseFindUnique: vi.fn(),
+  resolveEnrollmentPricing: vi.fn(),
+  getSiteSettings: vi.fn(),
+  rateLimit: vi.fn(),
+  logApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/authz", () => ({
@@ -16,9 +29,26 @@ vi.mock("@/lib/authz", () => ({
 
 vi.mock("@/lib/prisma", () => ({
   default: {
+    user: {
+      findUnique: mocks.userFindUnique,
+      create: mocks.userCreate,
+    },
+    student: {
+      findUnique: mocks.studentFindUnique,
+      create: mocks.studentCreate,
+    },
     enrollment: {
+      findFirst: mocks.enrollmentFindFirst,
       findMany: mocks.enrollmentFindMany,
       count: mocks.enrollmentCount,
+      update: mocks.enrollmentUpdate,
+      create: mocks.enrollmentCreate,
+    },
+    batch: {
+      findUnique: mocks.batchFindUnique,
+    },
+    course: {
+      findUnique: mocks.courseFindUnique,
     },
   },
 }));
@@ -40,19 +70,19 @@ vi.mock("@/lib/whatsapp", () => ({
 }));
 
 vi.mock("@/lib/payments/enrollment-pricing", () => ({
-  resolveEnrollmentPricing: vi.fn(),
+  resolveEnrollmentPricing: mocks.resolveEnrollmentPricing,
 }));
 
 vi.mock("@/lib/security", () => ({
   createRateLimitResponse: vi.fn(),
   getClientIp: vi.fn(() => "127.0.0.1"),
   jsonWithRequestId: (body: unknown, init?: ResponseInit) => Response.json(body, init),
-  logApiError: vi.fn(),
-  rateLimit: vi.fn(() => ({ allowed: true, resetAt: Date.now() + 1000 })),
+  logApiError: mocks.logApiError,
+  rateLimit: mocks.rateLimit,
 }));
 
 vi.mock("@/lib/site-settings", () => ({
-  getSiteSettings: vi.fn(),
+  getSiteSettings: mocks.getSiteSettings,
 }));
 
 const admin = {
@@ -68,9 +98,33 @@ function request(url = "https://example.com/api/enrollments?status=pending&cours
   return new NextRequest(url, { method: "GET" });
 }
 
+function postRequest(body: string) {
+  return new NextRequest("https://example.com/api/enrollments", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requirePermission.mockResolvedValue({ user: admin, response: null });
+  mocks.requireSameOrigin.mockReturnValue(null);
+  mocks.rateLimit.mockReturnValue({ allowed: true, resetAt: Date.now() + 1000 });
+  mocks.getSiteSettings.mockResolvedValue({
+    payments: { displayCurrencyPrimary: "EUR" },
+    notifications: { emailOnEnrollment: false, whatsappOnEnrollment: false },
+  });
+  mocks.resolveEnrollmentPricing.mockResolvedValue({
+    depositAmount: 499,
+    totalAmount: 1499,
+    discount: 0,
+    appliedCouponCode: null,
+  });
   mocks.enrollmentFindMany.mockResolvedValue([{ id: "enrollment_1" }]);
   mocks.enrollmentCount.mockResolvedValue(11);
 });
@@ -103,5 +157,18 @@ describe("enrollments route", () => {
     expect(response.status).toBe(403);
     expect(mocks.enrollmentFindMany).not.toHaveBeenCalled();
     expect(mocks.enrollmentCount).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed public enrollment JSON as validation failure", async () => {
+    const response = await POST(postRequest("{not-valid-json"));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.getSiteSettings).not.toHaveBeenCalled();
+    expect(mocks.resolveEnrollmentPricing).not.toHaveBeenCalled();
+    expect(mocks.userFindUnique).not.toHaveBeenCalled();
+    expect(mocks.enrollmentCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 });

@@ -184,8 +184,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const data = enrollmentSchema.parse(body);
+    const parsed = enrollmentSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId(
+        { error: "Validation failed", details: parsed.error.errors },
+        { status: 400 },
+        request,
+      );
+    }
+    const data = parsed.data;
     const settings = await getSiteSettings();
     const currency = settings.payments.displayCurrencyPrimary;
     const pricing = await resolveEnrollmentPricing({
