@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { generateCertificatePDF } from "@/lib/certificate";
 import { getCurrentUser } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +11,7 @@ export async function GET(
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return jsonWithRequestId({ error: "Unauthorized" }, { status: 401 }, request);
     }
 
     const certificate = await prisma.certificate.findUnique({
@@ -25,13 +26,13 @@ export async function GET(
     });
 
     if (!certificate) {
-      return NextResponse.json({ error: "Certificate not found" }, { status: 404 });
+      return jsonWithRequestId({ error: "Certificate not found" }, { status: 404 }, request);
     }
 
     const isOwner = certificate.student.userId === currentUser.id;
     const isPrivileged = ["ADMIN", "SUPER_ADMIN", "STUDENT_MANAGER"].includes(currentUser.role);
     if (!isOwner && !isPrivileged) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
     }
 
     const pdfBuffer = await generateCertificatePDF({
@@ -52,10 +53,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("Certificate download error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate certificate" },
-      { status: 500 }
-    );
+    logApiError("certificates.download", error, request, { certificateId: params.id });
+    return jsonWithRequestId({ error: "Failed to generate certificate" }, { status: 500 }, request);
   }
 }
