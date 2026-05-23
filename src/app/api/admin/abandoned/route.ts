@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { getCommunicationDashboardData, runCommunicationCampaign } from "@/lib/communications";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +11,9 @@ const SETTINGS_KEY = "abandoned_enrollment_settings";
 
 const settingsSchema = z.object({
   enabled: z.boolean(),
-  reminder1Hours: z.number().int().min(1).max(168),
-  reminder2Hours: z.number().int().min(1).max(336),
-  reminder3Days: z.number().int().min(1).max(60),
+  reminder1Hours: z.coerce.number().int().min(1).max(168),
+  reminder2Hours: z.coerce.number().int().min(1).max(336),
+  reminder3Days: z.coerce.number().int().min(1).max(60),
   emailTemplates: z.object({
     reminder1: z.string().min(10).max(2000),
     reminder2: z.string().min(10).max(2000),
@@ -38,7 +39,7 @@ async function getSettings() {
   return parsed.success ? parsed.data : defaultSettings;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requirePermission("communications.view");
   if (response) return response;
 
@@ -68,10 +69,10 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ settings, abandoned: abandonedList });
+    return jsonWithRequestId({ settings, abandoned: abandonedList }, undefined, request);
   } catch (error) {
-    console.error("GET abandoned enrollments error:", error);
-    return NextResponse.json({ error: "Failed to fetch abandoned enrollments" }, { status: 500 });
+    logApiError("admin.abandoned.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch abandoned enrollments" }, { status: 500 }, request);
   }
 }
 
@@ -99,13 +100,13 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, settings: saved.value });
+    return jsonWithRequestId({ success: true, settings: saved.value }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("PATCH abandoned settings error:", error);
-    return NextResponse.json({ error: "Failed to save abandoned settings" }, { status: 500 });
+    logApiError("admin.abandoned.settings", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to save abandoned settings" }, { status: 500 }, request);
   }
 }
 
@@ -133,12 +134,12 @@ export async function POST(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, result });
+    return jsonWithRequestId({ success: true, result }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("POST abandoned reminder error:", error);
-    return NextResponse.json({ error: "Failed to send abandoned reminder" }, { status: 500 });
+    logApiError("admin.abandoned.send", error, request, { userId: user.id });
+    return jsonWithRequestId({ error: "Failed to send abandoned reminder" }, { status: 500 }, request);
   }
 }
