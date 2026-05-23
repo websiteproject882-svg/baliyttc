@@ -125,7 +125,13 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const data = reactionSchema.parse(await request.json());
+    const payload = await request.json().catch(() => null);
+    const result = reactionSchema.safeParse(payload);
+    if (!result.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+    }
+
+    const data = result.data;
     const emoji = normalizeReactionEmoji(data.emoji);
     if (!emoji) {
       return jsonWithRequestId({ error: "Unsupported reaction" }, { status: 400 }, request);
@@ -190,7 +196,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = replySchema.parse(await request.json());
+    const payload = await request.json().catch(() => null);
+    const result = replySchema.safeParse(payload);
+    if (!result.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+    }
+
+    const data = result.data;
     const announcement = await prisma.announcement.findUnique({
       where: { id: data.announcementId },
       select: { id: true, batchId: true, type: true, publishedAt: true },

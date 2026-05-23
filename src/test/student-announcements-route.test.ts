@@ -75,6 +75,18 @@ function request(method: "GET" | "PATCH" | "POST", body?: Record<string, unknown
   });
 }
 
+function rawRequest(method: "PATCH" | "POST", body: string) {
+  return new NextRequest("https://example.com/api/app/announcements", {
+    method,
+    headers: {
+      "x-request-id": "req_student_announcements",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -196,6 +208,18 @@ describe("student announcements route", () => {
     expect(body.error).toBe("Unsupported reaction");
   });
 
+  it("rejects malformed reaction JSON before reading announcements", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_announcements");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.announcementFindUnique).not.toHaveBeenCalled();
+    expect(mocks.announcementReactionUpsert).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
   it("blocks hidden or unrelated announcements", async () => {
     mocks.announcementFindUnique.mockResolvedValue({
       id: "announcement_2",
@@ -233,6 +257,18 @@ describe("student announcements route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
+  });
+
+  it("rejects malformed reply JSON before reading announcements", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_announcements");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.announcementFindUnique).not.toHaveBeenCalled();
+    expect(mocks.announcementReplyCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("logs list failures without leaking internals", async () => {
