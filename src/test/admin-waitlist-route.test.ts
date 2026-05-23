@@ -194,6 +194,16 @@ describe("admin waitlist route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized waitlist update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "x".repeat(121) })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistFindUnique).not.toHaveBeenCalled();
+    expect(mocks.waitlistUpdate).not.toHaveBeenCalled();
+  });
+
   it("returns 404 when updating a missing entry", async () => {
     mocks.waitlistFindUnique.mockResolvedValue(null);
 
@@ -227,6 +237,16 @@ describe("admin waitlist route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Waitlist entry id is required");
+  });
+
+  it("rejects oversized waitlist delete ids before lookup", async () => {
+    const response = await DELETE(request("DELETE", undefined, `https://example.com/api/admin/waitlist?id=${"x".repeat(121)}`));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.waitlistFindUnique).not.toHaveBeenCalled();
+    expect(mocks.waitlistDelete).not.toHaveBeenCalled();
   });
 
   it("returns 404 when deleting a missing entry", async () => {

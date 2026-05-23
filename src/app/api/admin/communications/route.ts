@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const sendSchema = z.object({
   campaign: z.nativeEnum(CommunicationCampaign),
-  recipientKeys: z.array(z.string()).optional(),
+  recipientKeys: z.array(z.string().trim().min(1).max(180)).max(100).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
 });
 

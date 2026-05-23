@@ -167,6 +167,18 @@ describe("admin communications route", () => {
     expect(mocks.runCommunicationCampaign).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized recipient keys before sending", async () => {
+    const response = await POST(request("POST", {
+      campaign: "PAYMENT_REMINDER",
+      recipientKeys: ["x".repeat(181)],
+    }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.runCommunicationCampaign).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed campaign JSON before sending", async () => {
     const response = await POST(rawRequest("POST", "{not-valid-json"));
     const body = await response?.json();

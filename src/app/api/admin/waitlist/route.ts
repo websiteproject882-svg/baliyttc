@@ -6,10 +6,12 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const waitlistEntryIdSchema = z.string().trim().min(1).max(120);
+
 const updateStatusSchema = z.object({
-  id: z.string(),
+  id: waitlistEntryIdSchema,
   status: z.enum(["WAITING", "NOTIFIED", "CONVERTED", "EXPIRED", "DECLINED"]),
-  notes: z.string().max(5000).nullable().optional(),
+  notes: z.string().trim().max(5000).nullable().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -105,11 +107,16 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const rawId = searchParams.get("id");
 
-    if (!id) {
+    if (!rawId) {
       return jsonWithRequestId({ error: "Waitlist entry id is required" }, { status: 400 }, request);
     }
+    const parsedId = waitlistEntryIdSchema.safeParse(rawId);
+    if (!parsedId.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsedId.error.errors }, { status: 400 }, request);
+    }
+    const id = parsedId.data;
 
     const existing = await prisma.waitlist.findUnique({ where: { id } });
     if (!existing) {
