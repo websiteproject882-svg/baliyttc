@@ -146,29 +146,21 @@ beforeEach(() => {
       overrideRow.value.averageRating >= 0 &&
       overrideRow.value.averageRating <= 5;
     return {
-      stats: isValidOverride ? overrideRow.value : computedStats,
+      stats: isValidOverride ? overrideRow.value : stats,
       computedStats,
     };
   });
 });
 
 describe("admin social proof route", () => {
-  it("returns computed stats with request id when no overrides exist", async () => {
+  it("returns fallback display stats with computed stats when no overrides exist", async () => {
     const response = await GET(request("GET"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(response.headers.get("X-Request-Id")).toBe("req_admin_social_proof");
     expect(body).toEqual({
-      stats: {
-        totalGraduates: 250,
-        yearsExperience: 12,
-        averageRating: 4.9,
-        totalReviews: 620,
-        countries: 2,
-        trainingHours: 18000,
-        certifiedTeachers: 250,
-      },
+      stats,
       computedStats: {
         totalGraduates: 250,
         yearsExperience: 12,
@@ -194,14 +186,15 @@ describe("admin social proof route", () => {
     expect(body.computedStats.countries).toBe(2);
   });
 
-  it("falls back to computed stats when saved overrides are invalid", async () => {
+  it("falls back to default display stats when saved overrides are invalid", async () => {
     mocks.siteSettingFindUnique.mockResolvedValue({ key: "social_proof_overrides", value: { ...stats, averageRating: 8 } });
 
     const response = await GET(request("GET"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.stats).toEqual(body.computedStats);
+    expect(body.stats).toEqual(stats);
+    expect(body.computedStats.countries).toBe(2);
   });
 
   it("saves stats, coerces numeric strings, and writes an audit log", async () => {

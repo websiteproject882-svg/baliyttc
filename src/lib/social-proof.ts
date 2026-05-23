@@ -46,7 +46,7 @@ export async function getSocialProofStats() {
   ]);
   const parsedOverrides = socialProofSchema.safeParse(overrideRow?.value);
   return {
-    stats: parsedOverrides.success ? parsedOverrides.data : computedStats,
+    stats: parsedOverrides.success ? parsedOverrides.data : fallbackSocialProofStats,
     computedStats,
   };
 }
