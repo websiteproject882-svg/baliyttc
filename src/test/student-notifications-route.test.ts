@@ -73,6 +73,18 @@ function request(method: "GET" | "PATCH", body?: Record<string, unknown>) {
   });
 }
 
+function rawRequest(method: "PATCH", body: string) {
+  return new NextRequest("https://example.com/api/app/notifications", {
+    method,
+    headers: {
+      "x-request-id": "req_student_notifications",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -224,6 +236,19 @@ describe("student notifications route", () => {
 
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
+  });
+
+  it("rejects malformed notification JSON before reading or writing", async () => {
+    const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_notifications");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.studentUpdate).not.toHaveBeenCalled();
+    expect(mocks.notificationFindFirst).not.toHaveBeenCalled();
+    expect(mocks.notificationReceiptUpsert).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("logs list failures without leaking internals", async () => {

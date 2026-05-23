@@ -45,7 +45,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = testimonialSchema.parse(await request.json());
+    const payload = await request.json().catch(() => null);
+    const result = testimonialSchema.safeParse(payload);
+    if (!result.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+    }
+
+    const data = result.data;
     const testimonial = await prisma.testimonial.create({
       data: {
         studentId: student.id,

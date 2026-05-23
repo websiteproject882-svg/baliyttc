@@ -114,10 +114,20 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
 
-    if ("emailNotificationsEnabled" in body || "browserPushEnabled" in body) {
-      const preferences = preferencesSchema.parse(body);
+    if (
+      body &&
+      typeof body === "object" &&
+      !Array.isArray(body) &&
+      ("emailNotificationsEnabled" in body || "browserPushEnabled" in body)
+    ) {
+      const result = preferencesSchema.safeParse(body);
+      if (!result.success) {
+        return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+      }
+
+      const preferences = result.data;
       const updated = await prisma.student.update({
         where: { id: student.id },
         data: {
@@ -137,7 +147,12 @@ export async function PATCH(request: NextRequest) {
       return jsonWithRequestId({ success: true, preferences: updated }, undefined, request);
     }
 
-    const { notificationId } = markReadSchema.parse(body);
+    const result = markReadSchema.safeParse(body);
+    if (!result.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+    }
+
+    const { notificationId } = result.data;
 
     const existing = await prisma.notification.findFirst({
       where: {

@@ -65,6 +65,18 @@ function request(method: "GET" | "POST", body?: Record<string, unknown>) {
   });
 }
 
+function rawRequest(method: "POST", body: string) {
+  return new NextRequest("https://example.com/api/app/testimonials", {
+    method,
+    headers: {
+      "x-request-id": "req_student_testimonials",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireSameOrigin.mockReturnValue(null);
@@ -171,6 +183,18 @@ describe("student testimonials route", () => {
     expect(response?.status).toBe(400);
     expect(body.error).toBe("Validation failed");
     expect(mocks.testimonialCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed testimonial JSON before saving", async () => {
+    const response = await POST(rawRequest("POST", "{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_testimonials");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.testimonialCreate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("requires full access for submissions", async () => {
