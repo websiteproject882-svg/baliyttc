@@ -27,8 +27,10 @@ vi.mock("@/lib/session", () => ({
 }));
 
 vi.mock("@/lib/rbac", () => ({
-  getRoleHomePath: (role: string) => (role === "SUPER_ADMIN" ? "/en/admin" : "/en/app/dashboard"),
-  isAdminPanelRole: (role: string) => role === "SUPER_ADMIN",
+  getRoleHomePath: (role: string) =>
+    ["SUPER_ADMIN", "COURSE_MANAGER"].includes(role) ? "/en/admin/overview" : "/en/app/dashboard",
+  isAdminPanelRole: (role: string) => ["SUPER_ADMIN", "COURSE_MANAGER"].includes(role),
+  isStaffRole: (role: string) => ["COURSE_MANAGER", "TEACHER"].includes(role),
 }));
 
 vi.mock("@/lib/security", () => ({
@@ -128,6 +130,40 @@ describe("test login route", () => {
       redirectTo: "/en/login",
     });
     expect(mocks.createSession).not.toHaveBeenCalled();
+  });
+
+  it("creates staff sessions for non-teacher staff roles", async () => {
+    mocks.userFindUnique.mockResolvedValue({
+      id: "user_course_manager",
+      email: "teacher@test.com",
+      role: "STAFF",
+      staff: {
+        id: "staff_course_manager",
+        role: "COURSE_MANAGER",
+        status: "ACTIVE",
+      },
+      student: null,
+    });
+    process.env.TEST_TEACHER_PASSWORD = "teacher-secret";
+    const { POST } = await loadRoute();
+
+    const response = await POST(request({ email: "teacher@test.com", password: "teacher-secret", portal: "staff" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.createSession).toHaveBeenCalledWith(
+      "user_course_manager",
+      "COURSE_MANAGER",
+      "teacher@test.com",
+      "staff",
+    );
+    expect(body).toMatchObject({
+      success: true,
+      role: "COURSE_MANAGER",
+      authType: "staff",
+      redirectTo: "/en/admin/overview",
+      isAdmin: true,
+    });
   });
 
   it("rejects malformed requests before lookup", async () => {

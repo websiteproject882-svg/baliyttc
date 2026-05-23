@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { createSession } from "@/lib/session";
-import { getRoleHomePath, isAdminPanelRole, type AppRole } from "@/lib/rbac";
+import { getRoleHomePath, isAdminPanelRole, isStaffRole, type AppRole } from "@/lib/rbac";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
@@ -108,11 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     const role: AppRole = user.staff?.status === "ACTIVE" ? (user.staff.role as AppRole) : (user.role as AppRole);
-    const authType = role === "SUPER_ADMIN"
-      ? "admin"
-      : role === "TEACHER"
-        ? "staff"
-        : "student";
+    const authType = role === "SUPER_ADMIN" ? "admin" : isStaffRole(role) ? "staff" : "student";
 
     if (portal && portal !== authType) {
       return jsonWithRequestId(
