@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma, type PaymentStatus } from "@prisma/client";
 import { sendPaymentConfirmation } from "@/lib/resend";
 import { sendPaymentConfirmationWhatsApp } from "@/lib/whatsapp";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export function statusForPaymentType(paymentType?: string): {
   paymentStatus: PaymentStatus;
@@ -53,6 +54,39 @@ export async function markPaymentComplete(params: {
     },
   });
 
+  const batch = existingPayment.enrollment.batchId
+    ? await prisma.batch.findUnique({
+        where: { id: existingPayment.enrollment.batchId },
+        include: {
+          course: {
+            include: {
+              modules: {
+                select: { hours: true },
+              },
+            },
+          },
+        },
+      })
+    : null;
+  const studentCourseName = batch?.course?.name || existingPayment.enrollment.courseSlug;
+  const totalHours =
+    batch?.course?.modules.reduce((sum, module) => sum + (module.hours ?? 0), 0) ||
+    existingPayment.enrollment.courseSlug.match(/\d+/)?.[0] ||
+    0;
+
+  if (existingPayment.enrollment.studentId) {
+    await prisma.student.update({
+      where: { id: existingPayment.enrollment.studentId },
+      data: {
+        paymentStatus: next.paymentStatus,
+        accessLevel: next.accessLevel,
+        batchId: existingPayment.enrollment.batchId || undefined,
+        enrolledCourse: studentCourseName,
+        totalHours: Number(totalHours),
+      },
+    });
+  }
+
   if (!wasEnrollmentAlreadyPaid && existingPayment.enrollment.batchId) {
     await prisma.batch.update({
       where: { id: existingPayment.enrollment.batchId },
@@ -65,20 +99,25 @@ export async function markPaymentComplete(params: {
     select: { name: true },
   });
 
-  sendPaymentConfirmation({
-    name: existingPayment.enrollment.name,
-    email: existingPayment.enrollment.email,
-    amount: payment.amount,
-    course: course?.name || existingPayment.enrollment.courseSlug,
-    paymentType: (params.paymentType || existingPayment.enrollment.paymentType).toLowerCase() === "deposit" ? "deposit" : "full",
-  }).catch(console.error);
+  const settings = await getSiteSettings();
+  if (settings.notifications.emailOnPayment) {
+    sendPaymentConfirmation({
+      name: existingPayment.enrollment.name,
+      email: existingPayment.enrollment.email,
+      amount: payment.amount,
+      course: course?.name || existingPayment.enrollment.courseSlug,
+      paymentType: (params.paymentType || existingPayment.enrollment.paymentType).toLowerCase() === "deposit" ? "deposit" : "full",
+    }).catch(console.error);
+  }
 
-  sendPaymentConfirmationWhatsApp({
-    name: existingPayment.enrollment.name,
-    phone: existingPayment.enrollment.phone,
-    amount: String(payment.amount),
-    course: course?.name || existingPayment.enrollment.courseSlug,
-  }).catch(console.error);
+  if (settings.notifications.whatsappOnPayment) {
+    sendPaymentConfirmationWhatsApp({
+      name: existingPayment.enrollment.name,
+      phone: existingPayment.enrollment.phone,
+      amount: String(payment.amount),
+      course: course?.name || existingPayment.enrollment.courseSlug,
+    }).catch(console.error);
+  }
 
   return payment;
 }

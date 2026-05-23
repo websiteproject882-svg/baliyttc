@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin } from "@/lib/authz";
-import { sendGmailEmail, sendEnrollmentConfirmationEmail, sendAdminNotificationEmail, isGmailConfigured } from "@/lib/gmail-smtp";
+import { sendEnrollmentConfirmationEmail, sendAdminNotificationEmail, isGmailConfigured } from "@/lib/gmail-smtp";
 import { sendEnrollmentConfirmation, sendAdminEnrollmentNotification } from "@/lib/resend";
 import { sendEnrollmentConfirmationWhatsApp, sendWelcomeWhatsApp } from "@/lib/whatsapp";
 import { resolveEnrollmentPricing } from "@/lib/payments/enrollment-pricing";
@@ -297,23 +297,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Send admin notification (async, don't wait)
-    if (isGmailConfigured()) {
-      sendAdminNotificationEmail({
-        type: "enrollment",
-        name: data.name,
-        email: data.email,
-        course: `${courseName} - ${batchName || "TBD"}`,
-      }).catch(console.error);
-    } else {
-      sendAdminEnrollmentNotification({
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        course: courseName,
-        batch: batchName,
-        amount: finalAmount,
-        paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
-      }).catch(console.error);
+    if (settings.notifications.emailOnEnrollment) {
+      if (isGmailConfigured()) {
+        sendAdminNotificationEmail({
+          type: "enrollment",
+          name: data.name,
+          email: data.email,
+          course: `${courseName} - ${batchName || "TBD"}`,
+        }).catch(console.error);
+      } else {
+        sendAdminEnrollmentNotification({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          course: courseName,
+          batch: batchName,
+          amount: finalAmount,
+          paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
+        }).catch(console.error);
+      }
     }
 
     // Send WhatsApp notification to student (async, don't wait)
@@ -325,11 +327,13 @@ export async function POST(request: NextRequest) {
     }).catch(console.error);
 
     // Send welcome WhatsApp to admin (async, don't wait)
-    sendWelcomeWhatsApp({
-      name: data.name,
-      phone: data.phone,
-      course: courseName,
-    }).catch(console.error);
+    if (settings.notifications.whatsappOnEnrollment) {
+      sendWelcomeWhatsApp({
+        name: data.name,
+        phone: data.phone,
+        course: courseName,
+      }).catch(console.error);
+    }
 
     return jsonWithRequestId({
       success: true,

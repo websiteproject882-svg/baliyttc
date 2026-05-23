@@ -783,7 +783,8 @@ const CoursePage = () => {
 
   const availableBatches = course.batches?.filter(b => b.enrolled < b.capacity) || [];
   const detail = courseDetails[course.slug as keyof typeof courseDetails];
-  const pageCourse = detail
+  const isStaticFallbackCourse = course.id.startsWith("static-course-");
+  const pageCourse = detail && isStaticFallbackCourse
     ? {
         ...course,
         name: detail.name,
@@ -791,8 +792,11 @@ const CoursePage = () => {
         description: detail.description,
         image: detail.image,
       }
-    : course;
-  const displayPriceFrom = course.slug === "100hr" ? 699 : course.priceFrom;
+    : {
+        ...course,
+        image: course.image || detail?.image || IMG.classMain,
+      };
+  const displayPriceFrom = course.priceFrom;
 
   return (
     <>

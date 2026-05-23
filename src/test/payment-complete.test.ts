@@ -5,8 +5,11 @@ const mocks = vi.hoisted(() => ({
   paymentFindUnique: vi.fn(),
   paymentUpdate: vi.fn(),
   enrollmentUpdate: vi.fn(),
+  studentUpdate: vi.fn(),
+  batchFindUnique: vi.fn(),
   batchUpdate: vi.fn(),
   courseFindUnique: vi.fn(),
+  getSiteSettings: vi.fn(),
   sendPaymentConfirmation: vi.fn(),
   sendPaymentConfirmationWhatsApp: vi.fn(),
 }));
@@ -20,7 +23,11 @@ vi.mock("@/lib/prisma", () => ({
     enrollment: {
       update: mocks.enrollmentUpdate,
     },
+    student: {
+      update: mocks.studentUpdate,
+    },
     batch: {
+      findUnique: mocks.batchFindUnique,
       update: mocks.batchUpdate,
     },
     course: {
@@ -37,6 +44,10 @@ vi.mock("@/lib/whatsapp", () => ({
   sendPaymentConfirmationWhatsApp: mocks.sendPaymentConfirmationWhatsApp,
 }));
 
+vi.mock("@/lib/site-settings", () => ({
+  getSiteSettings: mocks.getSiteSettings,
+}));
+
 function pendingPayment(overrides: Record<string, unknown> = {}) {
   return {
     id: "payment_1",
@@ -50,6 +61,7 @@ function pendingPayment(overrides: Record<string, unknown> = {}) {
       paymentType: "DEPOSIT",
       paymentStatus: "PENDING",
       accessLevel: "NONE",
+      studentId: "student_1",
       batchId: "batch_1",
       name: "Student One",
       email: "student@example.com",
@@ -69,6 +81,20 @@ beforeEach(() => {
     status: "DEPOSIT_PAID",
   });
   mocks.courseFindUnique.mockResolvedValue({ name: "200 Hour Yoga Teacher Training" });
+  mocks.batchFindUnique.mockResolvedValue({
+    id: "batch_1",
+    course: {
+      name: "200 Hour Yoga Teacher Training",
+      modules: [{ hours: 80 }, { hours: 120 }],
+    },
+  });
+  mocks.studentUpdate.mockResolvedValue({ id: "student_1" });
+  mocks.getSiteSettings.mockResolvedValue({
+    notifications: {
+      emailOnPayment: true,
+      whatsappOnPayment: true,
+    },
+  });
   mocks.sendPaymentConfirmation.mockResolvedValue(undefined);
   mocks.sendPaymentConfirmationWhatsApp.mockResolvedValue(undefined);
 });
@@ -113,6 +139,16 @@ describe("payment completion", () => {
       where: { id: "batch_1" },
       data: { enrolled: { increment: 1 } },
     });
+    expect(mocks.studentUpdate).toHaveBeenCalledWith({
+      where: { id: "student_1" },
+      data: {
+        paymentStatus: "DEPOSIT_PAID",
+        accessLevel: "PRE_ARRIVAL",
+        batchId: "batch_1",
+        enrolledCourse: "200 Hour Yoga Teacher Training",
+        totalHours: 200,
+      },
+    });
     expect(mocks.sendPaymentConfirmation).toHaveBeenCalledWith({
       name: "Student One",
       email: "student@example.com",
@@ -138,6 +174,7 @@ describe("payment completion", () => {
     expect(mocks.paymentUpdate).not.toHaveBeenCalled();
     expect(mocks.enrollmentUpdate).not.toHaveBeenCalled();
     expect(mocks.batchUpdate).not.toHaveBeenCalled();
+    expect(mocks.studentUpdate).not.toHaveBeenCalled();
     expect(mocks.sendPaymentConfirmation).not.toHaveBeenCalled();
     expect(mocks.sendPaymentConfirmationWhatsApp).not.toHaveBeenCalled();
   });
@@ -163,6 +200,21 @@ describe("payment completion", () => {
       },
     });
     expect(mocks.batchUpdate).not.toHaveBeenCalled();
+  });
+
+  it("respects payment notification toggles", async () => {
+    mocks.paymentFindUnique.mockResolvedValue(pendingPayment());
+    mocks.getSiteSettings.mockResolvedValue({
+      notifications: {
+        emailOnPayment: false,
+        whatsappOnPayment: false,
+      },
+    });
+
+    await markPaymentComplete({ paymentId: "payment_1", paymentType: "deposit" });
+
+    expect(mocks.sendPaymentConfirmation).not.toHaveBeenCalled();
+    expect(mocks.sendPaymentConfirmationWhatsApp).not.toHaveBeenCalled();
   });
 
   it("throws when payment record is missing", async () => {
