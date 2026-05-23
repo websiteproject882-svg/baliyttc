@@ -1,10 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 // Email templates are stored in the database for admin editing
 // This API provides CRUD operations for templates
+
+export const dynamic = "force-dynamic";
+
+const DEFAULT_TEMPLATE_UPDATED_AT = "1970-01-01T00:00:00.000Z";
 
 const templateSchema = z.object({
   id: z.string().min(1).optional(),
@@ -13,7 +18,7 @@ const templateSchema = z.object({
   content: z.string().max(50000),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requireAdminUser();
   if (response) return response;
 
@@ -38,31 +43,32 @@ export async function GET() {
         { slug: "visa", name: "Visa Information", type: "visa" },
       ];
 
-      return NextResponse.json({
-        templates: defaultTemplates.map((t, i) => ({
+      return jsonWithRequestId({
+        templates: defaultTemplates.map((t) => ({
           id: t.slug,
           ...t,
           subject: `${t.name} - Bali YTTC`,
           content: "",
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: DEFAULT_TEMPLATE_UPDATED_AT,
           variables: [],
         })),
-      });
+      }, undefined, request);
     }
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       templates: templates.map(t => ({
         id: t.id,
         name: t.title,
+        type: t.slug,
         subject: t.metaTitle || t.title,
         content: t.content,
         lastUpdated: t.updatedAt.toISOString(),
         variables: extractVariables(t.content),
       })),
-    });
+    }, undefined, request);
   } catch (error) {
-    console.error("Templates fetch error:", error);
-    return NextResponse.json({ error: "Failed to fetch templates" }, { status: 500 });
+    logApiError("admin.templates.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch templates" }, { status: 500 }, request);
   }
 }
 
@@ -106,22 +112,23 @@ export async function PUT(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({
+    return jsonWithRequestId({
       template: {
         id: template.id,
         name,
+        type: template.slug,
         subject,
         content,
         lastUpdated: template.updatedAt.toISOString(),
         variables: extractVariables(content),
       },
-    });
+    }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("Template update error:", error);
-    return NextResponse.json({ error: "Failed to update template" }, { status: 500 });
+    logApiError("admin.templates.update", error, request, { userId: user?.id });
+    return jsonWithRequestId({ error: "Failed to update template" }, { status: 500 }, request);
   }
 }
 
