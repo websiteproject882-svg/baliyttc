@@ -10,6 +10,7 @@ import {
   BellDot, Image, FileText as FileTextIcon, CalendarDays, TrendingUp,
   AlertCircle as AlertCircleIcon, MailOpen, ChevronDown
 } from "lucide-react";
+import { canAccessAdminNavItem } from "@/lib/admin-navigation";
 
 type AdminSidebarProps = {
   locale: string;
@@ -24,6 +25,8 @@ type NavItem = {
   icon: React.ElementType;
   label: string;
   href: string;
+  permission?: string;
+  roles?: readonly string[];
   badge?: string;
   badgeColor?: string;
 };
@@ -49,58 +52,65 @@ export default function AdminSidebar({ locale, user }: AdminSidebarProps) {
     {
       title: "Students",
       items: [
-        { icon: Users, label: "All Students", href: `/${locale}/admin/students` },
-        { icon: GraduationCap, label: "Enrollments", href: `/${locale}/admin/enrollments` },
-        { icon: Mail, label: "Leads & Inquiries", href: `/${locale}/admin/leads`, badge: "New", badgeColor: "bg-green-500" },
-        { icon: MessageCircle, label: "Testimonials", href: `/${locale}/admin/testimonials` },
-        { icon: Calendar, label: "Waitlist", href: `/${locale}/admin/waitlist` },
+        { icon: Users, label: "All Students", href: `/${locale}/admin/students`, permission: "students.view" },
+        { icon: GraduationCap, label: "Enrollments", href: `/${locale}/admin/enrollments`, permission: "enrollments.view" },
+        { icon: Mail, label: "Leads & Inquiries", href: `/${locale}/admin/leads`, permission: "leads.view", badge: "New", badgeColor: "bg-green-500" },
+        { icon: MessageCircle, label: "Testimonials", href: `/${locale}/admin/testimonials`, permission: "testimonials.view" },
+        { icon: Calendar, label: "Waitlist", href: `/${locale}/admin/waitlist`, permission: "waitlist.view" },
       ],
     },
     {
       title: "Operations",
       items: [
-        { icon: Calendar, label: "Batches", href: `/${locale}/admin/batches` },
-        { icon: BellRing, label: "Announcements", href: `/${locale}/admin/announcements` },
-        { icon: BellDot, label: "Notifications", href: `/${locale}/admin/notifications` },
-        { icon: BookOpen, label: "Resources", href: `/${locale}/admin/resources` },
-        { icon: Mail, label: "Communications", href: `/${locale}/admin/communications` },
+        { icon: Calendar, label: "Batches", href: `/${locale}/admin/batches`, permission: "batches.view" },
+        { icon: BellRing, label: "Announcements", href: `/${locale}/admin/announcements`, permission: "announcements.view" },
+        { icon: BellDot, label: "Notifications", href: `/${locale}/admin/notifications`, permission: "announcements.view" },
+        { icon: BookOpen, label: "Resources", href: `/${locale}/admin/resources`, permission: "prearrival.view" },
+        { icon: Mail, label: "Communications", href: `/${locale}/admin/communications`, permission: "communications.view" },
       ],
     },
     {
       title: "Finance",
       items: [
-        { icon: DollarSign, label: "Finance Overview", href: `/${locale}/admin/finance` },
-        { icon: Percent, label: "Coupons & Discounts", href: `/${locale}/admin/coupons` },
-        { icon: BarChart3, label: "Analytics", href: `/${locale}/admin/analytics` },
+        { icon: DollarSign, label: "Finance Overview", href: `/${locale}/admin/finance`, permission: "payments.view" },
+        { icon: Percent, label: "Coupons & Discounts", href: `/${locale}/admin/coupons`, permission: "coupons.view" },
+        { icon: BarChart3, label: "Analytics", href: `/${locale}/admin/analytics`, permission: "analytics.revenue" },
       ],
     },
     {
       title: "Content",
       items: [
-        { icon: BookOpen, label: "Courses", href: `/${locale}/admin/courses` },
-        { icon: FileEdit, label: "Blog Posts", href: `/${locale}/admin/blog` },
-        { icon: Image, label: "Gallery", href: `/${locale}/admin/gallery` },
-        { icon: HelpCircle, label: "FAQ Bot", href: `/${locale}/admin/faq` },
-        { icon: FileTextIcon, label: "Email Templates", href: `/${locale}/admin/templates` },
-        { icon: CalendarDays, label: "Ceremony Calendar", href: `/${locale}/admin/calendar` },
+        { icon: BookOpen, label: "Courses", href: `/${locale}/admin/courses`, permission: "courses.view" },
+        { icon: FileEdit, label: "Blog Posts", href: `/${locale}/admin/blog`, permission: "blog.view" },
+        { icon: Image, label: "Gallery", href: `/${locale}/admin/gallery`, permission: "gallery.view" },
+        { icon: HelpCircle, label: "FAQ Bot", href: `/${locale}/admin/faq`, permission: "faq.view" },
+        { icon: FileTextIcon, label: "Email Templates", href: `/${locale}/admin/templates`, permission: "templates.view" },
+        { icon: CalendarDays, label: "Ceremony Calendar", href: `/${locale}/admin/calendar`, permission: "ceremonies.view" },
       ],
     },
     {
       title: "Marketing",
       items: [
-        { icon: TrendingUp, label: "Social Proof", href: `/${locale}/admin/social-proof` },
-        { icon: MailOpen, label: "Abandoned Enrollments", href: `/${locale}/admin/abandoned` },
+        { icon: TrendingUp, label: "Social Proof", href: `/${locale}/admin/social-proof`, permission: "social_proof.view" },
+        { icon: MailOpen, label: "Abandoned Enrollments", href: `/${locale}/admin/abandoned`, permission: "communications.view" },
       ],
     },
     {
       title: "Admin",
       items: [
-        { icon: ShieldCheck, label: "Staff & Roles", href: `/${locale}/admin/staff` },
-        { icon: ClipboardList, label: "Audit Logs", href: `/${locale}/admin/audit` },
-        { icon: Settings, label: "Settings", href: `/${locale}/admin/settings` },
+        { icon: ShieldCheck, label: "Staff & Roles", href: `/${locale}/admin/staff`, roles: ["SUPER_ADMIN"] },
+        { icon: ClipboardList, label: "Audit Logs", href: `/${locale}/admin/audit`, roles: ["SUPER_ADMIN"] },
+        { icon: Settings, label: "Settings", href: `/${locale}/admin/settings`, roles: ["SUPER_ADMIN"] },
       ],
     },
   ];
+
+  const visibleNavGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canAccessAdminNavItem(user.role, item)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const toggleGroup = (title: string) => {
     setExpandedGroups(prev =>
@@ -145,7 +155,7 @@ export default function AdminSidebar({ locale, user }: AdminSidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-        {navGroups.map((group) => {
+        {visibleNavGroups.map((group) => {
           const isExpanded = expandedGroups.includes(group.title);
           return (
             <div key={group.title} className="mb-2">
