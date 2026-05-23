@@ -83,9 +83,11 @@ export async function sendEnrollmentConfirmation(data: {
   course: string;
   batch: string;
   amount: number;
+  currency?: string;
   paymentType: "deposit" | "full";
 }) {
   const paymentTypeLabel = data.paymentType === "deposit" ? "Deposit" : "Full Payment";
+  const currency = data.currency || "EUR";
 
   return sendEmail({
     to: data.email,
@@ -103,7 +105,7 @@ export async function sendEnrollmentConfirmation(data: {
             <h3 style="margin-top: 0;">Enrollment Details</h3>
             <p><strong>Course:</strong> ${data.course}</p>
             <p><strong>Batch:</strong> ${data.batch}</p>
-            <p><strong>Payment:</strong> ${paymentTypeLabel} - $${data.amount}</p>
+            <p><strong>Payment:</strong> ${paymentTypeLabel} - ${currency} ${data.amount}</p>
           </div>
 
           ${data.paymentType === "deposit" ? `
@@ -139,8 +141,11 @@ export async function sendAdminEnrollmentNotification(data: {
   course: string;
   batch: string;
   amount: number;
+  currency?: string;
   paymentType: "deposit" | "full";
 }) {
+  const currency = data.currency || "EUR";
+
   return sendEmail({
     to: getAdminEmail(),
     subject: `New Enrollment: ${data.name} - ${data.course}`,
@@ -161,7 +166,7 @@ export async function sendAdminEnrollmentNotification(data: {
             <h3 style="margin-top: 0;">Enrollment Details</h3>
             <p><strong>Course:</strong> ${data.course}</p>
             <p><strong>Batch:</strong> ${data.batch}</p>
-            <p><strong>Payment:</strong> ${data.paymentType === "deposit" ? "Deposit" : "Full"} - $${data.amount}</p>
+            <p><strong>Payment:</strong> ${data.paymentType === "deposit" ? "Deposit" : "Full"} - ${currency} ${data.amount}</p>
           </div>
 
           <p><a href="${getPublicBaseUrl()}/en/admin/enrollments" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View in Admin Dashboard</a></p>
@@ -176,10 +181,12 @@ export async function sendPaymentConfirmation(data: {
   name: string;
   email: string;
   amount: number;
+  currency?: string;
   course: string;
   paymentType: "deposit" | "full";
 }) {
   const paymentTypeLabel = data.paymentType === "deposit" ? "Deposit" : "Full Payment";
+  const currency = data.currency || "EUR";
 
   return sendEmail({
     to: data.email,
@@ -194,7 +201,7 @@ export async function sendPaymentConfirmation(data: {
           <p>We've received your ${paymentTypeLabel.toLowerCase()} payment.</p>
 
           <div style="background: #f8f8f8; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
-            <p style="font-size: 24px; margin: 0;"><strong>$${data.amount}</strong></p>
+            <p style="font-size: 24px; margin: 0;"><strong>${currency} ${data.amount}</strong></p>
             <p style="margin: 10px 0 0;">${paymentTypeLabel} for ${data.course}</p>
           </div>
 

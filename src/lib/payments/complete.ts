@@ -117,6 +117,7 @@ export async function markPaymentComplete(params: {
       name: existingPayment.enrollment.name,
       email: existingPayment.enrollment.email,
       amount: payment.amount,
+      currency: payment.currency,
       course: course?.name || existingPayment.enrollment.courseSlug,
       paymentType: (params.paymentType || existingPayment.enrollment.paymentType).toLowerCase() === "deposit" ? "deposit" : "full",
     }).catch(console.error);

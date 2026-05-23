@@ -292,6 +292,7 @@ export async function POST(request: NextRequest) {
         course: courseName,
         batch: batchName,
         amount: finalAmount,
+        currency,
         paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
       }).catch(console.error);
     }
@@ -313,6 +314,7 @@ export async function POST(request: NextRequest) {
           course: courseName,
           batch: batchName,
           amount: finalAmount,
+          currency,
           paymentType: data.paymentType === "DEPOSIT" ? "deposit" : "full",
         }).catch(console.error);
       }
