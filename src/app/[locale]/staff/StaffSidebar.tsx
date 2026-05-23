@@ -18,13 +18,33 @@ import { useAuth } from "@/contexts/AuthContext";
 import { hasPermission } from "@/lib/rbac";
 
 const navigationItems = [
-  { name: "Dashboard", href: "/staff/dashboard", icon: LayoutDashboard, permission: null },
-  { name: "Schedule", href: "/staff/schedule", icon: Calendar, permission: "schedule.view" },
-  { name: "My Batch", href: "/staff/my-batch", icon: Users, permission: "students.view_own_batch" },
-  { name: "Announcements", href: "/staff/announcements", icon: MessageSquare, permission: "announcements.view" },
-  { name: "Blog", href: "/staff/blog", icon: FileText, permission: "blog.view" },
-  { name: "Gallery", href: "/staff/gallery", icon: Image, permission: "gallery.view" },
-  { name: "Settings", href: "/staff/settings", icon: Settings, permission: null },
+  {
+    name: "Dashboard",
+    href: (role?: string | null) => (role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/overview"),
+    icon: LayoutDashboard,
+    permission: null,
+  },
+  {
+    name: "Schedule",
+    href: (role?: string | null) => (role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/calendar"),
+    icon: Calendar,
+    permission: "schedule.view",
+  },
+  {
+    name: "My Batch",
+    href: () => "/app/teacher/dashboard",
+    icon: Users,
+    permission: "students.view_own_batch",
+  },
+  {
+    name: "Announcements",
+    href: (role?: string | null) => (role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/announcements"),
+    icon: MessageSquare,
+    permission: "announcements.view",
+  },
+  { name: "Blog", href: () => "/admin/blog", icon: FileText, permission: "blog.view" },
+  { name: "Gallery", href: () => "/admin/gallery", icon: Image, permission: "gallery.view" },
+  { name: "Admin Home", href: () => "/admin/overview", icon: Settings, permission: null },
 ];
 
 export function StaffSidebar() {
@@ -41,7 +61,7 @@ export function StaffSidebar() {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-emerald-900 text-white flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-emerald-800">
-        <Link href={`/${locale}/staff/dashboard`} className="flex items-center gap-3">
+        <Link href={`/${locale}${role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/overview"}`} className="flex items-center gap-3">
           <BalieytcLogo className="h-10 w-10" showText={false} />
           <div>
             <span className="font-serif text-xl font-bold">Bali YTTC</span>
@@ -60,7 +80,7 @@ export function StaffSidebar() {
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-3">
           {filteredNav.map((item) => {
-            const href = `/${locale}${item.href}`;
+            const href = `/${locale}${item.href(role)}`;
             const isActive = pathname === href || pathname.startsWith(`${href}/`);
             const Icon = item.icon;
 

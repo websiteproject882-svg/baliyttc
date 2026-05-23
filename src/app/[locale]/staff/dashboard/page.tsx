@@ -89,15 +89,15 @@ export default function StaffDashboardPage() {
           <CardContent className="space-y-3">
             {role === "TEACHER" && (
               <>
-                <ActionItem href={`/${locale}/staff/schedule`} icon={Calendar} label="View Schedule" />
-                <ActionItem href={`/${locale}/staff/my-batch`} icon={Users} label="My Batch Students" />
-                <ActionItem href={`/${locale}/staff/announcements`} icon={MessageSquare} label="Post Announcement" />
+                <ActionItem href={`/${locale}/app/teacher/dashboard`} icon={Calendar} label="Teacher Dashboard" />
+                <ActionItem href={`/${locale}/app/teacher/dashboard`} icon={Users} label="My Batch Students" />
+                <ActionItem href={`/${locale}/app/teacher/dashboard`} icon={MessageSquare} label="Announcements" />
               </>
             )}
             {role === "SEO_EDITOR" && (
               <>
-                <ActionItem href={`/${locale}/staff/blog`} icon={FileText} label="Manage Blog Posts" />
-                <ActionItem href={`/${locale}/staff/gallery`} icon={Image} label="Manage Gallery" />
+                <ActionItem href={`/${locale}/admin/blog`} icon={FileText} label="Manage Blog Posts" />
+                <ActionItem href={`/${locale}/admin/gallery`} icon={Image} label="Manage Gallery" />
               </>
             )}
             {role === "FINANCE_MANAGER" && (
