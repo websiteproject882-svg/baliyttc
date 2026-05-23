@@ -57,6 +57,18 @@ function request(body: unknown) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/auth/2fa/verify", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body,
+  });
+}
+
 async function json(response: Response) {
   return response.json();
 }
@@ -76,6 +88,15 @@ describe("2FA verification route", () => {
     expect(response.status).toBe(400);
     expect(await json(response)).toEqual({ error: "Missing 2FA challenge or code" });
     expect(mocks.decrypt).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed 2FA JSON without logging an internal failure", async () => {
+    const response = await POST(rawRequest("{not-valid-json"));
+
+    expect(response.status).toBe(400);
+    expect(await json(response)).toEqual({ error: "Missing 2FA challenge or code" });
+    expect(mocks.decrypt).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("rejects invalid or expired challenges", async () => {
@@ -102,7 +123,7 @@ describe("2FA verification route", () => {
       },
     });
 
-    const response = await POST(request({ challengeToken: "token", code: "123456" }));
+    const response = await POST(request({ challengeToken: " token ", code: " 123456 " }));
 
     expect(response.status).toBe(400);
     expect(await json(response)).toEqual({ error: "2FA is not configured for this account" });
@@ -159,6 +180,7 @@ describe("2FA verification route", () => {
       where: { id: "staff_1" },
       data: { lastLogin: expect.any(Date) },
     });
+    expect(mocks.verifyTotpToken).toHaveBeenCalledWith("secret", "123456");
     expect(mocks.createSession).toHaveBeenCalledWith("user_1", "SUPER_ADMIN", "admin@example.com", "admin");
   });
 

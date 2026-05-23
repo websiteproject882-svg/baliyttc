@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { createSession, decrypt } from "@/lib/session";
 import { getRoleHomePath } from "@/lib/rbac";
@@ -8,6 +9,11 @@ import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrig
 export const dynamic = "force-dynamic";
 
 const STAFF_PORTAL_ROLES = new Set(["TEACHER", "SEO_EDITOR", "FINANCE_MANAGER", "COURSE_MANAGER"]);
+
+const verifyTwoFactorSchema = z.object({
+  challengeToken: z.string().trim().min(1),
+  code: z.string().trim().min(1).max(20),
+});
 
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
@@ -28,11 +34,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { challengeToken, code } = await request.json();
-
-    if (!challengeToken || !code) {
+    const parsed = verifyTwoFactorSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
       return jsonWithRequestId({ error: "Missing 2FA challenge or code" }, { status: 400 }, request);
     }
+    const { challengeToken, code } = parsed.data;
 
     const challenge = await decrypt(challengeToken);
     if (!challenge || challenge.purpose !== "2fa" || !challenge.userId) {
@@ -69,7 +75,7 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ error: "2FA is not configured for this account" }, { status: 400 }, request);
     }
 
-    const valid = verifyTotpToken(user.staff.totpSecret, String(code).trim());
+    const valid = verifyTotpToken(user.staff.totpSecret, code);
     if (!valid) {
       return jsonWithRequestId({ error: "Invalid authentication code" }, { status: 401 }, request);
     }
