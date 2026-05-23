@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const schema = z.object({
   email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
   password: z.string().min(1).max(200),
+  portal: z.enum(["student", "staff", "admin"]).optional(),
 });
 
 function expectedPassword(email: string) {
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, password } = schema.parse(await request.json());
+    const { email, password, portal } = schema.parse(await request.json());
     const normalizedEmail = email;
     const expectedPasswords = expectedPassword(normalizedEmail);
 
@@ -107,6 +108,27 @@ export async function POST(request: NextRequest) {
       : role === "TEACHER"
         ? "staff"
         : "student";
+
+    if (portal && portal !== authType) {
+      return jsonWithRequestId(
+        {
+          error:
+            authType === "admin"
+              ? "Use the admin login page for this account."
+              : authType === "staff"
+                ? "Use the staff login page for this account."
+                : "Use the student login page for this account.",
+          redirectTo:
+            authType === "admin"
+              ? "/en/admin/login"
+              : authType === "staff"
+                ? "/en/staff/login"
+                : "/en/login",
+        },
+        { status: 403 },
+        request,
+      );
+    }
 
     if (user.staff?.status === "ACTIVE") {
       await prisma.staff.update({

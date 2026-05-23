@@ -42,13 +42,6 @@ if (typeof window !== "undefined" && isFirebaseConfigured()) {
 const canUseLocalAuthFallback = () =>
   process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
 
-// Test users for the explicit /api/auth/test-login flow.
-export const TEST_USERS = [
-  { email: "admin@baliyttc.com", password: "admin123", role: "SUPER_ADMIN", name: "Admin User" },
-  { email: "student@test.com", password: "student123", role: "STUDENT", name: "Test Student" },
-  { email: "teacher@test.com", password: "teacher123", role: "TEACHER", name: "Test Teacher" },
-];
-
 export interface AuthenticatedAppUser {
   uid: string;
   email: string;
@@ -71,7 +64,7 @@ export async function loginWithEmail(email: string, password: string) {
     const response = await fetch("/api/auth/test-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, portal: "student" }),
     });
     const data = await response.json().catch(() => null);
 

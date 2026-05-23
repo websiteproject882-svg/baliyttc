@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
     const response = await fetch("/api/auth/test-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, portal: "admin" }),
     });
     const data = await response.json().catch(() => null);
 

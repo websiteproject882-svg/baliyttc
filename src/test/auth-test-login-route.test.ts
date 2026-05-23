@@ -84,7 +84,7 @@ describe("test login route", () => {
   it("normalizes email and creates the expected student session when explicitly enabled", async () => {
     const { POST } = await loadRoute();
 
-    const response = await POST(request({ email: " STUDENT@Test.COM ", password: "student-secret" }));
+    const response = await POST(request({ email: " STUDENT@Test.COM ", password: "student-secret", portal: "student" }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -101,6 +101,20 @@ describe("test login route", () => {
       isAdmin: false,
       testLogin: true,
     });
+  });
+
+  it("blocks test-login when the requested portal does not match the account type", async () => {
+    const { POST } = await loadRoute();
+
+    const response = await POST(request({ email: "student@test.com", password: "student-secret", portal: "admin" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body).toEqual({
+      error: "Use the student login page for this account.",
+      redirectTo: "/en/login",
+    });
+    expect(mocks.createSession).not.toHaveBeenCalled();
   });
 
   it("rejects malformed requests before lookup", async () => {
