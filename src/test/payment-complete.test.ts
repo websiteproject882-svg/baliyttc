@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   getSiteSettings: vi.fn(),
   sendPaymentConfirmation: vi.fn(),
   sendPaymentConfirmationWhatsApp: vi.fn(),
+  logBackgroundError: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -46,6 +47,10 @@ vi.mock("@/lib/whatsapp", () => ({
 
 vi.mock("@/lib/site-settings", () => ({
   getSiteSettings: mocks.getSiteSettings,
+}));
+
+vi.mock("@/lib/security", () => ({
+  logBackgroundError: mocks.logBackgroundError,
 }));
 
 function pendingPayment(overrides: Record<string, unknown> = {}) {
@@ -215,6 +220,25 @@ describe("payment completion", () => {
 
     expect(mocks.sendPaymentConfirmation).not.toHaveBeenCalled();
     expect(mocks.sendPaymentConfirmationWhatsApp).not.toHaveBeenCalled();
+  });
+
+  it("logs async payment notification failures without failing completion", async () => {
+    mocks.paymentFindUnique.mockResolvedValue(pendingPayment());
+    mocks.sendPaymentConfirmation.mockRejectedValue(new Error("email provider down"));
+    mocks.sendPaymentConfirmationWhatsApp.mockRejectedValue(new Error("whatsapp provider down"));
+
+    const result = await markPaymentComplete({ paymentId: "payment_1", paymentType: "deposit" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(result.status).toBe("DEPOSIT_PAID");
+    expect(mocks.logBackgroundError).toHaveBeenCalledWith("payments.confirmation-email", expect.any(Error), {
+      paymentId: "payment_1",
+      enrollmentId: "enrollment_1",
+    });
+    expect(mocks.logBackgroundError).toHaveBeenCalledWith("payments.confirmation-whatsapp", expect.any(Error), {
+      paymentId: "payment_1",
+      enrollmentId: "enrollment_1",
+    });
   });
 
   it("throws when payment record is missing", async () => {

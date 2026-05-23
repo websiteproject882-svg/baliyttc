@@ -161,6 +161,17 @@ export function logApiError(
   return requestId;
 }
 
+export function logBackgroundError(
+  context: string,
+  error: unknown,
+  extra?: Record<string, unknown>,
+) {
+  console.error(`[${context}]`, {
+    error: error instanceof Error ? error.message : String(error),
+    ...extra,
+  });
+}
+
 export function requireSameOrigin(request: NextRequest) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host");

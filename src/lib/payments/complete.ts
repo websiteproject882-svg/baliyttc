@@ -3,6 +3,7 @@ import { Prisma, type PaymentStatus } from "@prisma/client";
 import { sendPaymentConfirmation } from "@/lib/resend";
 import { sendPaymentConfirmationWhatsApp } from "@/lib/whatsapp";
 import { getSiteSettings } from "@/lib/site-settings";
+import { logBackgroundError } from "@/lib/security";
 
 export function statusForPaymentType(paymentType?: string): {
   paymentStatus: PaymentStatus;
@@ -120,7 +121,12 @@ export async function markPaymentComplete(params: {
       currency: payment.currency,
       course: course?.name || existingPayment.enrollment.courseSlug,
       paymentType: (params.paymentType || existingPayment.enrollment.paymentType).toLowerCase() === "deposit" ? "deposit" : "full",
-    }).catch(console.error);
+    }).catch((error) =>
+      logBackgroundError("payments.confirmation-email", error, {
+        paymentId: payment.id,
+        enrollmentId: payment.enrollmentId,
+      }),
+    );
   }
 
   if (settings.notifications.whatsappOnPayment) {
@@ -129,7 +135,12 @@ export async function markPaymentComplete(params: {
       phone: existingPayment.enrollment.phone,
       amount: String(payment.amount),
       course: course?.name || existingPayment.enrollment.courseSlug,
-    }).catch(console.error);
+    }).catch((error) =>
+      logBackgroundError("payments.confirmation-whatsapp", error, {
+        paymentId: payment.id,
+        enrollmentId: payment.enrollmentId,
+      }),
+    );
   }
 
   return payment;
