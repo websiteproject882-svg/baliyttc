@@ -38,6 +38,12 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/rbac", () => ({
+  getPermissions: (role: string) => {
+    if (role === "SUPER_ADMIN") return ["*"];
+    if (role === "FINANCE_MANAGER") return ["payments.view", "payments.refund"];
+    if (role === "SEO_EDITOR") return ["blog.view", "blog.create", "blog.edit"];
+    return [];
+  },
   hasPermission: (role: string, permission: string) => {
     if (role === "SUPER_ADMIN") return true;
     if (role === "FINANCE_MANAGER") return ["payments.view", "payments.refund"].includes(permission);
@@ -168,6 +174,51 @@ describe("authz route guards", () => {
     expect(response).toBeNull();
     expect(user?.role).toBe("SEO_EDITOR");
     expect(user?.authType).toBe("staff");
+  });
+
+  it("respects stored staff permissions when they are narrower than the role default", async () => {
+    mocks.sessions.staff = {
+      userId: "seo_1",
+      role: "SEO_EDITOR",
+      email: "seo@example.com",
+      authType: "staff",
+    };
+    mockUser("STAFF", {
+      staff: {
+        id: "staff_seo_1",
+        role: "SEO_EDITOR",
+        status: "ACTIVE",
+        permissions: ["blog.view"],
+      },
+    });
+
+    const { user, response } = await requirePermission("blog.edit");
+
+    expect(user).toBeNull();
+    expect(response?.status).toBe(403);
+    expect(await responseJson(response)).toEqual({ error: "Forbidden" });
+  });
+
+  it("falls back to role permissions for older staff records without stored permissions", async () => {
+    mocks.sessions.staff = {
+      userId: "seo_1",
+      role: "SEO_EDITOR",
+      email: "seo@example.com",
+      authType: "staff",
+    };
+    mockUser("STAFF", {
+      staff: {
+        id: "staff_seo_1",
+        role: "SEO_EDITOR",
+        status: "ACTIVE",
+        permissions: null,
+      },
+    });
+
+    const { user, response } = await requirePermission("blog.edit");
+
+    expect(response).toBeNull();
+    expect(user?.permissions).toEqual(["blog.view", "blog.create", "blog.edit"]);
   });
 
   it("rejects teacher staff sessions from admin routes", async () => {

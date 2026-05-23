@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession, getAdminSession, getStaffSession, getStudentSession, AuthType } from "@/lib/session";
-import { hasPermission, isAdminPanelRole, type AppRole } from "@/lib/rbac";
+import { getPermissions, hasPermission, isAdminPanelRole, type AppRole } from "@/lib/rbac";
 export { requireSameOrigin } from "@/lib/security";
 
 // Expand AppRole to include all possible roles
@@ -59,7 +59,7 @@ export async function getCurrentUser(authType?: AuthType): Promise<CurrentUser |
     : (user.role as ExpandedAppRole);
   const permissions =
     user.staff?.status === "ACTIVE"
-      ? ((user.staff.permissions as string[] | null) ?? [])
+      ? ((user.staff.permissions as string[] | null) ?? getPermissions(user.staff.role))
       : [];
 
   return {
@@ -159,7 +159,11 @@ export async function requirePermission(permission: string) {
     return { user: null, response };
   }
 
-  if (!hasPermission(user.role, permission)) {
+  const isAllowed = user.staffId
+    ? user.permissions.includes("*") || user.permissions.includes(permission)
+    : hasPermission(user.role, permission);
+
+  if (!isAllowed) {
     return { user: null, response: jsonError("Forbidden", 403) };
   }
 

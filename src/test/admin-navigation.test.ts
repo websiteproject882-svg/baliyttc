@@ -20,4 +20,9 @@ describe("admin navigation access", () => {
     expect(canAccessAdminNavItem("SUPER_ADMIN", { roles: ["SUPER_ADMIN"] })).toBe(true);
     expect(canAccessAdminNavItem("STUDENT_MANAGER", { roles: ["SUPER_ADMIN"] })).toBe(false);
   });
+
+  it("prefers stored permissions when provided", () => {
+    expect(canAccessAdminNavItem("SEO_EDITOR", { permission: "blog.edit" }, ["blog.view"])).toBe(false);
+    expect(canAccessAdminNavItem("SEO_EDITOR", { permission: "blog.edit" }, ["blog.view", "blog.edit"])).toBe(true);
+  });
 });

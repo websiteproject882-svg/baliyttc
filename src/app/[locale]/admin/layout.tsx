@@ -29,6 +29,7 @@ export default async function AdminLayout({
           email: user.email,
           displayName: user.displayName || user.email,
           role: user.role,
+          permissions: user.permissions,
         }}
       />
       <main className="min-w-0 flex-1 bg-gray-50">{children}</main>

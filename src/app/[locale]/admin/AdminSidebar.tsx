@@ -18,6 +18,7 @@ type AdminSidebarProps = {
     email: string;
     displayName: string;
     role: string;
+    permissions: string[];
   };
 };
 
@@ -108,7 +109,7 @@ export default function AdminSidebar({ locale, user }: AdminSidebarProps) {
   const visibleNavGroups = navGroups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => canAccessAdminNavItem(user.role, item)),
+      items: group.items.filter((item) => canAccessAdminNavItem(user.role, item, user.permissions)),
     }))
     .filter((group) => group.items.length > 0);
 

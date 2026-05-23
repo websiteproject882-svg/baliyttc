@@ -5,7 +5,7 @@ export type AdminNavAccess = {
   roles?: readonly string[];
 };
 
-export function canAccessAdminNavItem(role: string, access: AdminNavAccess = {}) {
+export function canAccessAdminNavItem(role: string, access: AdminNavAccess = {}, permissions?: readonly string[]) {
   if (access.roles?.includes(role)) {
     return true;
   }
@@ -16,6 +16,10 @@ export function canAccessAdminNavItem(role: string, access: AdminNavAccess = {})
 
   if (!access.permission) {
     return true;
+  }
+
+  if (permissions) {
+    return permissions.includes("*") || permissions.includes(access.permission);
   }
 
   return hasPermission(role, access.permission);
