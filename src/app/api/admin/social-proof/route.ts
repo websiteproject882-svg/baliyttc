@@ -1,21 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 const SETTINGS_KEY = "social_proof_overrides";
 
 const socialProofSchema = z.object({
-  totalGraduates: z.number().int().min(0),
-  yearsExperience: z.number().int().min(0),
-  averageRating: z.number().min(0).max(5),
-  totalReviews: z.number().int().min(0),
-  countries: z.number().int().min(0),
-  trainingHours: z.number().int().min(0),
-  certifiedTeachers: z.number().int().min(0),
+  totalGraduates: z.coerce.number().int().min(0),
+  yearsExperience: z.coerce.number().int().min(0),
+  averageRating: z.coerce.number().min(0).max(5),
+  totalReviews: z.coerce.number().int().min(0),
+  countries: z.coerce.number().int().min(0),
+  trainingHours: z.coerce.number().int().min(0),
+  certifiedTeachers: z.coerce.number().int().min(0),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { response } = await requireAdminUser();
   if (response) return response;
 
@@ -61,10 +62,10 @@ export async function GET() {
     const parsedOverrides = socialProofSchema.safeParse(overrideRow?.value);
     const stats = parsedOverrides.success ? parsedOverrides.data : computedStats;
 
-    return NextResponse.json({ stats, computedStats });
+    return jsonWithRequestId({ stats, computedStats }, undefined, request);
   } catch (error) {
-    console.error("Social proof fetch error:", error);
-    return NextResponse.json({ error: "Failed to fetch social proof" }, { status: 500 });
+    logApiError("admin.socialProof.list", error, request);
+    return jsonWithRequestId({ error: "Failed to fetch social proof" }, { status: 500 }, request);
   }
 }
 
@@ -94,12 +95,12 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
-    return NextResponse.json({ success: true, stats });
+    return jsonWithRequestId({ success: true, stats }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+      return jsonWithRequestId({ error: "Validation failed", details: error.errors }, { status: 400 }, request);
     }
-    console.error("Social proof update error:", error);
-    return NextResponse.json({ error: "Failed to update social proof" }, { status: 500 });
+    logApiError("admin.socialProof.update", error, request, { userId: user!.id });
+    return jsonWithRequestId({ error: "Failed to update social proof" }, { status: 500 }, request);
   }
 }

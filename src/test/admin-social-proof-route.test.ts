@@ -1,0 +1,216 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
+import { GET, PATCH } from "../app/api/admin/social-proof/route";
+
+const mocks = vi.hoisted(() => ({
+  requireAdminUser: vi.fn(),
+  requireSameOrigin: vi.fn(),
+  writeAuditLog: vi.fn(),
+  certificateCount: vi.fn(),
+  testimonialAggregate: vi.fn(),
+  studentFindMany: vi.fn(),
+  studentAggregate: vi.fn(),
+  siteSettingFindUnique: vi.fn(),
+  siteSettingUpsert: vi.fn(),
+  logApiError: vi.fn(),
+}));
+
+vi.mock("@/lib/authz", () => ({
+  requireAdminUser: mocks.requireAdminUser,
+  requireSameOrigin: mocks.requireSameOrigin,
+  writeAuditLog: mocks.writeAuditLog,
+}));
+
+vi.mock("@/lib/prisma", () => ({
+  default: {
+    certificate: {
+      count: mocks.certificateCount,
+    },
+    testimonial: {
+      aggregate: mocks.testimonialAggregate,
+    },
+    student: {
+      findMany: mocks.studentFindMany,
+      aggregate: mocks.studentAggregate,
+    },
+    siteSetting: {
+      findUnique: mocks.siteSettingFindUnique,
+      upsert: mocks.siteSettingUpsert,
+    },
+  },
+}));
+
+vi.mock("@/lib/security", () => ({
+  jsonWithRequestId: (body: unknown, init: ResponseInit | undefined, request: NextRequest) => {
+    const response = Response.json(body, init);
+    response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
+    return response;
+  },
+  logApiError: mocks.logApiError,
+}));
+
+const admin = {
+  id: "admin_1",
+  email: "admin@example.com",
+  displayName: "Admin One",
+  role: "ADMIN",
+  permissions: [],
+  authType: "admin",
+};
+
+const stats = {
+  totalGraduates: 250,
+  yearsExperience: 12,
+  averageRating: 4.9,
+  totalReviews: 620,
+  countries: 42,
+  trainingHours: 18000,
+  certifiedTeachers: 250,
+};
+
+function request(method: "GET" | "PATCH", body?: Record<string, unknown>) {
+  return new NextRequest("https://example.com/api/admin/social-proof", {
+    method,
+    headers: {
+      "x-request-id": "req_admin_social_proof",
+      origin: "https://example.com",
+      host: "example.com",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.requireSameOrigin.mockReturnValue(null);
+  mocks.requireAdminUser.mockResolvedValue({ user: admin, response: null });
+  mocks.certificateCount.mockResolvedValue(250);
+  mocks.testimonialAggregate.mockResolvedValue({
+    _count: { id: 620 },
+    _avg: { rating: 4.86 },
+  });
+  mocks.studentFindMany.mockResolvedValue([{ nationality: "India" }, { nationality: "Germany" }]);
+  mocks.studentAggregate.mockResolvedValue({ _sum: { completedHours: 18000 } });
+  mocks.siteSettingFindUnique.mockResolvedValue(null);
+  mocks.siteSettingUpsert.mockResolvedValue({ key: "social_proof_overrides", value: stats });
+  mocks.writeAuditLog.mockResolvedValue(undefined);
+});
+
+describe("admin social proof route", () => {
+  it("returns computed stats with request id when no overrides exist", async () => {
+    const response = await GET(request("GET"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("X-Request-Id")).toBe("req_admin_social_proof");
+    expect(body).toEqual({
+      stats: {
+        totalGraduates: 250,
+        yearsExperience: 12,
+        averageRating: 4.9,
+        totalReviews: 620,
+        countries: 2,
+        trainingHours: 18000,
+        certifiedTeachers: 250,
+      },
+      computedStats: {
+        totalGraduates: 250,
+        yearsExperience: 12,
+        averageRating: 4.9,
+        totalReviews: 620,
+        countries: 2,
+        trainingHours: 18000,
+        certifiedTeachers: 250,
+      },
+    });
+    expect(mocks.certificateCount).toHaveBeenCalledTimes(2);
+    expect(mocks.siteSettingFindUnique).toHaveBeenCalledWith({ where: { key: "social_proof_overrides" } });
+  });
+
+  it("uses valid saved overrides over computed stats", async () => {
+    mocks.siteSettingFindUnique.mockResolvedValue({ key: "social_proof_overrides", value: stats });
+
+    const response = await GET(request("GET"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.stats).toEqual(stats);
+    expect(body.computedStats.countries).toBe(2);
+  });
+
+  it("falls back to computed stats when saved overrides are invalid", async () => {
+    mocks.siteSettingFindUnique.mockResolvedValue({ key: "social_proof_overrides", value: { ...stats, averageRating: 8 } });
+
+    const response = await GET(request("GET"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.stats).toEqual(body.computedStats);
+  });
+
+  it("saves stats, coerces numeric strings, and writes an audit log", async () => {
+    mocks.siteSettingFindUnique.mockResolvedValue({ key: "social_proof_overrides", value: { ...stats, totalGraduates: 200 } });
+
+    const response = await PATCH(request("PATCH", { ...stats, totalGraduates: "275", averageRating: "4.8" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      stats: { ...stats, totalGraduates: 275, averageRating: 4.8 },
+    });
+    expect(mocks.siteSettingUpsert).toHaveBeenCalledWith({
+      where: { key: "social_proof_overrides" },
+      create: { key: "social_proof_overrides", value: { ...stats, totalGraduates: 275, averageRating: 4.8 } },
+      update: { value: { ...stats, totalGraduates: 275, averageRating: 4.8 } },
+    });
+    expect(mocks.writeAuditLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorUserId: "admin_1",
+        action: "social_proof.updated",
+        entity: "site_settings",
+        entityId: "social_proof_overrides",
+      }),
+    );
+  });
+
+  it("rejects invalid stats payloads", async () => {
+    const response = await PATCH(request("PATCH", { ...stats, averageRating: 6 }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.siteSettingUpsert).not.toHaveBeenCalled();
+  });
+
+  it("logs fetch failures without leaking internals", async () => {
+    mocks.certificateCount.mockRejectedValue(new Error("database down"));
+
+    const response = await GET(request("GET"));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.error).toBe("Failed to fetch social proof");
+    expect(mocks.logApiError).toHaveBeenCalledWith(
+      "admin.socialProof.list",
+      expect.any(Error),
+      expect.any(NextRequest),
+    );
+  });
+
+  it("logs save failures without leaking internals", async () => {
+    mocks.siteSettingUpsert.mockRejectedValue(new Error("database down"));
+
+    const response = await PATCH(request("PATCH", stats));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.error).toBe("Failed to update social proof");
+    expect(mocks.logApiError).toHaveBeenCalledWith(
+      "admin.socialProof.update",
+      expect.any(Error),
+      expect.any(NextRequest),
+      { userId: "admin_1" },
+    );
+  });
+});
