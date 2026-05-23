@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
-import { hasPermission } from "@/lib/rbac";
-
-const ALLOWED_READ_ROLES = new Set([
-  "TEACHER",
-  "SUPER_ADMIN",
-  "ADMIN",
-  "STUDENT_MANAGER",
-  "COURSE_MANAGER",
-]);
+import { currentUserHasPermission, requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireAuthenticatedUser();
@@ -17,7 +8,7 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  if (!ALLOWED_READ_ROLES.has(user.role) && !hasPermission(user.role, "announcements.view")) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "announcements.view")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -52,7 +43,7 @@ export async function POST(request: NextRequest) {
     return response;
   }
 
-  if (user.role !== "TEACHER" && !hasPermission(user.role, "announcements.create")) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "announcements.create")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -116,7 +107,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
     }
 
-    const canManageAny = hasPermission(user.role, "announcements.edit");
+    const canManageAny = currentUserHasPermission(user, "announcements.edit");
     const canManageOwn = user.role === "TEACHER" && existing.authorId === user.id;
     if (!canManageAny && !canManageOwn) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

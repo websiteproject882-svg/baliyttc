@@ -1,15 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthenticatedUser } from "@/lib/authz";
+import { currentUserHasPermission, requireAuthenticatedUser } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
-
-const ALLOWED_TEACHER_DASHBOARD_ROLES = new Set([
-  "TEACHER",
-  "SUPER_ADMIN",
-  "ADMIN",
-  "STUDENT_MANAGER",
-  "COURSE_MANAGER",
-]);
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireAuthenticatedUser();
@@ -17,7 +9,7 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  if (!ALLOWED_TEACHER_DASHBOARD_ROLES.has(user.role)) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.view")) {
     return jsonWithRequestId({ error: "Forbidden" }, { status: 403 }, request);
   }
 

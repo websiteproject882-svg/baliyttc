@@ -2,16 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
-import { hasPermission } from "@/lib/rbac";
-
-const ALLOWED_TEACHER_SCHEDULE_ROLES = new Set([
-  "TEACHER",
-  "SUPER_ADMIN",
-  "ADMIN",
-  "COURSE_MANAGER",
-  "STUDENT_MANAGER",
-]);
+import { currentUserHasPermission, requireAuthenticatedUser, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 
 const scheduleBaseSchema = z.object({
   batchId: z.string().min(1),
@@ -33,7 +24,7 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  if (!ALLOWED_TEACHER_SCHEDULE_ROLES.has(user.role) && !hasPermission(user.role, "schedule.view")) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.view")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -93,7 +84,7 @@ export async function POST(request: NextRequest) {
     return response;
   }
 
-  if (!ALLOWED_TEACHER_SCHEDULE_ROLES.has(user.role)) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.create")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -146,7 +137,7 @@ export async function PATCH(request: NextRequest) {
     return response;
   }
 
-  if (!ALLOWED_TEACHER_SCHEDULE_ROLES.has(user.role)) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.edit")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -205,7 +196,7 @@ export async function DELETE(request: NextRequest) {
     return response;
   }
 
-  if (!ALLOWED_TEACHER_SCHEDULE_ROLES.has(user.role)) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "schedule.edit")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

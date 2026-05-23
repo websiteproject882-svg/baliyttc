@@ -38,6 +38,7 @@ export const PERMISSIONS: Record<string, string[]> = {
     "announcements.view", "announcements.create", "announcements.edit",
     "waitlist.view", "waitlist.edit",
     "certificates.view", "certificates.issue",
+    "schedule.view",
     "testimonials.view", "testimonials.approve",
     "communications.view", "communications.send",
     "analytics.partial",
@@ -65,6 +66,8 @@ export const PERMISSIONS: Record<string, string[]> = {
   COURSE_MANAGER: [
     "courses.view", "courses.create", "courses.edit",
     "batches.view", "batches.create", "batches.edit",
+    "schedule.view", "schedule.create", "schedule.edit",
+    "students.view",
     "accommodation.view", "accommodation.edit",
     "ceremonies.view", "ceremonies.create", "ceremonies.edit",
     "prearrival.view", "prearrival.edit",

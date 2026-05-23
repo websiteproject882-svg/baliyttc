@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthenticatedUser } from "@/lib/authz";
+import { currentUserHasPermission, requireAuthenticatedUser } from "@/lib/authz";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  if (!["TEACHER", "SUPER_ADMIN", "ADMIN", "STUDENT_MANAGER", "COURSE_MANAGER"].includes(user.role)) {
+  if (user.role !== "TEACHER" && !currentUserHasPermission(user, "students.view")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

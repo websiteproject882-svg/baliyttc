@@ -153,17 +153,21 @@ export async function requireStaffUser() {
   return { user, response: null };
 }
 
+export function currentUserHasPermission(user: Pick<CurrentUser, "role" | "permissions" | "staffId">, permission: string) {
+  if (user.staffId) {
+    return user.permissions.includes("*") || user.permissions.includes(permission);
+  }
+
+  return hasPermission(user.role, permission);
+}
+
 export async function requirePermission(permission: string) {
   const { user, response } = await requireAdminUser();
   if (!user || response) {
     return { user: null, response };
   }
 
-  const isAllowed = user.staffId
-    ? user.permissions.includes("*") || user.permissions.includes(permission)
-    : hasPermission(user.role, permission);
-
-  if (!isAllowed) {
+  if (!currentUserHasPermission(user, permission)) {
     return { user: null, response: jsonError("Forbidden", 403) };
   }
 

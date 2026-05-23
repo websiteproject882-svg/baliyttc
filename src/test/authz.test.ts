@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import {
+  currentUserHasPermission,
   requireAdminUser,
   requirePermission,
   requireStaffUser,
@@ -219,6 +220,21 @@ describe("authz route guards", () => {
 
     expect(response).toBeNull();
     expect(user?.permissions).toEqual(["blog.view", "blog.create", "blog.edit"]);
+  });
+
+  it("checks stored staff permissions through the shared permission helper", () => {
+    expect(
+      currentUserHasPermission(
+        { role: "SEO_EDITOR", staffId: "staff_1", permissions: ["blog.view"] },
+        "blog.edit",
+      ),
+    ).toBe(false);
+    expect(
+      currentUserHasPermission(
+        { role: "SEO_EDITOR", staffId: "staff_1", permissions: ["blog.view", "blog.edit"] },
+        "blog.edit",
+      ),
+    ).toBe(true);
   });
 
   it("rejects teacher staff sessions from admin routes", async () => {
