@@ -7,7 +7,7 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const markReadSchema = z.object({
-  notificationId: z.string().min(1),
+  notificationId: z.string().trim().min(1).max(120),
 });
 
 const preferencesSchema = z.object({

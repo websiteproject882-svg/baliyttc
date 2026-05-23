@@ -238,6 +238,16 @@ describe("student notifications route", () => {
     expect(body.error).toBe("Validation failed");
   });
 
+  it("rejects oversized notification ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", { notificationId: "x".repeat(121) }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.notificationFindFirst).not.toHaveBeenCalled();
+    expect(mocks.notificationReceiptUpsert).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed notification JSON before reading or writing", async () => {
     const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
     const body = await response?.json();
