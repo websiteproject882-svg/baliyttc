@@ -82,6 +82,14 @@ function request(body: Record<string, unknown>) {
   });
 }
 
+function rawRequest(body: string) {
+  return new NextRequest("https://example.com/api/admin/students/access", {
+    method: "PATCH",
+    headers: { "x-request-id": "req_student_access" },
+    body,
+  });
+}
+
 async function patch(body: Record<string, unknown>) {
   return PATCH(request(body));
 }
@@ -138,6 +146,19 @@ describe("admin student access route", () => {
     expect(response?.headers.get("X-Request-Id")).toBe("req_student_access");
     expect(body.error).toBe("Validation failed");
     expect(mocks.enrollmentFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed access update JSON before enrollment lookup", async () => {
+    const response = await PATCH(rawRequest("{not-valid-json"));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_access");
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.enrollmentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.studentUpdate).not.toHaveBeenCalled();
+    expect(mocks.studentCreate).not.toHaveBeenCalled();
+    expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
   it("returns 404 when the enrollment is missing", async () => {

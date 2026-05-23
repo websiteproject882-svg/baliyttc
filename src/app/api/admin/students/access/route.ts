@@ -36,7 +36,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const data = schema.parse(await request.json());
+    const parsed = schema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
+    }
+
+    const data = parsed.data;
 
     const enrollment = await prisma.enrollment.findUnique({
       where: { id: data.enrollmentId },
