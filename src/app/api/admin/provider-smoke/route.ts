@@ -15,12 +15,21 @@ const providerKeys = {
   whatsapp: ["WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_ACCESS_TOKEN"],
 } as const;
 
+const httpsOrRelativeUrl = z.string().trim().max(2048).refine((value) => {
+  if (value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\")) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, "URL must use https or start with /");
+
 const whatsappParameterSchema = z.object({
   type: z.string().trim().min(1).max(50),
   text: z.string().trim().min(1).max(500).optional(),
   image: z
     .object({
-      link: z.string().trim().url().optional(),
+      link: httpsOrRelativeUrl.optional(),
     })
     .optional(),
 });

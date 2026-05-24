@@ -16,7 +16,7 @@ const httpsUrl = z.string().trim().url().refine((value) => {
   message: "URL must use https",
 });
 const httpsOrRelativeUrl = z.string().trim().refine((value) => {
-  if (value.startsWith("/")) return true;
+  if (value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\")) return true;
   try {
     return new URL(value).protocol === "https:";
   } catch {

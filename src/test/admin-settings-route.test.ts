@@ -241,6 +241,22 @@ describe("admin settings route", () => {
     expect(parsed.assets.logoUrl).toBe("/images/brand/logo-512.png");
   });
 
+  it("rejects protocol-relative public asset URLs", async () => {
+    const response = await PATCH(
+      request("PATCH", {
+        ...defaultSiteSettings,
+        assets: {
+          ...defaultSiteSettings.assets,
+          logoUrl: "//evil.example/logo.png",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect((await json(response)).error).toBe("Invalid settings payload");
+    expect(mocks.saveSiteSettings).not.toHaveBeenCalled();
+  });
+
   it("normalizes trimmed settings before saving", async () => {
     const nextSettings = siteSettingsSchema.parse({
       ...defaultSiteSettings,

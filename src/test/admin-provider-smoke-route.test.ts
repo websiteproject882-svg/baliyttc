@@ -166,4 +166,24 @@ describe("admin provider smoke route", () => {
       ],
     });
   });
+
+  it("rejects unsafe WhatsApp image links before sending smoke tests", async () => {
+    const response = await POST(request({
+      provider: "whatsapp",
+      phone: "+91 98765 43210",
+      template: "provider_test",
+      components: [
+        {
+          type: "header",
+          parameters: [{ type: "image", image: { link: "http://example.com/image.jpg" } }],
+        },
+      ],
+    }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.sendWhatsAppMessage).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+  });
 });

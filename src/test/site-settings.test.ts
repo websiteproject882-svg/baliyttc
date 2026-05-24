@@ -37,7 +37,7 @@ describe("site settings loader", () => {
           tripadvisorReviewUrl: " https://tripadvisor.example.com/review ",
         },
         assets: {
-          logoUrl: "http://example.com/logo.png",
+          logoUrl: "//evil.example/logo.png",
           courseManualUrl: " /downloads/course-manual.pdf ",
           certificateTemplateUrl: " https://example.com/certificate.png ",
           mapsEmbedUrl: "http://maps.example.com/embed",
@@ -94,5 +94,17 @@ describe("site settings loader", () => {
     });
     expect(parsed.reviews.googleReviewUrl).toBe("https://example.com/review");
     expect(parsed.assets.logoUrl).toBe("/images/logo.png");
+  });
+
+  it("rejects protocol-relative local asset URLs", () => {
+    const parsed = siteSettingsSchema.safeParse({
+      ...defaultSiteSettings,
+      assets: {
+        ...defaultSiteSettings.assets,
+        logoUrl: "//evil.example/logo.png",
+      },
+    });
+
+    expect(parsed.success).toBe(false);
   });
 });
