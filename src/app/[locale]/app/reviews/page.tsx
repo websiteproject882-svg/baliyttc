@@ -5,6 +5,7 @@ import { ExternalLink, Loader2, MessageCircle, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 type TestimonialItem = {
   id: string;
@@ -27,6 +28,7 @@ type PortalProfile = {
 };
 
 export default function StudentReviewsPage() {
+  const siteSettings = usePublicSiteSettings();
   const [items, setItems] = useState<TestimonialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,6 +42,12 @@ export default function StudentReviewsPage() {
     courseName: "",
     graduationYear: String(new Date().getFullYear()),
   });
+  const googleReviewUrl =
+    siteSettings.reviews.googleReviewUrl ||
+    "https://www.google.com/search?q=Bali+Yoga+Teacher+Training+Center+reviews";
+  const tripadvisorReviewUrl =
+    siteSettings.reviews.tripadvisorReviewUrl ||
+    "https://www.tripadvisor.com/Search?q=Bali%20Yoga%20Teacher%20Training%20Center";
 
   const loadTestimonials = async () => {
     setLoading(true);
@@ -127,13 +135,13 @@ export default function StudentReviewsPage() {
             </CardHeader>
             <CardContent className="grid gap-3">
               <Button asChild className="justify-between bg-orange-500 text-white hover:bg-orange-600">
-                <a href="https://www.google.com/search?q=Bali+Yoga+Teacher+Training+Center+reviews" target="_blank" rel="noreferrer">
+                <a href={googleReviewUrl} target="_blank" rel="noreferrer">
                   Google Review
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </Button>
               <Button asChild variant="outline" className="justify-between">
-                <a href="https://www.tripadvisor.com/Search?q=Bali%20Yoga%20Teacher%20Training%20Center" target="_blank" rel="noreferrer">
+                <a href={tripadvisorReviewUrl} target="_blank" rel="noreferrer">
                   TripAdvisor Review
                   <ExternalLink className="h-4 w-4" />
                 </a>
