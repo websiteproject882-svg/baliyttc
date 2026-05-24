@@ -86,7 +86,7 @@ function rawRequest(method: "POST" | "PATCH", body: string) {
 
 function payload(overrides: Record<string, unknown> = {}) {
   return {
-    url: "https://example.com/gallery.jpg",
+    url: " /images/gallery/morning-practice.jpg ",
     alt: "Students practicing yoga",
     caption: "Morning practice",
     type: "PROFESSIONAL",
@@ -130,7 +130,7 @@ describe("admin gallery route", () => {
     expect(body.image).toEqual(expect.objectContaining({ id: "gallery_1" }));
     expect(mocks.galleryCreate).toHaveBeenCalledWith({
       data: {
-        url: "https://example.com/gallery.jpg",
+        url: "/images/gallery/morning-practice.jpg",
         alt: "Students practicing yoga",
         caption: "Morning practice",
         type: "PROFESSIONAL",
@@ -152,13 +152,31 @@ describe("admin gallery route", () => {
 
     expect(mocks.galleryCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        alt: "https://example.com/gallery.jpg",
+        alt: "/images/gallery/morning-practice.jpg",
       }),
     });
   });
 
   it("validates create payloads", async () => {
     const response = await POST(request("POST", payload({ url: "not-a-url" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.galleryCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects insecure gallery image URLs before saving", async () => {
+    const response = await POST(request("POST", payload({ url: "http://example.com/gallery.jpg" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.galleryCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects protocol-relative gallery image URLs before saving", async () => {
+    const response = await POST(request("POST", payload({ url: "//evil.example/gallery.jpg" })));
     const body = await response?.json();
 
     expect(response?.status).toBe(400);

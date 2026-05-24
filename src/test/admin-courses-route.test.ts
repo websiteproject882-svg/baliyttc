@@ -206,6 +206,15 @@ describe("admin courses route", () => {
     expect(mocks.courseCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects protocol-relative course image URLs before saving", async () => {
+    const response = await POST(request("POST", payload({ image: "//evil.example/course.jpg" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects oversized course copy before saving", async () => {
     const response = await POST(request("POST", payload({ summary: "x".repeat(601) })));
     const body = await response?.json();

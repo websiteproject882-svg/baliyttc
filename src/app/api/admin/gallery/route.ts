@@ -12,8 +12,17 @@ const optionalTrimmedText = (max: number) =>
     return trimmed || undefined;
   }, z.string().max(max).nullable().optional());
 
+const httpsOrRelativeUrl = z.string().trim().max(2048).refine((value) => {
+  if (value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\")) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, "URL must use https or start with /");
+
 const galleryImageSchema = z.object({
-  url: z.string().trim().url().max(2048),
+  url: httpsOrRelativeUrl,
   alt: z.string().trim().max(300).optional(),
   caption: optionalTrimmedText(500),
   type: z.enum(["PROFESSIONAL", "STUDENT"]).default("PROFESSIONAL"),
