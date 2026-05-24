@@ -43,6 +43,18 @@ async function fetchText(path, init) {
   return { response, text };
 }
 
+function robotsFromHtml(text) {
+  const match = text.match(/<meta\s+[^>]*name=["']robots["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+  return match?.[1]?.toLowerCase() || "";
+}
+
+function hasRobotDirective(robots, directive) {
+  return robots
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .includes(directive);
+}
+
 async function checkPublicPage(page) {
   const { response, text } = await fetchText(page.path);
   assert(response.status === 200, `${page.path} returned ${response.status}`);
@@ -50,16 +62,19 @@ async function checkPublicPage(page) {
   assert(text.includes('rel="canonical"'), `${page.path} is missing canonical link`);
   assert(text.includes('property="og:title"'), `${page.path} is missing og:title`);
 
-  const robots = response.headers.get("x-robots-tag") || "";
-  assert(robots.includes("index"), `${page.path} should be indexable, got x-robots-tag=${robots || "none"}`);
+  const robots = response.headers.get("x-robots-tag") || robotsFromHtml(text);
+  assert(!hasRobotDirective(robots, "noindex"), `${page.path} should be indexable, got robots=${robots}`);
   return { path: page.path, status: response.status };
 }
 
 async function checkPrivatePage(page) {
-  const { response } = await fetchText(page.path);
+  const { response, text } = await fetchText(page.path);
   assert(response.status === 200, `${page.path} returned ${response.status}`);
-  const robots = response.headers.get("x-robots-tag") || "";
-  assert(robots === page.robots, `${page.path} expected robots ${page.robots}, got ${robots || "none"}`);
+  const robots = response.headers.get("x-robots-tag") || robotsFromHtml(text);
+  assert(
+    hasRobotDirective(robots, "noindex") && hasRobotDirective(robots, "nofollow"),
+    `${page.path} expected noindex,nofollow robots, got ${robots || "none"}`,
+  );
   return { path: page.path, status: response.status };
 }
 
