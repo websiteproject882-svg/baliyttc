@@ -15,7 +15,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { hasPermission, isAdminPanelRole } from "@/lib/rbac";
+import { filterStaffNavigationItems } from "@/lib/staff-navigation";
 
 const navigationItems = [
   {
@@ -57,14 +57,7 @@ export function StaffSidebar() {
   const { role, logout } = useAuth();
   const locale = params.locale || "en";
 
-  const canUseAdminPanel = Boolean(role && (isAdminPanelRole(role) || role === "ADMIN" || role === "SUPER_ADMIN"));
-  const filteredNav = navigationItems.filter((item) => {
-    if (item.adminOnly && !canUseAdminPanel) {
-      return false;
-    }
-
-    return !item.permission || (role && hasPermission(role, item.permission));
-  });
+  const filteredNav = filterStaffNavigationItems(navigationItems, role);
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-emerald-900 text-white flex flex-col">
