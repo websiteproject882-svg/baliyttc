@@ -3,6 +3,7 @@ import CoursePage from "@/views/CoursePage";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { notFound } from "next/navigation";
 import { courseSeo, courseSlugs, getStaticCourse } from "@/lib/course-static";
+import { CourseSchema } from "@/components/shared/SchemaMarkup";
 
 const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
 
@@ -46,7 +47,7 @@ export function generateMetadata({ params }: { params: { locale: string; slug: s
   };
 }
 
-export default function CourseDynamicPage({ params }: { params: { slug: string } }) {
+export default function CourseDynamicPage({ params }: { params: { locale: string; slug: string } }) {
   const course = getStaticCourse(params.slug);
   if (!course) {
     notFound();
@@ -54,6 +55,7 @@ export default function CourseDynamicPage({ params }: { params: { slug: string }
 
   return (
     <NextLayoutWrapper>
+      <CourseSchema course={course} locale={params.locale} />
       <CoursePage initialCourse={course} />
     </NextLayoutWrapper>
   );

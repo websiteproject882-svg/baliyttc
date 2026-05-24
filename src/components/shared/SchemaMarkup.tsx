@@ -1,8 +1,20 @@
-"use client";
-
 import { COURSES, SITE } from "@/data/site";
 
 const publicBaseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
+const logoUrl = `${publicBaseUrl}/images/brand/logo-512.png`;
+
+type CourseSchemaData = {
+  slug: string;
+  name?: string;
+  title?: string;
+  summary: string;
+  duration?: string;
+  days?: string;
+  priceFrom: number;
+  image?: string;
+  next?: string;
+  seats?: string;
+};
 
 // Organization Schema
 export const OrganizationSchema = () => (
@@ -15,8 +27,8 @@ export const OrganizationSchema = () => (
         name: SITE.name,
         description: SITE.philosophy,
         url: publicBaseUrl,
-        logo: `${publicBaseUrl}/logo.png`,
-        image: `${publicBaseUrl}/images/hero/bali-hero-bg.png`,
+        logo: logoUrl,
+        image: logoUrl,
         telephone: SITE.phone,
         email: SITE.email,
         address: {
@@ -35,7 +47,7 @@ export const OrganizationSchema = () => (
         sameAs: [
           "https://www.instagram.com/baliyttc",
           "https://www.facebook.com/baliyttc",
-          "https://www.youtube.com/baliyttc",
+          "https://www.youtube.com/@baliyttc",
         ],
         foundingDate: "2018",
         areaServed: {
@@ -68,15 +80,22 @@ export const OrganizationSchema = () => (
 );
 
 // Course Schema for each course page
-export const CourseSchema = ({ course }: { course: (typeof COURSES)[0] }) => (
+export const CourseSchema = ({ course, locale = "en" }: { course: CourseSchemaData; locale?: string }) => {
+  const courseName = course.name || course.title || "Yoga Teacher Training";
+  const durationText = course.duration || course.days || "";
+  const courseUrl = `${publicBaseUrl}/${locale}/courses/${course.slug}`;
+
+  return (
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
       __html: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Course",
-        name: course.title,
+        name: courseName,
         description: course.summary,
+        image: course.image?.startsWith("http") ? course.image : course.image ? `${publicBaseUrl}${course.image}` : logoUrl,
+        url: courseUrl,
         provider: {
           "@type": "Organization",
           name: SITE.name,
@@ -87,12 +106,14 @@ export const CourseSchema = ({ course }: { course: (typeof COURSES)[0] }) => (
           price: course.priceFrom,
           priceCurrency: "EUR",
           availability: "https://schema.org/InStock",
-          url: `${publicBaseUrl}/courses/${course.slug}`,
+          url: courseUrl,
         },
         hasCourseInstance: {
           "@type": "CourseInstance",
-          name: `Upcoming ${course.title}`,
+          name: `Upcoming ${courseName}`,
           startDate: course.next,
+          courseMode: "Onsite",
+          courseWorkload: durationText,
           location: {
             "@type": "Place",
             name: `${SITE.name} - Ubud, Bali`,
@@ -107,23 +128,24 @@ export const CourseSchema = ({ course }: { course: (typeof COURSES)[0] }) => (
             "@type": "Offer",
             price: course.priceFrom,
             priceCurrency: "EUR",
-            availability: course.seats.includes("4 seats")
+            availability: course.seats?.includes("4 seats")
               ? "https://schema.org/LimitedAvailability"
               : "https://schema.org/InStock",
           },
         },
-        educationalLevel: course.slug === "100hr" ? "Beginner" : course.slug === "200hr" ? "Intermediate" : "Advanced",
+        educationalLevel: course.slug === "50hr" || course.slug === "100hr" ? "Beginner" : course.slug === "200hr" ? "Intermediate" : "Advanced",
         coursePrerequisites: course.slug === "300hr" ? "200-hour Yoga Alliance certification" : "None",
-        educationalCredentialAwarded: `${course.title} - Yoga Alliance RYT-${course.slug.replace("hr", "")}`,
+        educationalCredentialAwarded: `${courseName} - Yoga Alliance RYT-${course.slug.replace("hr", "")}`,
         numberOfCredits: {
           "@type": "StructuredValue",
-          value: parseInt(course.duration.split(" ")[0], 10),
+          value: Number.parseInt(course.slug.replace("hr", ""), 10),
           unitCode: "HUR",
         },
       }),
     }}
   />
-);
+  );
+};
 
 // FAQ Schema
 export const FAQSchema = ({ faqs }: { faqs: Array<{ q: string; a: string }> }) => (
@@ -175,9 +197,21 @@ export const LocalBusinessSchema = () => (
         "@type": "LocalBusiness",
         "@id": `${publicBaseUrl}/#organization`,
         name: SITE.name,
-        image: `${publicBaseUrl}/logo.png`,
+        url: publicBaseUrl,
+        telephone: SITE.phone,
+        email: SITE.email,
+        image: logoUrl,
+        logo: logoUrl,
         priceRange: "EUR 499-1899",
         servesCuisine: "Vegetarian",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "Ubud, Gianyar Regency",
+          addressLocality: "Ubud",
+          addressRegion: "Bali",
+          postalCode: "80571",
+          addressCountry: "ID",
+        },
         aggregateRating: {
           "@type": "AggregateRating",
           ratingValue: "4.9",

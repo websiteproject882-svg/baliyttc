@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { assertRuntimeEnv } from "@/lib/env-validation";
+import { LocalBusinessSchema, OrganizationSchema } from "@/components/shared/SchemaMarkup";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -35,6 +36,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body>
+        <OrganizationSchema />
+        <LocalBusinessSchema />
         <AuthProvider>
           {children}
         </AuthProvider>
