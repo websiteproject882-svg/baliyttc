@@ -8,6 +8,32 @@ import { ArrowRight, Clock, Users, Award } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { createPublicMetadata } from "@/lib/public-metadata";
+import { COURSES as STATIC_COURSES } from "@/data/site";
+
+type PublicCourse = {
+  id: string;
+  slug: string;
+  name: string;
+  duration: string;
+  summary: string;
+  priceFrom: number;
+  image?: string | null;
+};
+
+const COURSE_IMAGE_FALLBACK =
+  "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1080/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/200-hour-Yoga-Teacher-Training-for-Beginners.jpg";
+
+function getStaticCourseCards(): PublicCourse[] {
+  return STATIC_COURSES.map((course) => ({
+    id: `static-course-${course.slug}`,
+    slug: course.slug,
+    name: course.title,
+    duration: `${course.duration} | ${course.days}`,
+    summary: course.summary,
+    priceFrom: course.priceFrom,
+    image: course.image,
+  }));
+}
 
 export function generateMetadata({ params }: { params: { locale: string } }) {
   return createPublicMetadata("courses", params.locale, "/courses");
@@ -17,11 +43,11 @@ async function getCourses(locale: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const res = await fetch(`${baseUrl}/api/courses?locale=${encodeURIComponent(locale)}`, { cache: "no-store" });
-    if (!res.ok) return null;
+    if (!res.ok) return getStaticCourseCards();
     const data = await res.json();
-    return data.courses;
+    return Array.isArray(data.courses) && data.courses.length ? (data.courses as PublicCourse[]) : getStaticCourseCards();
   } catch {
-    return null;
+    return getStaticCourseCards();
   }
 }
 
@@ -43,12 +69,12 @@ export default async function CoursesPage({ params }: { params: { locale: string
 
           {courses && courses.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-              {courses.map((course: any, i: number) => (
+              {courses.map((course: PublicCourse, i: number) => (
                 <Reveal key={course.id} delay={i * 0.1}>
                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col">
                     <div className="aspect-[16/10] overflow-hidden relative">
                       <img
-                        src={course.image || "/placeholder.jpg"}
+                        src={course.image || COURSE_IMAGE_FALLBACK}
                         alt={course.name}
                         className="w-full h-full object-cover"
                       />
