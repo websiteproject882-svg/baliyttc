@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Image as ImageIcon, Plus, Search, Trash2, Eye, ExternalLink, Star as StarIcon } from "lucide-react";
+import { Image as ImageIcon, Plus, Search, Trash2, Eye, ExternalLink, Star as StarIcon, Edit } from "lucide-react";
 
 interface GalleryImage {
   id: string;
@@ -28,12 +28,14 @@ export default function GalleryPage() {
   const [typeFilter, setTypeFilter] = useState<"all" | "PROFESSIONAL" | "STUDENT">("all");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
   const [form, setForm] = useState({
     url: "",
     alt: "",
     caption: "",
     type: "PROFESSIONAL" as GalleryImage["type"],
     status: "ACTIVE" as GalleryImage["status"],
+    order: "0",
   });
   const [uploading, setUploading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export default function GalleryPage() {
         throw new Error(data.error || "Failed to create gallery image");
       }
       setShowUploadDialog(false);
-      setForm({ url: "", alt: "", caption: "", type: "PROFESSIONAL", status: "ACTIVE" });
+      setForm({ url: "", alt: "", caption: "", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
       await fetchImages();
     } catch (err) {
       console.error("Failed to create gallery image:", err);
@@ -127,6 +129,57 @@ export default function GalleryPage() {
     }
   };
 
+  const openAddDialog = () => {
+    setForm({ url: "", alt: "", caption: "", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
+    setShowUploadDialog(true);
+  };
+
+  const openEditDialog = (image: GalleryImage) => {
+    setSelectedImage(null);
+    setEditingImage(image);
+    setForm({
+      url: image.url,
+      alt: image.alt || "",
+      caption: image.caption || "",
+      type: image.type,
+      status: image.status,
+      order: String(image.order || 0),
+    });
+  };
+
+  const handleUpdateImage = async () => {
+    if (!editingImage || !form.url) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/gallery", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingImage.id,
+          url: form.url,
+          alt: form.alt,
+          caption: form.caption,
+          type: form.type,
+          status: form.status,
+          order: form.order,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update gallery image");
+      }
+      setEditingImage(null);
+      setForm({ url: "", alt: "", caption: "", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
+      await fetchImages();
+    } catch (err) {
+      console.error("Failed to update gallery image:", err);
+      setError(err instanceof Error ? err.message : "Failed to update gallery image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const filteredImages = images.filter((image) => {
     const matchSearch =
       !search ||
@@ -158,7 +211,7 @@ export default function GalleryPage() {
             <h1 className="text-2xl font-bold text-gray-900">Gallery</h1>
             <p className="text-sm text-gray-500 mt-1">Manage photos and images for your website</p>
           </div>
-          <Button onClick={() => setShowUploadDialog(true)}>
+          <Button onClick={openAddDialog}>
             <Plus className="h-4 w-4 mr-2" />
             Add Image
           </Button>
@@ -274,6 +327,9 @@ export default function GalleryPage() {
                       <Button size="sm" variant="secondary" onClick={() => setSelectedImage(image)}>
                         <Eye className="h-4 w-4" />
                       </Button>
+                      <Button size="sm" variant="secondary" onClick={() => openEditDialog(image)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       {(image.status === "ACTIVE" || image.status === "APPROVED") ? (
                         <Button size="sm" variant="secondary" onClick={() => void handleUpdateStatus(image, "PENDING")}>
                           <StarIcon className="h-4 w-4" />
@@ -371,9 +427,71 @@ export default function GalleryPage() {
                   <StarIcon className="h-4 w-4 mr-2" />
                   {selectedImage.status === "ACTIVE" ? "Move to Pending" : "Set Active"}
                 </Button>
+                <Button variant="outline" onClick={() => openEditDialog(selectedImage)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Details
+                </Button>
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingImage} onOpenChange={(open) => !open && setEditingImage(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Gallery Image</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Image URL</label>
+              <Input placeholder="https://example.com/image.jpg" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Alt Text</label>
+              <Input placeholder="Descriptive alt text" value={form.alt} onChange={(e) => setForm({ ...form, alt: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Caption</label>
+              <Input placeholder="Optional caption" value={form.caption} onChange={(e) => setForm({ ...form, caption: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
+                <select className="w-full rounded-lg border px-3 py-2" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as GalleryImage["type"] })}>
+                  <option value="PROFESSIONAL">Professional</option>
+                  <option value="STUDENT">Student</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
+                <select className="w-full rounded-lg border px-3 py-2" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as GalleryImage["status"] })}>
+                  <option value="ACTIVE">Active</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Order</label>
+                <Input type="number" min="0" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} />
+              </div>
+            </div>
+            {form.url && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
+                <div className="rounded-lg overflow-hidden border">
+                  <img src={form.url} alt="Preview" className="w-full h-40 object-cover" />
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setEditingImage(null)}>Cancel</Button>
+            <Button onClick={() => void handleUpdateImage()} disabled={uploading || !form.url}>
+              {uploading ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

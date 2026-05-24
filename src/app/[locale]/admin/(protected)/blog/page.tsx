@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   FileText, Plus, Search, Edit, Trash2, Loader2, Eye, Calendar,
-  Clock, Globe, Tag, X, Image, Save, Copy
+  Clock, Globe, Tag, Image, Save, Copy, ExternalLink
 } from "lucide-react";
 
 interface BlogPost {
@@ -27,7 +27,8 @@ interface BlogPost {
   publishedAt: string | null;
   scheduledAt: string | null;
   readTime: number;
-  seoTitle: string | null;
+  metaTitle: string | null;
+  seoTitle?: string | null;
   metaDescription: string | null;
   createdAt: string;
   updatedAt: string;
@@ -82,7 +83,6 @@ const categories = [
   "Travel",
   "Health & Wellness",
   "Student Stories",
-  "Teacher Training",
 ];
 
 const statusConfig = {
@@ -113,6 +113,22 @@ function calculateReadTime(content: string): number {
   const wordsPerMinute = 200;
   const words = content.trim().split(/\s+/).length;
   return Math.max(1, Math.ceil(words / wordsPerMinute));
+}
+
+function dateToInput(value: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().split("T")[0];
+}
+
+function dateInputToIso(value: string): string | null {
+  if (!value) return null;
+  return `${value}T00:00:00.000Z`;
+}
+
+function publicPostUrl(post: Pick<BlogPost, "locale" | "slug">) {
+  return `/${post.locale || "en"}/blog/${post.slug}`;
 }
 
 export default function BlogPage() {
@@ -163,9 +179,9 @@ export default function BlogPage() {
       author: post.author,
       locale: post.locale || "en",
       status: post.status,
-      publishedAt: post.publishedAt ? post.publishedAt.split("T")[0] : "",
-      scheduledAt: post.scheduledAt ? post.scheduledAt.split("T")[0] : "",
-      seoTitle: post.seoTitle || "",
+      publishedAt: dateToInput(post.publishedAt),
+      scheduledAt: dateToInput(post.scheduledAt),
+      seoTitle: post.metaTitle || post.seoTitle || "",
       seoDescription: post.metaDescription || "",
     });
     setDialogOpen(true);
@@ -193,8 +209,8 @@ export default function BlogPage() {
       ...form,
       tags: form.tags.split(",").map(t => t.trim()).filter(Boolean),
       readTime: calculateReadTime(form.content),
-      publishedAt: form.status === "PUBLISHED" ? (form.publishedAt || new Date().toISOString()) : null,
-      scheduledAt: form.status === "SCHEDULED" ? form.scheduledAt : null,
+      publishedAt: form.status === "PUBLISHED" ? (dateInputToIso(form.publishedAt) || new Date().toISOString()) : null,
+      scheduledAt: form.status === "SCHEDULED" ? dateInputToIso(form.scheduledAt) : null,
       featuredImage: form.featuredImage || null,
       seoTitle: form.seoTitle || null,
       seoDescription: form.seoDescription || null,
@@ -375,6 +391,13 @@ export default function BlogPage() {
                             <p className="text-sm text-gray-500 line-clamp-1 mt-1">{post.excerpt}</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
+                            {post.status === "PUBLISHED" && (
+                              <Button variant="ghost" size="sm" asChild>
+                                <a href={publicPostUrl(post)} target="_blank" rel="noreferrer" aria-label={`Open ${post.title}`}>
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => openEditDialog(post)}>
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -388,6 +411,12 @@ export default function BlogPage() {
                             <Calendar className="h-3 w-3" />
                             {post.publishedAt ? formatDate(post.publishedAt) : "Not published"}
                           </span>
+                          {post.scheduledAt && (
+                            <span className="flex items-center gap-1 text-blue-500">
+                              <Eye className="h-3 w-3" />
+                              Scheduled {formatDate(post.scheduledAt)}
+                            </span>
+                          )}
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {post.readTime} min read

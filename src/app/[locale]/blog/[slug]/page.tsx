@@ -38,8 +38,10 @@ const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").rep
 
 const publicPostWhere = (slug: string, locale: string) => ({
   slug_locale: { slug, locale },
-  status: PostStatus.PUBLISHED,
-  OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }],
+  OR: [
+    { status: PostStatus.PUBLISHED, OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }] },
+    { status: PostStatus.SCHEDULED, scheduledAt: { lte: new Date() } },
+  ],
 });
 
 async function getBlogPost(slug: string, localeParam: string): Promise<PublicBlogPost | null> {

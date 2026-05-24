@@ -13,9 +13,11 @@ const MAX_LIMIT = 30;
 const categorySchema = z.string().trim().min(1).max(80).optional();
 
 const publicBlogWhere = (locale: string, category: string | null) => ({
-  status: PostStatus.PUBLISHED,
   locale,
-  OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }],
+  OR: [
+    { status: PostStatus.PUBLISHED, OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }] },
+    { status: PostStatus.SCHEDULED, scheduledAt: { lte: new Date() } },
+  ],
   ...(category ? { category } : {}),
 });
 

@@ -42,6 +42,16 @@ function request(locale = "en") {
   });
 }
 
+function publicPostWhere(locale: string) {
+  return {
+    slug_locale: { slug: "yoga-guide", locale },
+    OR: [
+      { status: "PUBLISHED", OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }] },
+      { status: "SCHEDULED", scheduledAt: { lte: expect.any(Date) } },
+    ],
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -65,11 +75,7 @@ describe("public blog post route", () => {
     expect(response.headers.get("X-Request-Id")).toBe("req_blog_detail");
     expect(body.post).toEqual(expect.objectContaining({ id: "post_1", title: "Yoga Guide" }));
     expect(mocks.blogPostFindFirst).toHaveBeenCalledWith({
-      where: {
-        slug_locale: { slug: "yoga-guide", locale: "en" },
-        status: "PUBLISHED",
-        OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }],
-      },
+      where: publicPostWhere("en"),
     });
   });
 
@@ -110,11 +116,7 @@ describe("public blog post route", () => {
     expect(response.status).toBe(200);
     expect(body.post).toEqual(expect.objectContaining({ id: "post_en" }));
     expect(mocks.blogPostFindFirst).toHaveBeenNthCalledWith(2, {
-      where: {
-        slug_locale: { slug: "yoga-guide", locale: "en" },
-        status: "PUBLISHED",
-        OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }],
-      },
+      where: publicPostWhere("en"),
     });
   });
 

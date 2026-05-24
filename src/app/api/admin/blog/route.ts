@@ -17,7 +17,13 @@ const httpsOrRelativeUrl = z.string().trim().max(2048).refine((value) => {
     return false;
   }
 }, "URL must use https or start with /");
-const optionalDateTime = z.string().trim().datetime({ offset: true }).nullable().optional();
+const optionalDateTime = z.preprocess((value) => {
+  if (value === null || value === undefined || value === "") return value;
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return `${trimmed}T00:00:00.000Z`;
+  return trimmed;
+}, z.string().datetime({ offset: true }).nullable().optional());
 
 const blogPostSchema = z.object({
   title: z.string().trim().min(1).max(180),

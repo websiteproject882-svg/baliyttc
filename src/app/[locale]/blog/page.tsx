@@ -17,9 +17,11 @@ type BlogPageParams = {
 async function getInitialBlogPosts(localeParam: string) {
   const locale = normalizeLocale(localeParam);
   const where = {
-    status: PostStatus.PUBLISHED,
     locale,
-    OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }],
+    OR: [
+      { status: PostStatus.PUBLISHED, OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }] },
+      { status: PostStatus.SCHEDULED, scheduledAt: { lte: new Date() } },
+    ],
   };
 
   try {

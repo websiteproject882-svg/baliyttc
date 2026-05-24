@@ -45,6 +45,17 @@ function request(url = "https://example.com/api/blog?locale=en&limit=10&page=1")
   return new NextRequest(url, { headers: { "x-request-id": "req_blog_list" } });
 }
 
+function publicBlogWhere(locale: string, category?: string) {
+  return {
+    locale,
+    OR: [
+      { status: "PUBLISHED", OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }] },
+      { status: "SCHEDULED", scheduledAt: { lte: expect.any(Date) } },
+    ],
+    ...(category ? { category } : {}),
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.blogPostFindMany.mockResolvedValue([]);
@@ -59,22 +70,14 @@ describe("public blog list route", () => {
     expect(mocks.blogPostFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          status: "PUBLISHED",
-          locale: "en",
-          OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }],
-          category: "Training",
+          ...publicBlogWhere("en", "Training"),
         },
         skip: 0,
         take: 6,
       }),
     );
     expect(mocks.blogPostCount).toHaveBeenCalledWith({
-      where: {
-        status: "PUBLISHED",
-        locale: "en",
-        OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }],
-        category: "Training",
-      },
+      where: publicBlogWhere("en", "Training"),
     });
   });
 
@@ -112,10 +115,7 @@ describe("public blog list route", () => {
       2,
       expect.objectContaining({
         where: {
-          status: "PUBLISHED",
-          locale: "en",
-          OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }],
-          category: "Training",
+          ...publicBlogWhere("en", "Training"),
         },
       }),
     );

@@ -11,8 +11,10 @@ const slugSchema = z.string().trim().min(1).max(180).regex(/^[a-z0-9-]+$/);
 
 const publicPostWhere = (slug: string, locale: string) => ({
   slug_locale: { slug, locale },
-  status: PostStatus.PUBLISHED,
-  OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }],
+  OR: [
+    { status: PostStatus.PUBLISHED, OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }] },
+    { status: PostStatus.SCHEDULED, scheduledAt: { lte: new Date() } },
+  ],
 });
 
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
