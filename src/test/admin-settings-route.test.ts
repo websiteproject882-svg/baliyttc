@@ -241,6 +241,40 @@ describe("admin settings route", () => {
     expect(parsed.assets.logoUrl).toBe("/images/brand/logo-512.png");
   });
 
+  it("normalizes trimmed settings before saving", async () => {
+    const nextSettings = siteSettingsSchema.parse({
+      ...defaultSiteSettings,
+      general: {
+        ...defaultSiteSettings.general,
+        schoolName: " Bali YTTC ",
+        email: " INFO@Example.COM ",
+      },
+      assets: {
+        ...defaultSiteSettings.assets,
+        logoUrl: " /images/brand/logo-512.png ",
+      },
+    });
+    mocks.saveSiteSettings.mockResolvedValue(nextSettings);
+
+    const response = await PATCH(
+      request("PATCH", {
+        ...defaultSiteSettings,
+        general: {
+          ...defaultSiteSettings.general,
+          schoolName: " Bali YTTC ",
+          email: " INFO@Example.COM ",
+        },
+        assets: {
+          ...defaultSiteSettings.assets,
+          logoUrl: " /images/brand/logo-512.png ",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.saveSiteSettings).toHaveBeenCalledWith(nextSettings);
+  });
+
   it("logs and returns request-id errors when saving fails", async () => {
     mocks.saveSiteSettings.mockRejectedValue(new Error("database offline"));
 

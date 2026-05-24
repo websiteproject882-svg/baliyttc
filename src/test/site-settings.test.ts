@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { defaultSiteSettings, getSiteSettings, SITE_SETTINGS_KEY } from "../lib/site-settings";
+import { defaultSiteSettings, getSiteSettings, SITE_SETTINGS_KEY, siteSettingsSchema } from "../lib/site-settings";
 
 const mocks = vi.hoisted(() => ({
   siteSettingFindUnique: vi.fn(),
@@ -34,14 +34,14 @@ describe("site settings loader", () => {
         },
         reviews: {
           googleReviewUrl: "http://example.com/review",
-          tripadvisorReviewUrl: "https://tripadvisor.example.com/review",
+          tripadvisorReviewUrl: " https://tripadvisor.example.com/review ",
         },
         assets: {
           logoUrl: "http://example.com/logo.png",
-          courseManualUrl: "/downloads/course-manual.pdf",
-          certificateTemplateUrl: "https://example.com/certificate.png",
+          courseManualUrl: " /downloads/course-manual.pdf ",
+          certificateTemplateUrl: " https://example.com/certificate.png ",
           mapsEmbedUrl: "http://maps.example.com/embed",
-          mapsLinkUrl: "https://maps.example.com/place",
+          mapsLinkUrl: " https://maps.example.com/place ",
         },
       },
     });
@@ -61,5 +61,38 @@ describe("site settings loader", () => {
     expect(settings.assets.certificateTemplateUrl).toBe("https://example.com/certificate.png");
     expect(settings.assets.mapsEmbedUrl).toBe("");
     expect(settings.assets.mapsLinkUrl).toBe("https://maps.example.com/place");
+  });
+
+  it("normalizes admin editable text and URL settings", () => {
+    const parsed = siteSettingsSchema.parse({
+      ...defaultSiteSettings,
+      general: {
+        schoolName: " Bali School ",
+        tagline: " Transform in Ubud ",
+        email: " INFO@Example.COM ",
+        phone: " +62 812 ",
+        address: " Ubud, Bali ",
+        timezone: " Asia/Makassar ",
+      },
+      reviews: {
+        googleReviewUrl: " https://example.com/review ",
+        tripadvisorReviewUrl: "",
+      },
+      assets: {
+        ...defaultSiteSettings.assets,
+        logoUrl: " /images/logo.png ",
+      },
+    });
+
+    expect(parsed.general).toEqual({
+      schoolName: "Bali School",
+      tagline: "Transform in Ubud",
+      email: "info@example.com",
+      phone: "+62 812",
+      address: "Ubud, Bali",
+      timezone: "Asia/Makassar",
+    });
+    expect(parsed.reviews.googleReviewUrl).toBe("https://example.com/review");
+    expect(parsed.assets.logoUrl).toBe("/images/logo.png");
   });
 });

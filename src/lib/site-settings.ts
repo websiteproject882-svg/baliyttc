@@ -6,7 +6,7 @@ export const PAYMENT_PROVIDERS = ["paypal", "razorpay", "bank_transfer"] as cons
 type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
 
 const emptyString = z.literal("");
-const httpsUrl = z.string().url().refine((value) => {
+const httpsUrl = z.string().trim().url().refine((value) => {
   try {
     return new URL(value).protocol === "https:";
   } catch {
@@ -15,7 +15,7 @@ const httpsUrl = z.string().url().refine((value) => {
 }, {
   message: "URL must use https",
 });
-const httpsOrRelativeUrl = z.string().refine((value) => {
+const httpsOrRelativeUrl = z.string().trim().refine((value) => {
   if (value.startsWith("/")) return true;
   try {
     return new URL(value).protocol === "https:";
@@ -31,13 +31,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function cleanHttpsUrl(value: unknown) {
   if (value === "") return "";
   if (typeof value !== "string") return undefined;
-  return httpsUrl.safeParse(value).success ? value : "";
+  const result = httpsUrl.safeParse(value);
+  return result.success ? result.data : "";
 }
 
 function cleanHttpsOrRelativeUrl(value: unknown) {
   if (value === "") return "";
   if (typeof value !== "string") return undefined;
-  return httpsOrRelativeUrl.safeParse(value).success ? value : "";
+  const result = httpsOrRelativeUrl.safeParse(value);
+  return result.success ? result.data : "";
 }
 
 export function normalizePaymentProviderOrder(value: unknown): PaymentProvider[] {
@@ -57,12 +59,12 @@ export function normalizePaymentProviderOrder(value: unknown): PaymentProvider[]
 
 export const siteSettingsSchema = z.object({
   general: z.object({
-    schoolName: z.string().min(1).max(120),
-    tagline: z.string().max(180),
-    email: z.string().email(),
-    phone: z.string().max(60),
-    address: z.string().max(300),
-    timezone: z.string().min(1).max(80),
+    schoolName: z.string().trim().min(1).max(120),
+    tagline: z.string().trim().max(180),
+    email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+    phone: z.string().trim().max(60),
+    address: z.string().trim().max(300),
+    timezone: z.string().trim().min(1).max(80),
   }),
   payments: z.object({
     paypalEnabled: z.boolean(),
