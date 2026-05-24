@@ -38,20 +38,25 @@ export async function resolveEnrollmentPricing(input: {
   couponCode?: string | null;
   email?: string | null;
 }) {
+  const courseSlug = input.courseSlug.trim();
+  const batchId = input.batchId?.trim() || null;
+  const couponCode = input.couponCode?.trim().toUpperCase() || null;
+  const email = input.email?.trim().toLowerCase() || null;
+
   const [course, batch, coupon, alumniUser, alumniCoupon] = await Promise.all([
     prisma.course.findUnique({
-      where: { slug: input.courseSlug },
+      where: { slug: courseSlug },
       select: { priceFrom: true, priceFull: true, name: true },
     }),
-    input.batchId
+    batchId
       ? prisma.batch.findUnique({
-          where: { id: input.batchId },
+          where: { id: batchId },
           include: { accommodation: true },
         })
       : Promise.resolve(null),
-    input.couponCode
+    couponCode
       ? prisma.coupon.findUnique({
-          where: { code: input.couponCode.toUpperCase() },
+          where: { code: couponCode },
           select: {
             discountType: true,
             discount: true,
@@ -64,9 +69,9 @@ export async function resolveEnrollmentPricing(input: {
           },
         })
       : Promise.resolve(null),
-    input.email
+    email
       ? prisma.user.findUnique({
-          where: { email: input.email },
+          where: { email },
           select: {
             student: {
               select: { accessLevel: true },
@@ -122,7 +127,7 @@ export async function resolveEnrollmentPricing(input: {
 
   const grossAmount = basePrice + accommodationPrice;
   const appliedCoupon = activeCoupon || activeAlumniCoupon;
-  const appliedCouponCode: string | null = activeAlumniCoupon?.code || (activeCoupon ? input.couponCode?.toUpperCase() || null : null);
+  const appliedCouponCode: string | null = activeAlumniCoupon?.code || (activeCoupon ? couponCode : null);
   const discount = applyCouponDiscount({ amount: grossAmount, coupon: appliedCoupon });
   const pricing = calculatePrice({
     coursePrice: basePrice,
@@ -131,7 +136,7 @@ export async function resolveEnrollmentPricing(input: {
   });
 
   return {
-    courseName: course?.name || input.courseSlug,
+    courseName: course?.name || courseSlug,
     basePrice,
     accommodationPrice,
     discount,
@@ -144,8 +149,13 @@ export async function resolveEnrollmentPricing(input: {
 }
 
 export async function resolveStoredEnrollmentAmount(enrollmentId: string) {
+  const normalizedEnrollmentId = enrollmentId.trim();
+  if (!normalizedEnrollmentId) {
+    throw new Error("Enrollment not found");
+  }
+
   const enrollment = await prisma.enrollment.findUnique({
-    where: { id: enrollmentId },
+    where: { id: normalizedEnrollmentId },
     select: {
       id: true,
       amount: true,
