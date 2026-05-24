@@ -69,7 +69,7 @@ export default function StudentCertificatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Certificates</h1>
         <p className="mt-1 text-sm text-gray-500">Your issued and pending completion certificates.</p>
@@ -112,7 +112,7 @@ export default function StudentCertificatesPage() {
                 {reviewMessage.text}
               </div>
             ) : null}
-            {eligibility.eligible && certificates.length === 0 ? (
+            {eligibility.eligible && certificates.length === 0 && reviewMessage?.type !== "success" ? (
               <div className="flex flex-col gap-3 rounded-lg border border-green-100 bg-green-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold text-green-900">Ready for certificate review</p>

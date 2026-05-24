@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+const MAX_PHOTO_BYTES = 180 * 1024;
+
 type ProfileForm = {
   email: string;
   displayName: string;
@@ -62,10 +64,18 @@ export default function StudentProfilePage() {
 
   const uploadPhoto = (file?: File | null) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return;
+    if (!file.type.startsWith("image/")) {
+      setStatus({ type: "error", message: "Please choose an image file." });
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setStatus({ type: "error", message: "Please choose an image under 180 KB, or paste a hosted image URL." });
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       updateField("photoURL", String(reader.result || ""));
+      setStatus({ type: "success", message: "Photo selected. Save your profile to keep it." });
     };
     reader.readAsDataURL(file);
   };
@@ -159,7 +169,7 @@ export default function StudentProfilePage() {
             />
           </label>
           <label className="space-y-2 text-sm text-gray-700">
-            <span className="font-medium">Profile Photo URL</span>
+            <span className="font-medium">Profile Photo</span>
             <div className="flex items-center gap-2">
               <Camera className="h-4 w-4 text-gray-400" />
               <input
@@ -167,7 +177,7 @@ export default function StudentProfilePage() {
                 value={form.photoURL}
                 onChange={(e) => updateField("photoURL", e.target.value)}
                 disabled={loading}
-                placeholder="https://..."
+                placeholder="Paste hosted image URL"
               />
             </div>
             <input
@@ -177,6 +187,16 @@ export default function StudentProfilePage() {
               onChange={(event) => uploadPhoto(event.target.files?.[0])}
               disabled={loading}
             />
+            {form.photoURL ? (
+              <button
+                type="button"
+                className="text-xs font-medium text-gray-500 hover:text-orange-600"
+                onClick={() => updateField("photoURL", "")}
+                disabled={loading}
+              >
+                Remove photo
+              </button>
+            ) : null}
           </label>
           <label className="space-y-2 text-sm text-gray-700">
             <span className="font-medium">Phone</span>
