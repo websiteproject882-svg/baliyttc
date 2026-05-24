@@ -89,33 +89,32 @@ const TeacherCard = ({
       }}
       className="group min-w-[78vw] snap-center cursor-pointer will-change-transform sm:min-w-[330px] lg:min-w-[350px]"
     >
-      <div className={`relative overflow-hidden rounded-[2rem] bg-charcoal shadow-premium-lg transition-all duration-500 ${active ? "shadow-[0_30px_90px_rgba(15,23,42,0.24)] ring-1 ring-white/80" : "shadow-premium-md"}`}>
+      <div className={`relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-premium-lg transition-all duration-500 ${active ? "shadow-[0_28px_70px_rgba(42,58,44,0.16)] ring-1 ring-sage/15" : "shadow-premium-md"}`}>
         <div className="relative aspect-[3/4] overflow-hidden">
           <img
             src={teacher.img}
             alt={teacher.name}
-            className="h-full w-full object-cover brightness-[0.82] contrast-[1.08] saturate-[1.08] transition duration-700 group-hover:scale-105"
+            className="h-full w-full object-cover brightness-[0.98] contrast-[1.02] saturate-[1.03] transition duration-700 group-hover:scale-105"
             style={{ objectPosition: imagePosition }}
             loading="lazy"
             decoding="async"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/12" />
-          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/70 to-transparent" />
-          <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-white/10" />
+          <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
 
-          <div className="absolute right-4 top-4 rounded-full bg-white/95 px-4 py-2 text-[9px] font-bold uppercase tracking-wider text-charcoal shadow-lg backdrop-blur">
+          <div className="absolute right-4 top-4 rounded-full border border-white/70 bg-white/95 px-4 py-2 text-[9px] font-bold uppercase tracking-wider text-sage shadow-premium-sm backdrop-blur">
             {teacher.cred}
           </div>
 
-          <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-black/35 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/10 backdrop-blur-[2px]">
-            <p className="label-caps mb-2 text-sage-mist drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
+          <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/70 bg-white/[0.92] p-4 shadow-[0_18px_44px_rgba(42,58,44,0.16)] backdrop-blur-md">
+            <p className="label-caps mb-2 text-sage">
               {teacher.role}
             </p>
-            <h3 className="display-md text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.85)]">
+            <h3 className="display-md text-charcoal">
               {teacher.name}
             </h3>
-            <p className="mt-3 line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+            <p className="mt-3 line-clamp-2 text-sm font-medium leading-relaxed text-ink-muted">
               {teacher.bio}
             </p>
           </div>
