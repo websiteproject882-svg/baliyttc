@@ -54,4 +54,15 @@ describe("public URL helpers", () => {
     expect(buildPublicUrl("admin/leads", "de")).toBe("https://baliyttc.com/de/admin/leads");
     expect(buildPublicUrl("/", "fr")).toBe("https://baliyttc.com/fr");
   });
+
+  it("does not double-prefix localized paths or unsupported locales", () => {
+    process.env.NEXT_PUBLIC_BASE_URL = "https://baliyttc.com/";
+    expect(buildPublicUrl("/fr/app/dashboard", "de")).toBe("https://baliyttc.com/fr/app/dashboard");
+    expect(buildPublicUrl("/app/dashboard", "xx")).toBe("https://baliyttc.com/en/app/dashboard");
+  });
+
+  it("passes through external absolute URLs", () => {
+    process.env.NEXT_PUBLIC_BASE_URL = "https://baliyttc.com/";
+    expect(buildPublicUrl("https://payments.example.com/checkout", "de")).toBe("https://payments.example.com/checkout");
+  });
 });
