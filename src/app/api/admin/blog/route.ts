@@ -8,20 +8,30 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const blogPostIdSchema = z.string().trim().min(1).max(120);
+const emptyString = z.literal("");
+const httpsOrRelativeUrl = z.string().trim().max(2048).refine((value) => {
+  if (value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\")) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, "URL must use https or start with /");
+const optionalDateTime = z.string().trim().datetime({ offset: true }).nullable().optional();
 
 const blogPostSchema = z.object({
   title: z.string().trim().min(1).max(180),
   slug: z.string().trim().min(1).max(180).regex(/^[a-z0-9-]+$/),
   excerpt: z.string().trim().max(600).default(""),
   content: z.string().trim().min(1).max(100000),
-  featuredImage: z.string().url().optional().or(z.literal("")).nullable(),
+  featuredImage: httpsOrRelativeUrl.optional().or(emptyString).nullable(),
   category: z.string().trim().max(80).default(""),
   tags: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
   author: z.string().trim().max(120).default(""),
   locale: z.string().trim().min(2).max(8).default("en"),
   status: z.nativeEnum(PostStatus).default(PostStatus.DRAFT),
-  publishedAt: z.string().nullable().optional(),
-  scheduledAt: z.string().nullable().optional(),
+  publishedAt: optionalDateTime,
+  scheduledAt: optionalDateTime,
   readTime: z.coerce.number().int().min(1).default(5),
   metaTitle: z.string().trim().max(180).nullable().optional(),
   metaDescription: z.string().trim().max(320).nullable().optional(),
@@ -87,7 +97,7 @@ export async function POST(request: NextRequest) {
         slug: data.slug,
         excerpt: data.excerpt,
         content: data.content,
-        featuredImage: data.featuredImage,
+        featuredImage: data.featuredImage || null,
         category: data.category,
         tags: data.tags,
         author: data.author,
@@ -165,7 +175,7 @@ export async function PATCH(request: NextRequest) {
         slug: data.slug,
         excerpt: data.excerpt,
         content: data.content,
-        featuredImage: data.featuredImage,
+        featuredImage: data.featuredImage || null,
         category: data.category,
         tags: data.tags,
         author: data.author,

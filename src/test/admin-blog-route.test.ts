@@ -104,7 +104,7 @@ function payload(overrides: Record<string, unknown> = {}) {
     slug: "yoga-teacher-training-bali",
     excerpt: "A practical guide to choosing a yoga teacher training in Bali.",
     content: "Long-form content about the complete teacher training experience in Bali.",
-    featuredImage: "https://example.com/blog.jpg",
+    featuredImage: " /images/blog/yoga-teacher-training-bali.jpg ",
     category: "Training",
     tags: ["ytt", "bali"],
     author: "Bali YTTC",
@@ -162,7 +162,7 @@ describe("admin blog route", () => {
         slug: "yoga-teacher-training-bali",
         excerpt: "A practical guide to choosing a yoga teacher training in Bali.",
         content: "Long-form content about the complete teacher training experience in Bali.",
-        featuredImage: "https://example.com/blog.jpg",
+        featuredImage: "/images/blog/yoga-teacher-training-bali.jpg",
         category: "Training",
         tags: ["ytt", "bali"],
         author: "Bali YTTC",
@@ -208,6 +208,36 @@ describe("admin blog route", () => {
 
   it("rejects oversized blog payloads before slug lookup", async () => {
     const response = await POST(request("POST", payload({ title: "x".repeat(181) })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects insecure featured image URLs before slug lookup", async () => {
+    const response = await POST(request("POST", payload({ featuredImage: "http://example.com/blog.jpg" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects protocol-relative featured image URLs before slug lookup", async () => {
+    const response = await POST(request("POST", payload({ featuredImage: "//evil.example/blog.jpg" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.blogFindUnique).not.toHaveBeenCalled();
+    expect(mocks.blogCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid publish dates before slug lookup", async () => {
+    const response = await POST(request("POST", payload({ publishedAt: "not-a-date" })));
     const body = await response?.json();
 
     expect(response?.status).toBe(400);
