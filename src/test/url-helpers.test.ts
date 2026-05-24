@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { withLocalePath } from "../lib/localized-path";
+import { localeFromPathname, localeFromUrl, withLocalePath } from "../lib/localized-path";
 import { buildPublicUrl, getPublicBaseUrl } from "../lib/public-url";
 
 const originalBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -26,6 +26,14 @@ describe("localized path helpers", () => {
 
   it("falls back to the default locale for unknown locales", () => {
     expect(withLocalePath("/app/dashboard", "xx")).toBe("/en/app/dashboard");
+  });
+
+  it("extracts supported locales from paths and URLs", () => {
+    expect(localeFromPathname("/de/admin/login")).toBe("de");
+    expect(localeFromPathname("/unknown/admin/login")).toBe("en");
+    expect(localeFromUrl("https://baliyttc.com/es/login")).toBe("es");
+    expect(localeFromUrl("/fr/staff/login")).toBe("fr");
+    expect(localeFromUrl("not a url")).toBe("en");
   });
 });
 

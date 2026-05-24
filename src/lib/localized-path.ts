@@ -4,6 +4,21 @@ export function normalizeLocale(value?: string | null): Locale {
   return locales.includes(value as Locale) ? (value as Locale) : defaultLocale;
 }
 
+export function localeFromPathname(pathname?: string | null): Locale {
+  const firstSegment = pathname?.split("/").filter(Boolean)[0];
+  return normalizeLocale(firstSegment);
+}
+
+export function localeFromUrl(value?: string | null): Locale {
+  if (!value) return defaultLocale;
+
+  try {
+    return localeFromPathname(new URL(value, "https://baliyttc.local").pathname);
+  } catch {
+    return defaultLocale;
+  }
+}
+
 export function withLocalePath(path: string | undefined | null, locale?: string | null) {
   const normalizedLocale = normalizeLocale(locale);
   const target = path || "/";

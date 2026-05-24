@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { getRoleHomePath, isAdminPanelRole, isStaffRole, type AppRole } from "@/lib/rbac";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
+import { localeFromUrl, withLocalePath } from "@/lib/localized-path";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ function expectedPassword(email: string) {
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
+  const requestLocale = localeFromUrl(request.headers.get("referer"));
 
   const productionTestLoginAllowed =
     process.env.NODE_ENV !== "production" || process.env.ALLOW_PRODUCTION_TEST_LOGIN === "true";
@@ -121,10 +123,10 @@ export async function POST(request: NextRequest) {
                 : "Use the student login page for this account.",
           redirectTo:
             authType === "admin"
-              ? "/en/admin/login"
+              ? withLocalePath("/admin/login", requestLocale)
               : authType === "staff"
-                ? "/en/staff/login"
-                : "/en/login",
+                ? withLocalePath("/staff/login", requestLocale)
+                : withLocalePath("/login", requestLocale),
         },
         { status: 403 },
         request,

@@ -6,6 +6,7 @@ import { createSession, AuthType } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { getRoleHomePath, type AppRole } from '@/lib/rbac';
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
+import { localeFromUrl, withLocalePath } from '@/lib/localized-path';
 
 const loginSchema = z.object({
   idToken: z.string().trim().min(1).max(20_000),
@@ -33,6 +34,7 @@ function accessFromPaymentStatus(status: string) {
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
+  const requestLocale = localeFromUrl(request.headers.get("referer"));
 
   try {
     const limit = rateLimit({
@@ -178,7 +180,7 @@ export async function POST(request: NextRequest) {
           : 'Please use the Staff Portal to login.'),
         isStaffAccount: true,
         isAdminRole,
-        redirectTo: isAdminRole ? '/en/admin/login' : '/en/staff/login',
+        redirectTo: withLocalePath(isAdminRole ? '/admin/login' : '/staff/login', requestLocale),
       }, { status: 403 }, request);
     }
 
@@ -190,7 +192,7 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({
         error: 'Access denied. Admin accounts must use the Admin Portal.',
         isAdminAccount: true,
-        redirectTo: '/en/admin/login',
+        redirectTo: withLocalePath('/admin/login', requestLocale),
       }, { status: 403 }, request);
     }
 
