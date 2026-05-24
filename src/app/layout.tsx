@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { assertRuntimeEnv } from "@/lib/env-validation";
+import { getSiteSettings } from "@/lib/site-settings";
 import { LocalBusinessSchema, OrganizationSchema } from "@/components/shared/SchemaMarkup";
 
 export const viewport: Viewport = {
@@ -23,12 +24,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   assertRuntimeEnv();
+  const siteSettings = await getSiteSettings();
 
   return (
     <html lang="en">
@@ -36,8 +38,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body>
-        <OrganizationSchema />
-        <LocalBusinessSchema />
+        <OrganizationSchema settings={siteSettings} />
+        <LocalBusinessSchema settings={siteSettings} />
         <AuthProvider>
           {children}
         </AuthProvider>

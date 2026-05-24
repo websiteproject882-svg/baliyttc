@@ -1,7 +1,8 @@
 import { COURSES, SITE } from "@/data/site";
+import type { SiteSettings } from "@/lib/site-settings";
 
 const publicBaseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
-const logoUrl = `${publicBaseUrl}/images/brand/logo-512.png`;
+const defaultLogoUrl = `${publicBaseUrl}/images/brand/logo-512.png`;
 
 type CourseSchemaData = {
   slug: string;
@@ -16,24 +17,44 @@ type CourseSchemaData = {
   seats?: string;
 };
 
+function absoluteUrl(value?: string | null) {
+  if (!value) return defaultLogoUrl;
+  if (value.startsWith("http")) return value;
+  return `${publicBaseUrl}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
+function schemaSettings(settings?: SiteSettings) {
+  return {
+    name: settings?.general.schoolName || SITE.name,
+    description: settings?.general.tagline || SITE.philosophy,
+    phone: settings?.general.phone || SITE.phone,
+    email: settings?.general.email || SITE.email,
+    address: settings?.general.address || "Ubud, Gianyar Regency, Bali 80571, Indonesia",
+    logoUrl: absoluteUrl(settings?.assets.logoUrl),
+  };
+}
+
 // Organization Schema
-export const OrganizationSchema = () => (
+export const OrganizationSchema = ({ settings }: { settings?: SiteSettings }) => {
+  const data = schemaSettings(settings);
+
+  return (
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
       __html: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: SITE.name,
-        description: SITE.philosophy,
+        name: data.name,
+        description: data.description,
         url: publicBaseUrl,
-        logo: logoUrl,
-        image: logoUrl,
-        telephone: SITE.phone,
-        email: SITE.email,
+        logo: data.logoUrl,
+        image: data.logoUrl,
+        telephone: data.phone,
+        email: data.email,
         address: {
           "@type": "PostalAddress",
-          streetAddress: "Ubud, Gianyar Regency",
+          streetAddress: data.address,
           addressLocality: "Ubud",
           addressRegion: "Bali",
           postalCode: "80571",
@@ -65,7 +86,7 @@ export const OrganizationSchema = () => (
               description: course.summary,
               provider: {
                 "@type": "Organization",
-                name: SITE.name,
+                name: data.name,
               },
             },
             price: course.priceFrom,
@@ -77,7 +98,8 @@ export const OrganizationSchema = () => (
       }),
     }}
   />
-);
+  );
+};
 
 // Course Schema for each course page
 export const CourseSchema = ({ course, locale = "en" }: { course: CourseSchemaData; locale?: string }) => {
@@ -94,7 +116,7 @@ export const CourseSchema = ({ course, locale = "en" }: { course: CourseSchemaDa
         "@type": "Course",
         name: courseName,
         description: course.summary,
-        image: course.image?.startsWith("http") ? course.image : course.image ? `${publicBaseUrl}${course.image}` : logoUrl,
+        image: course.image?.startsWith("http") ? course.image : course.image ? `${publicBaseUrl}${course.image}` : defaultLogoUrl,
         url: courseUrl,
         provider: {
           "@type": "Organization",
@@ -188,7 +210,10 @@ export const BreadcrumbSchema = ({ items }: { items: Array<{ name: string; url: 
 );
 
 // Local Business Schema
-export const LocalBusinessSchema = () => (
+export const LocalBusinessSchema = ({ settings }: { settings?: SiteSettings }) => {
+  const data = schemaSettings(settings);
+
+  return (
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
@@ -196,17 +221,17 @@ export const LocalBusinessSchema = () => (
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
         "@id": `${publicBaseUrl}/#organization`,
-        name: SITE.name,
+        name: data.name,
         url: publicBaseUrl,
-        telephone: SITE.phone,
-        email: SITE.email,
-        image: logoUrl,
-        logo: logoUrl,
+        telephone: data.phone,
+        email: data.email,
+        image: data.logoUrl,
+        logo: data.logoUrl,
         priceRange: "EUR 499-1899",
         servesCuisine: "Vegetarian",
         address: {
           "@type": "PostalAddress",
-          streetAddress: "Ubud, Gianyar Regency",
+          streetAddress: data.address,
           addressLocality: "Ubud",
           addressRegion: "Bali",
           postalCode: "80571",
@@ -229,4 +254,5 @@ export const LocalBusinessSchema = () => (
       }),
     }}
   />
-);
+  );
+};
