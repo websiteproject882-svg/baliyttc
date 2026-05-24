@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { GET } from "../app/api/blog/[slug]/route";
+import { dynamic, GET } from "../app/api/blog/[slug]/route";
 
 const mocks = vi.hoisted(() => ({
   blogPostFindFirst: vi.fn(),
@@ -57,6 +57,10 @@ beforeEach(() => {
 });
 
 describe("public blog post route", () => {
+  it("stays dynamic so admin-edited posts are not served from stale route cache", () => {
+    expect(dynamic).toBe("force-dynamic");
+  });
+
   it("returns only published posts that are already public", async () => {
     const post = {
       id: "post_1",

@@ -7,6 +7,8 @@ import { normalizeLocale } from "@/lib/localized-content";
 import { findStaticBlogPost } from "@/data/blog";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const slugSchema = z.string().trim().min(1).max(180).regex(/^[a-z0-9-]+$/);
 
 const publicPostWhere = (slug: string, locale: string) => ({
