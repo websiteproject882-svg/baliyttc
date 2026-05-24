@@ -146,7 +146,7 @@ export default function BlogPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/blog");
+      const response = await fetch("/api/admin/blog", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to load posts");
       setPosts(result.posts || []);

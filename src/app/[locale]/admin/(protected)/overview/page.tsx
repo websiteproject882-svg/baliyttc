@@ -32,7 +32,7 @@ export default function AdminOverview() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch("/api/admin/analytics");
+        const response = await fetch("/api/admin/analytics", { cache: "no-store" });
         const data = await response.json();
         setStats({
           ...data.stats,

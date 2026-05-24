@@ -48,7 +48,7 @@ export default function GalleryPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/gallery");
+      const response = await fetch("/api/admin/gallery", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch gallery");

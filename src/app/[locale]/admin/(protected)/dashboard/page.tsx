@@ -336,20 +336,20 @@ export default function AdminDashboard() {
       if (auditFilters.actor) auditQuery.set("actor", auditFilters.actor);
 
       const [analyticsRes, enrollmentsRes, leadsRes, batchesRes, staffRes, auditRes, twoFactorRes, coursesRes, couponsRes, announcementsRes, notificationsRes, resourcesRes, testimonialsRes, communicationsRes] = await Promise.all([
-        fetch('/api/admin/analytics'),
-        fetch('/api/enrollments'),
-        fetch('/api/admin/leads?limit=50'),
-        fetch('/api/admin/batches'),
-        fetch('/api/admin/staff'),
-        fetch(`/api/admin/audit?${auditQuery.toString()}`),
-        fetch('/api/admin/2fa'),
-        fetch('/api/admin/courses'),
-        fetch('/api/admin/coupons'),
-        fetch('/api/admin/announcements'),
-        fetch('/api/admin/notifications'),
-        fetch('/api/admin/prearrival-resources'),
-        fetch('/api/admin/testimonials'),
-        fetch('/api/admin/communications'),
+        fetch('/api/admin/analytics', { cache: "no-store" }),
+        fetch('/api/enrollments', { cache: "no-store" }),
+        fetch('/api/admin/leads?limit=50', { cache: "no-store" }),
+        fetch('/api/admin/batches', { cache: "no-store" }),
+        fetch('/api/admin/staff', { cache: "no-store" }),
+        fetch(`/api/admin/audit?${auditQuery.toString()}`, { cache: "no-store" }),
+        fetch('/api/admin/2fa', { cache: "no-store" }),
+        fetch('/api/admin/courses', { cache: "no-store" }),
+        fetch('/api/admin/coupons', { cache: "no-store" }),
+        fetch('/api/admin/announcements', { cache: "no-store" }),
+        fetch('/api/admin/notifications', { cache: "no-store" }),
+        fetch('/api/admin/prearrival-resources', { cache: "no-store" }),
+        fetch('/api/admin/testimonials', { cache: "no-store" }),
+        fetch('/api/admin/communications', { cache: "no-store" }),
       ]);
 
       const [analytics, enrollData, leadsData, batchesData, staffData, auditData, twoFactorData, coursesData, couponsData, announcementsData, notificationsData, resourcesData, testimonialsData, communicationsData] = await Promise.all([

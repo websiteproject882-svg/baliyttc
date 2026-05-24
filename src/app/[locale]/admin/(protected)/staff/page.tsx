@@ -56,7 +56,7 @@ export default function StaffPage() {
   const fetchStaff = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/staff");
+      const response = await fetch("/api/admin/staff", { cache: "no-store" });
       const data = await response.json();
       setStaff(data.staff || []);
     } catch (err) {

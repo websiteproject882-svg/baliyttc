@@ -206,7 +206,7 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
   const fetchCourses = useCallback(async () => {
     setLoadingBatches(true);
     try {
-      const res = await fetch("/api/courses?includeBatches=true");
+      const res = await fetch("/api/courses?includeBatches=true", { cache: "no-store" });
       const result = await res.json();
       setCourses(result.courses || []);
     } catch (err) {
@@ -218,7 +218,7 @@ export const ApplyModal = ({ trigger, defaultCourse }: Props) => {
 
   const fetchPaymentStatus = useCallback(async () => {
     try {
-      const response = await fetch("/api/payments/status");
+      const response = await fetch("/api/payments/status", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Failed to fetch payment provider status");

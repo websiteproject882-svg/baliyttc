@@ -57,8 +57,8 @@ export default function WaitlistPage() {
     setError(null);
     try {
       const [waitlistRes, coursesRes] = await Promise.all([
-        fetch("/api/admin/waitlist"),
-        fetch("/api/admin/courses"),
+        fetch("/api/admin/waitlist", { cache: "no-store" }),
+        fetch("/api/admin/courses", { cache: "no-store" }),
       ]);
       const [waitlistData, coursesData] = await Promise.all([
         waitlistRes.json(),

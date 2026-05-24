@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/analytics?period=${encodeURIComponent(timeRange)}`);
+      const response = await fetch(`/api/admin/analytics?period=${encodeURIComponent(timeRange)}`, { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Failed to fetch analytics");

@@ -142,7 +142,7 @@ export default function CoursesPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/courses");
+      const response = await fetch("/api/admin/courses", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Failed to load courses");

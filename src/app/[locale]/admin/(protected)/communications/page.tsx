@@ -93,7 +93,7 @@ export default function CommunicationsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/communications");
+      const response = await fetch("/api/admin/communications", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to load communications");

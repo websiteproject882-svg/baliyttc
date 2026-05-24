@@ -90,8 +90,8 @@ export default function BatchesPage() {
     setError(null);
     try {
       const [batchesRes, coursesRes] = await Promise.all([
-        fetch("/api/admin/batches"),
-        fetch("/api/admin/courses"),
+        fetch("/api/admin/batches", { cache: "no-store" }),
+        fetch("/api/admin/courses", { cache: "no-store" }),
       ]);
       const [batchesData, coursesData] = await Promise.all([
         batchesRes.json(),

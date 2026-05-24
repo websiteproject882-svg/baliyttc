@@ -41,7 +41,7 @@ export default function SocialProofPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/social-proof");
+      const response = await fetch("/api/admin/social-proof", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch stats");

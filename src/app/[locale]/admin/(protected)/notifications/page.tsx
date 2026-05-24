@@ -38,7 +38,7 @@ export default function NotificationsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/admin/notifications");
+      const response = await fetch("/api/admin/notifications", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch notifications");

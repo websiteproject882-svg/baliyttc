@@ -301,7 +301,7 @@ export default function TemplatesPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch("/api/admin/templates");
+        const response = await fetch("/api/admin/templates", { cache: "no-store" });
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.error || "Failed to load templates");
