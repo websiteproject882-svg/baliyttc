@@ -9,7 +9,22 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { IMG } from "@/data/site";
-import { Check, X, CalendarDays, Clock, MapPin, Users, Loader2 } from "lucide-react";
+import {
+  Award,
+  BookOpen,
+  CalendarDays,
+  Check,
+  GraduationCap,
+  HeartHandshake,
+  Loader2,
+  MapPin,
+  Plane,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Users,
+  X,
+} from "lucide-react";
 
 const includedList = [
   "Yoga Alliance certification on graduation",
@@ -737,6 +752,99 @@ const expandedCurriculumPoints: Record<string, Record<string, string[]>> = {
 const getCurriculumPoints = (slug: string, title: string, fallback: string[]) =>
   expandedCurriculumPoints[slug]?.[title] || fallback;
 
+const twoHundredHeroStats = [
+  { icon: CalendarDays, label: "Duration", value: "21 days", note: "Full residential immersion" },
+  { icon: Award, label: "Certification", value: "200 hours", note: "Yoga Alliance aligned" },
+  { icon: Users, label: "Format", value: "Small batch", note: "Feedback-led teaching labs" },
+  { icon: MapPin, label: "Location", value: "Ubud, Bali", note: "Practice, meals and stay together" },
+];
+
+const twoHundredAnchors = [
+  { href: "#curriculum", label: "Curriculum" },
+  { href: "#roadmap", label: "21-day flow" },
+  { href: "#teaching-lab", label: "Teaching labs" },
+  { href: "#schedule", label: "Daily rhythm" },
+  { href: "#fees", label: "Fees" },
+  { href: "#batches", label: "Dates" },
+];
+
+const twoHundredBestFor = [
+  "Beginners who want a complete first teacher training instead of a short intro course.",
+  "Practitioners ready to build confidence in Hatha, Ashtanga and Vinyasa sequencing.",
+  "Future teachers who want real cueing practice, supervised feedback and class planning.",
+  "Students who want a residential Bali training with meals, culture and community included.",
+];
+
+const twoHundredOutcomes = [
+  "Plan and teach a balanced beginner-to-intermediate yoga class.",
+  "Understand alignment, modifications, contraindications and responsible assists.",
+  "Use pranayama, meditation, mantra and philosophy as practical teaching tools.",
+  "Graduate with a clear next step for teaching, self-practice or advanced training.",
+];
+
+const twoHundredRoadmap = [
+  {
+    phase: "Days 1-5",
+    title: "Foundation & Practice Base",
+    desc: "Set the rhythm: daily Hatha, Ashtanga foundations, pranayama, mantra and posture study.",
+    points: ["Baseline alignment", "Breath-led practice", "Yoga lifestyle orientation"],
+  },
+  {
+    phase: "Days 6-12",
+    title: "Technique, Anatomy & Sequencing",
+    desc: "Move deeper into posture families, body systems, prop use and how to build a safe class arc.",
+    points: ["Functional anatomy", "Vinyasa sequencing", "Modification skills"],
+  },
+  {
+    phase: "Days 13-18",
+    title: "Teaching Practice & Feedback",
+    desc: "Shift from student to teacher through cueing drills, class planning and supervised teaching labs.",
+    points: ["Voice and timing", "Class management", "Teacher feedback"],
+  },
+  {
+    phase: "Days 19-21",
+    title: "Assessment & Graduation",
+    desc: "Integrate the full course through practical assessment, ceremony and clear next-step guidance.",
+    points: ["Final practicum", "Certification review", "Graduation ceremony"],
+  },
+];
+
+const twoHundredTeachingLabs = [
+  {
+    icon: Target,
+    title: "Practice teaching from early days",
+    desc: "Students begin with short cueing drills, then build toward complete class sections with mentor feedback.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Adjustment with consent",
+    desc: "Hands-on work is taught through observation, communication, props and safe student-specific support.",
+  },
+  {
+    icon: BookOpen,
+    title: "Usable class frameworks",
+    desc: "You leave with repeatable class structures for Hatha, Vinyasa and beginner-friendly mixed-level groups.",
+  },
+];
+
+const twoHundredTrustBlocks = [
+  {
+    icon: ShieldCheck,
+    title: "Assessment & certification",
+    desc: "Graduation is based on attendance, participation, teaching practice and a final practical review. Successful students receive the 200-hour certificate.",
+  },
+  {
+    icon: Plane,
+    title: "Arrival made simple",
+    desc: "Plan to arrive before opening orientation. Denpasar airport, visa, insurance and personal travel costs stay separate from course fees.",
+  },
+  {
+    icon: Sparkles,
+    title: "Bali integration",
+    desc: "Temple purification, nature time and restorative sessions are included so the course feels grounded, not only technical.",
+  },
+];
+
 const CoursePage = () => {
   const params = useParams();
   const router = useRouter();
@@ -783,6 +891,7 @@ const CoursePage = () => {
 
   const availableBatches = course.batches?.filter(b => b.enrolled < b.capacity) || [];
   const detail = courseDetails[course.slug as keyof typeof courseDetails];
+  const isTwoHundredHour = course.slug === "200hr";
   const isStaticFallbackCourse = course.id.startsWith("static-course-");
   const pageCourse = detail && isStaticFallbackCourse
     ? {
@@ -824,9 +933,47 @@ const CoursePage = () => {
                 </Button>
               </Link>
             </div>
+            {isTwoHundredHour && (
+              <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {twoHundredHeroStats.map((stat) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div key={stat.label} className="rounded-[10px] border border-white/15 bg-white/10 p-4 backdrop-blur">
+                      <div className="flex items-center gap-2 text-white/70">
+                        <Icon className="h-4 w-4" />
+                        <span className="label-caps text-white/65">{stat.label}</span>
+                      </div>
+                      <p className="mt-3 text-lg font-semibold text-white">{stat.value}</p>
+                      <p className="mt-1 text-xs leading-5 text-white/65">{stat.note}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </section>
+
+      {isTwoHundredHour && (
+        <section className="border-b border-stone-200 bg-white">
+          <div className="container-wide">
+            <div className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
+              <p className="label-caps text-sage">Explore the course</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0">
+                {twoHundredAnchors.map((anchor) => (
+                  <a
+                    key={anchor.href}
+                    href={anchor.href}
+                    className="shrink-0 rounded-full border border-stone-200 bg-cream px-4 py-2 text-xs font-semibold text-warm-dark transition hover:border-terra hover:text-terra"
+                  >
+                    {anchor.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Course Overview */}
       <section className="py-16 bg-cream">
@@ -918,7 +1065,63 @@ const CoursePage = () => {
             </div>
           </section>
 
-          <section className="py-14 md:py-16 bg-cream">
+          {isTwoHundredHour && (
+            <section className="py-14 md:py-16 bg-[#F7F4EF]">
+              <div className="container-wide">
+                <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+                  <Reveal>
+                    <div className="overflow-hidden rounded-[10px] bg-white shadow-[0_14px_40px_rgba(31,28,23,0.08)] ring-1 ring-stone-200">
+                      <img
+                        src={IMG.course200}
+                        alt="200-hour yoga teacher training practice in Bali"
+                        className="aspect-[16/11] w-full object-cover"
+                      />
+                      <div className="p-6">
+                        <p className="label-caps text-sage">Best fit</p>
+                        <h2 className="display-md mt-3 text-warm-dark">Built for serious beginners and future teachers</h2>
+                        <p className="mt-4 text-sm leading-7 text-warm-mid">
+                          A complete 200-hour pathway for students who want disciplined practice, practical teaching skill and a clear foundation before sharing yoga with others.
+                        </p>
+                      </div>
+                    </div>
+                  </Reveal>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <Reveal delay={0.08}>
+                      <div className="h-full rounded-[10px] border border-stone-200 bg-white p-6 shadow-sm">
+                        <GraduationCap className="h-6 w-6 text-terra" />
+                        <h3 className="display-sm mt-4 text-warm-dark">This course is for</h3>
+                        <ul className="mt-5 space-y-3">
+                          {twoHundredBestFor.map((item) => (
+                            <li key={item} className="flex gap-3 text-sm leading-6 text-warm-mid">
+                              <Check className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </Reveal>
+                    <Reveal delay={0.16}>
+                      <div className="h-full rounded-[10px] border border-stone-200 bg-white p-6 shadow-sm">
+                        <Award className="h-6 w-6 text-terra" />
+                        <h3 className="display-sm mt-4 text-warm-dark">By graduation</h3>
+                        <ul className="mt-5 space-y-3">
+                          {twoHundredOutcomes.map((item) => (
+                            <li key={item} className="flex gap-3 text-sm leading-6 text-warm-mid">
+                              <Check className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </Reveal>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <section id="curriculum" className="py-14 md:py-16 bg-cream scroll-mt-28">
             <div className="container-wide">
               <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
                 <Reveal>
@@ -975,7 +1178,40 @@ const CoursePage = () => {
             </div>
           </section>
 
-          <section className="py-14 md:py-16 bg-white">
+          {isTwoHundredHour && (
+            <section id="roadmap" className="py-14 md:py-16 bg-white scroll-mt-28">
+              <div className="container-wide">
+                <Reveal>
+                  <SectionHeading
+                    eyebrow="21-Day Progression"
+                    title={<>From Practice to <em className="text-terra">Teaching</em></>}
+                    sub="The immersion is structured in phases so students first stabilize personal practice, then learn technique, then teach with support."
+                  />
+                </Reveal>
+                <div className="mt-9 grid gap-5 lg:grid-cols-4">
+                  {twoHundredRoadmap.map((phase, i) => (
+                    <Reveal key={phase.phase} delay={i * 0.07}>
+                      <div className="h-full rounded-[10px] border border-stone-200 bg-cream p-5 shadow-sm">
+                        <p className="label-caps text-terra">{phase.phase}</p>
+                        <h3 className="display-sm mt-3 text-warm-dark">{phase.title}</h3>
+                        <p className="mt-3 text-sm leading-7 text-warm-mid">{phase.desc}</p>
+                        <ul className="mt-5 space-y-2">
+                          {phase.points.map((point) => (
+                            <li key={point} className="flex gap-2 text-xs font-medium leading-5 text-warm-mid">
+                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
+                              <span>{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </Reveal>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          <section id="schedule" className="py-14 md:py-16 bg-white scroll-mt-28">
             <div className="container-wide">
               <Reveal>
                 <SectionHeading
@@ -997,6 +1233,68 @@ const CoursePage = () => {
               </div>
             </div>
           </section>
+
+          {isTwoHundredHour && (
+            <section id="teaching-lab" className="py-14 md:py-16 bg-cream scroll-mt-28">
+              <div className="container-wide">
+                <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+                  <Reveal>
+                    <div className="lg:sticky lg:top-28">
+                      <p className="label-caps text-sage">Teaching Lab</p>
+                      <h2 className="display-lg mt-3 text-warm-dark">
+                        Learn to teach, not only to memorize sequences
+                      </h2>
+                      <p className="body-lg mt-5 text-warm-mid">
+                        The strongest part of a 200-hour training is the shift from doing yoga to communicating yoga clearly through voice, timing, observation and grounded class design.
+                      </p>
+                      <div className="mt-7 overflow-hidden rounded-[10px] bg-warm-dark">
+                        <img
+                          src={IMG.classMain}
+                          alt="Teaching practice during yoga teacher training"
+                          className="aspect-[16/10] w-full object-cover opacity-90"
+                        />
+                      </div>
+                    </div>
+                  </Reveal>
+                  <div className="grid gap-4">
+                    {twoHundredTeachingLabs.map((lab, i) => {
+                      const Icon = lab.icon;
+                      return (
+                        <Reveal key={lab.title} delay={i * 0.08}>
+                          <div className="rounded-[10px] border border-stone-200 bg-white p-6 shadow-sm">
+                            <div className="flex gap-4">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sage/10 text-sage">
+                                <Icon className="h-5 w-5" />
+                              </span>
+                              <div>
+                                <h3 className="display-sm text-warm-dark">{lab.title}</h3>
+                                <p className="mt-2 text-sm leading-7 text-warm-mid">{lab.desc}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </Reveal>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="mt-8 grid gap-5 md:grid-cols-3">
+                  {twoHundredTrustBlocks.map((block, i) => {
+                    const Icon = block.icon;
+                    return (
+                      <Reveal key={block.title} delay={i * 0.08}>
+                        <div className="h-full rounded-[10px] border border-stone-200 bg-white p-6 shadow-sm">
+                          <Icon className="h-6 w-6 text-terra" />
+                          <h3 className="display-sm mt-4 text-warm-dark">{block.title}</h3>
+                          <p className="mt-3 text-sm leading-7 text-warm-mid">{block.desc}</p>
+                        </div>
+                      </Reveal>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
 
           <section className="bg-[#F7F4EF] py-10 md:py-12">
             <div className="container-wide">
@@ -1034,7 +1332,7 @@ const CoursePage = () => {
             </div>
           </section>
 
-          <section className="py-14 md:py-16 bg-white">
+          <section id="fees" className="py-14 md:py-16 bg-white scroll-mt-28">
             <div className="container-wide">
               <Reveal>
                 <SectionHeading
