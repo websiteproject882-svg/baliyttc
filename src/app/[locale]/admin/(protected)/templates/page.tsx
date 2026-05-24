@@ -251,8 +251,39 @@ Bali YTTC Team`,
   },
 ];
 
+const cleanTemplateContent = (content: string) =>
+  content
+    .split("\n")
+    .map((line) => {
+      const cleaned = Array.from(line)
+        .filter((char) => {
+          const code = char.charCodeAt(0);
+          return code >= 32 && code <= 126;
+        })
+        .join("");
+      const trimmed = cleaned.trimStart();
+      if (!trimmed) return "";
+
+      if (/^(Location|Start Date|Arrival Time):/.test(trimmed)) return trimmed;
+      if (
+        /^(Watch|Download|Read|Pack|Yoga Alliance|Beautiful|Expert|All-inclusive|Passport|Return ticket|Accommodation|Vaccination)/.test(
+          trimmed,
+        )
+      ) {
+        return `- ${trimmed}`;
+      }
+
+      return cleaned;
+    })
+    .join("\n");
+
+const cleanDefaultTemplates = defaultTemplates.map((template) => ({
+  ...template,
+  content: cleanTemplateContent(template.content),
+}));
+
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState<EmailTemplate[]>(defaultTemplates);
+  const [templates, setTemplates] = useState<EmailTemplate[]>(cleanDefaultTemplates);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [editedContent, setEditedContent] = useState("");
@@ -277,7 +308,7 @@ export default function TemplatesPage() {
         }
 
         const storedTemplates = Array.isArray(data.templates) ? data.templates : [];
-        const merged = defaultTemplates.map((template) => {
+        const merged = cleanDefaultTemplates.map((template) => {
           const stored = storedTemplates.find((item: Partial<EmailTemplate> & { slug?: string }) =>
             item.type === template.type || item.id === template.id || item.slug === template.type,
           );
@@ -289,7 +320,7 @@ export default function TemplatesPage() {
             id: String(stored.id || template.id),
             name: String(stored.name || template.name),
             subject: String(stored.subject || template.subject),
-            content: stored.content ? String(stored.content) : template.content,
+            content: stored.content ? cleanTemplateContent(String(stored.content)) : template.content,
             lastUpdated: String(stored.lastUpdated || template.lastUpdated),
             variables: Array.isArray(stored.variables) && stored.variables.length ? stored.variables : template.variables,
           };
@@ -369,7 +400,7 @@ export default function TemplatesPage() {
 
   const handleReset = () => {
     if (!selectedTemplate) return;
-    const original = defaultTemplates.find(t => t.id === selectedTemplate.id);
+    const original = cleanDefaultTemplates.find(t => t.id === selectedTemplate.id);
     if (original) {
       setEditedContent(original.content);
       setEditedSubject(original.subject);
