@@ -26,7 +26,11 @@ function getLocalizedPath(pathname: string) {
   };
 }
 
-function redirectToLogin(request: NextRequest, locale: string, type?: 'admin' | 'staff') {
+function authFailureResponse(request: NextRequest, locale: string, type?: 'admin' | 'staff') {
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const url = request.nextUrl.clone();
   url.pathname = `/${locale}/login`;
   url.search = type ? `?type=${type}` : '';
@@ -41,12 +45,12 @@ async function requireSession(
 ) {
   const session = request.cookies.get(cookieName)?.value;
   if (!session) {
-    return redirectToLogin(request, locale, authType === 'student' ? undefined : authType);
+    return authFailureResponse(request, locale, authType === 'student' ? undefined : authType);
   }
 
   const decrypted = await verifySessionToken(session);
   if (!isSessionAllowedForAuthType(decrypted, authType)) {
-    return redirectToLogin(request, locale, authType === 'student' ? undefined : authType);
+    return authFailureResponse(request, locale, authType === 'student' ? undefined : authType);
   }
 
   return null;
@@ -69,7 +73,7 @@ async function requireAdminPanelSession(request: NextRequest, locale: string) {
     }
   }
 
-  return redirectToLogin(request, locale, 'admin');
+  return authFailureResponse(request, locale, 'admin');
 }
 
 export default async function middleware(request: NextRequest) {
@@ -96,5 +100,10 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  matcher: [
+    '/((?!api|_next|_vercel|.*\\..*).*)',
+    '/api/admin/:path*',
+    '/api/app/:path*',
+    '/api/teacher/:path*',
+  ],
 };

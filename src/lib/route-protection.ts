@@ -3,6 +3,18 @@ export function getProtectedRouteRequirement(pathWithoutLocale: string) {
     return null;
   }
 
+  if (pathWithoutLocale.startsWith("/api/admin")) {
+    return "admin-panel" as const;
+  }
+
+  if (pathWithoutLocale.startsWith("/api/teacher")) {
+    return "staff" as const;
+  }
+
+  if (pathWithoutLocale.startsWith("/api/app")) {
+    return "student" as const;
+  }
+
   if (pathWithoutLocale.startsWith("/admin")) {
     return "admin-panel" as const;
   }

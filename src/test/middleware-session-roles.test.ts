@@ -44,6 +44,9 @@ describe("middleware session role boundaries", () => {
     expect(getProtectedRouteRequirement("/app/dashboard")).toBe("student");
     expect(getProtectedRouteRequirement("/staff/dashboard")).toBe("staff");
     expect(getProtectedRouteRequirement("/admin/overview")).toBe("admin-panel");
+    expect(getProtectedRouteRequirement("/api/admin/leads")).toBe("admin-panel");
+    expect(getProtectedRouteRequirement("/api/teacher/dashboard")).toBe("staff");
+    expect(getProtectedRouteRequirement("/api/app/portal")).toBe("student");
     expect(getProtectedRouteRequirement("/login")).toBeNull();
     expect(getProtectedRouteRequirement("/apply")).toBeNull();
     expect(getProtectedRouteRequirement("/application")).toBeNull();
