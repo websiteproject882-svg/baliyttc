@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -227,7 +227,9 @@ interface TwoFactorStatus {
 }
 
 export default function AdminDashboard() {
+  const params = useParams<{ locale?: string }>();
   const searchParams = useSearchParams();
+  const locale = params?.locale || "en";
   const tab = searchParams.get("tab") || "overview";
   const [search, setSearch] = useState("");
 
@@ -2312,20 +2314,28 @@ export default function AdminDashboard() {
             <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
             <Card className="bg-white border-0 shadow-sm">
               <CardContent className="p-6 space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">School Name</label>
-                  <Input defaultValue="Bali YTTC" className="mt-1" />
+                <div className="rounded-xl border border-orange-100 bg-orange-50/70 p-4">
+                  <p className="text-sm font-semibold text-orange-900">Global settings are managed from the full settings page.</p>
+                  <p className="mt-1 text-sm text-orange-800">
+                    This dashboard card is a quick reference only, so admins do not edit a field here and expect a silent save.
+                  </p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Contact Email</label>
-                  <Input defaultValue="info@baliyttc.com" className="mt-1" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">WhatsApp Number</label>
-                  <Input defaultValue="6281999333327" className="mt-1" />
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">School</p>
+                    <p className="mt-2 font-semibold text-gray-900">Bali YTTC</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Email</p>
+                    <p className="mt-2 break-all font-semibold text-gray-900">info@baliyttc.com</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">WhatsApp</p>
+                    <p className="mt-2 font-semibold text-gray-900">+62 819 9933 3327</p>
+                  </div>
                 </div>
                 <Button className="bg-orange-500 hover:bg-orange-600 text-white" asChild>
-                  <a href="settings">Open Full Settings</a>
+                  <a href={`/${locale}/admin/settings`}>Open Full Settings</a>
                 </Button>
               </CardContent>
             </Card>
