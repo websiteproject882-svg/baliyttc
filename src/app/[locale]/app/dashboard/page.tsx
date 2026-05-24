@@ -137,16 +137,18 @@ export default function StudentDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [togglingTask, setTogglingTask] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   const loadPortal = async () => {
     setLoading(true);
+    setPortalError(null);
     try {
       const response = await fetch("/api/app/portal");
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to load portal");
       setPortal(result);
     } catch (error) {
-      console.error(error);
+      setPortalError(error instanceof Error ? error.message : "Failed to load portal");
     } finally {
       setLoading(false);
     }
@@ -188,13 +190,25 @@ export default function StudentDashboardPage() {
       ? new Date(value).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
       : "TBD";
 
-  if (loading || !portal) {
+  if (loading) {
     return (
       <div className="p-6 space-y-6">
         <div className="h-24 rounded-xl bg-gray-100 animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => <div key={i} className="h-32 rounded-xl bg-gray-100 animate-pulse" />)}
         </div>
+      </div>
+    );
+  }
+
+  if (!portal) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">
+            {portalError || "Student portal is unavailable right now. Please try again or contact support."}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -394,7 +408,7 @@ export default function StudentDashboardPage() {
             </div>
             <div className="flex items-start gap-2 rounded-lg border border-dashed border-gray-200 p-3 text-xs text-gray-500">
               <WalletCards className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
-              Payment records update here after school verification. Online payment keys can be connected before client handoff.
+              Payment records update here after the school team verifies your deposit, balance payment, or online checkout.
             </div>
           </CardContent>
         </Card>

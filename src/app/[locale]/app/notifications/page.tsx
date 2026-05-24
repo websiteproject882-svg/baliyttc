@@ -24,16 +24,22 @@ export default function NotificationsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [preferenceSaving, setPreferenceSaving] = useState<string | null>(null);
 
   const loadNotifications = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch("/api/app/notifications");
       const result = await response.json();
-      if (response.ok) {
-        setItems(result.notifications || []);
-        setPreferences((current) => result.preferences || current);
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to load notifications");
       }
+      setItems(result.notifications || []);
+      setPreferences((current) => result.preferences || current);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to load notifications");
     } finally {
       setLoading(false);
     }
@@ -44,43 +50,62 @@ export default function NotificationsPage() {
   }, [loadNotifications]);
 
   const updatePreference = async (key: "emailNotificationsEnabled" | "browserPushEnabled", value: boolean) => {
+    setPreferenceSaving(key);
+    setError(null);
     setPreferences((current) => ({ ...current, [key]: value }));
     try {
-      await fetch("/api/app/notifications", {
+      const response = await fetch("/api/app/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [key]: value }),
       });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to update notification preference");
+      }
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : "Failed to update notification preference");
       setPreferences((current) => ({ ...current, [key]: !value }));
+    } finally {
+      setPreferenceSaving(null);
     }
   };
 
   const markRead = async (notificationId: string) => {
     setSavingId(notificationId);
+    setError(null);
     try {
       const response = await fetch("/api/app/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notificationId }),
       });
-      if (response.ok) {
-        setItems((current) =>
-          current.map((item) => (item.id === notificationId ? { ...item, readAt: new Date().toISOString() } : item)),
-        );
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to mark notification as read");
       }
+      setItems((current) =>
+        current.map((item) => (item.id === notificationId ? { ...item, readAt: new Date().toISOString() } : item)),
+      );
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to mark notification as read");
     } finally {
       setSavingId(null);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6 bg-gray-50 p-4 md:p-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
         <p className="mt-1 text-sm text-gray-500">Important updates, actions, and arrival guidance.</p>
       </div>
+
+      {error && (
+        <Card className="border border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
 
       <Card className="border-0 shadow-sm">
         <CardHeader>
@@ -96,21 +121,26 @@ export default function NotificationsPage() {
               type="checkbox"
               className="h-4 w-4 accent-orange-500"
               checked={preferences.emailNotificationsEnabled}
+              disabled={preferenceSaving === "emailNotificationsEnabled"}
               onChange={(event) => updatePreference("emailNotificationsEnabled", event.target.checked)}
             />
           </label>
           <label className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-100 p-4">
             <span className="flex items-center gap-3 text-sm font-medium text-gray-800">
               <Smartphone className="h-4 w-4 text-orange-500" />
-              Browser push
+              Portal alert preference
             </span>
             <input
               type="checkbox"
               className="h-4 w-4 accent-orange-500"
               checked={preferences.browserPushEnabled}
+              disabled={preferenceSaving === "browserPushEnabled"}
               onChange={(event) => updatePreference("browserPushEnabled", event.target.checked)}
             />
           </label>
+          <p className="text-xs leading-5 text-gray-500 md:col-span-2">
+            These preferences are saved to your student profile and are used by the school team when sending portal and email updates.
+          </p>
         </CardContent>
       </Card>
 

@@ -140,7 +140,7 @@ export default function StudentProfilePage() {
                   {form.email}
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
-                  {form.enrolledCourse || "Course pending"}{form.batchName ? ` · ${form.batchName}` : ""}
+                  {form.enrolledCourse || "Course pending"}{form.batchName ? ` - ${form.batchName}` : ""}
                 </p>
               </div>
               <Badge variant="outline" className="w-fit bg-white">

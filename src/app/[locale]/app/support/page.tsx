@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HelpCircle, Mail, MessageSquare, Phone, Send } from "lucide-react";
+import { CheckCircle2, HelpCircle, Loader2, Mail, MessageSquare, Phone, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
@@ -13,7 +13,7 @@ const helpTopics = [
   },
   {
     title: "Payment Status",
-    body: "Bank transfer payments are verified by admin. Razorpay and PayPal keys can be enabled later when the client account is ready.",
+    body: "Bank transfer, online payment, and deposit records update after the school team verifies the payment against your enrollment.",
   },
   {
     title: "Certificate",
@@ -26,10 +26,36 @@ const helpTopics = [
 ];
 
 export default function StudentSupportPage() {
+  const [subject, setSubject] = useState("Student portal support");
   const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const siteSettings = usePublicSiteSettings();
-  const mailto = `mailto:${siteSettings.general.email}?subject=Student%20Portal%20Support&body=${encodeURIComponent(message)}`;
-  const whatsappUrl = `https://wa.me/${siteSettings.whatsappNumber}?text=${encodeURIComponent(message || `Hi ${siteSettings.general.schoolName}, I need help with my student portal.`)}`;
+  const supportMessage = message || `Hi ${siteSettings.general.schoolName}, I need help with my student portal.`;
+  const mailto = `mailto:${siteSettings.general.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(supportMessage)}`;
+  const whatsappUrl = `https://wa.me/${siteSettings.whatsappNumber}?text=${encodeURIComponent(supportMessage)}`;
+
+  const submitTicket = async () => {
+    setSaving(true);
+    setStatus(null);
+    try {
+      const response = await fetch("/api/app/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject, message }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Could not submit support request");
+      }
+      setMessage("");
+      setStatus({ type: "success", message: `Support request created. Ticket ID: ${result.ticketId}` });
+    } catch (error) {
+      setStatus({ type: "error", message: error instanceof Error ? error.message : "Could not submit support request." });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -64,6 +90,18 @@ export default function StudentSupportPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {status && (
+              <div
+                className={`rounded-lg border px-3 py-2 text-sm ${
+                  status.type === "success"
+                    ? "border-green-200 bg-green-50 text-green-700"
+                    : "border-red-200 bg-red-50 text-red-700"
+                }`}
+              >
+                {status.type === "success" ? <CheckCircle2 className="mr-2 inline h-4 w-4" /> : null}
+                {status.message}
+              </div>
+            )}
             <div className="space-y-2 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
               <p className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-orange-500" />
@@ -74,15 +112,32 @@ export default function StudentSupportPage() {
                 {siteSettings.general.phone}
               </p>
             </div>
+            <label className="space-y-2 text-sm text-gray-700">
+              <span className="font-medium">Subject</span>
+              <input
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-orange-300"
+                value={subject}
+                onChange={(event) => setSubject(event.target.value)}
+                maxLength={160}
+              />
+            </label>
             <textarea
               className="min-h-36 w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-orange-300"
               placeholder="Write your question here."
               value={message}
               onChange={(event) => setMessage(event.target.value)}
+              maxLength={3000}
             />
-            <Button asChild className="w-full bg-orange-500 text-white hover:bg-orange-600">
+            <Button
+              className="w-full bg-orange-500 text-white hover:bg-orange-600"
+              disabled={saving || subject.trim().length < 3 || message.trim().length < 10}
+              onClick={submitTicket}
+            >
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+              Submit support request
+            </Button>
+            <Button asChild variant="outline" className="w-full">
               <a href={mailto}>
-                <Send className="mr-2 h-4 w-4" />
                 Email support
               </a>
             </Button>
