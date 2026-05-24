@@ -27,7 +27,7 @@ function localizedUrl(locale: string, path: string) {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let courseSlugs: string[] = ['100hr', '200hr', '300hr'];
+  let courseSlugs: string[] = ['50hr', '100hr', '200hr', '300hr'];
   let blogSlugs: string[] = [];
 
   try {

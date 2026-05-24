@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useParams } from "next/navigation";
@@ -27,6 +29,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import type { StaticCoursePageData } from "@/lib/course-static";
 
 const includedList = [
   "Yoga Alliance certification on graduation",
@@ -1009,16 +1012,22 @@ const courseDeepDives: Record<string, CourseDeepDiveItem[]> = {
   ],
 };
 
-const CoursePage = () => {
+const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | null }) => {
   const params = useParams();
   const router = useRouter();
-  const slug = params?.slug as string;
+  const slug = initialCourse?.slug || (params?.slug as string);
 
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [course, setCourse] = useState<Course | StaticCoursePageData | null>(initialCourse ?? null);
+  const [loading, setLoading] = useState(!initialCourse);
   const [selectedDeepDive, setSelectedDeepDive] = useState<CourseDeepDiveItem | null>(null);
 
   const fetchCourse = useCallback(async () => {
+    if (initialCourse) {
+      setCourse(initialCourse);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch(`/api/courses?slug=${slug}&locale=${params?.locale || "en"}`);
@@ -1034,13 +1043,13 @@ const CoursePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [params?.locale, router, slug]);
+  }, [initialCourse, params?.locale, router, slug]);
 
   useEffect(() => {
-    if (slug) {
+    if (!initialCourse && slug) {
       void fetchCourse();
     }
-  }, [fetchCourse, slug]);
+  }, [fetchCourse, initialCourse, slug]);
 
   useEffect(() => {
     if (loading || !course || typeof window === "undefined") return;
