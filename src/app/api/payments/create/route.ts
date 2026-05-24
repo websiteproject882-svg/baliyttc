@@ -9,6 +9,7 @@ import { getBankTransferInstructions } from "@/lib/payments/bank-transfer";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
 import { requireSameOrigin } from "@/lib/authz";
+import { getPublicBaseUrl } from "../../../../lib/public-url";
 
 export const dynamic = "force-dynamic";
 
@@ -29,14 +30,10 @@ function resolveAllowedRedirectUrl(value: string | undefined, request: NextReque
   if (!value) return { url: undefined };
 
   const allowedOrigins = new Set([request.nextUrl.origin]);
-  const publicBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
-  if (publicBaseUrl) {
-    try {
-      allowedOrigins.add(new URL(publicBaseUrl).origin);
-    } catch {
-      // Invalid deployment configuration should not make arbitrary redirects valid.
-    }
+  try {
+    allowedOrigins.add(new URL(getPublicBaseUrl()).origin);
+  } catch {
+    // Invalid deployment configuration should not make arbitrary redirects valid.
   }
 
   const parsed = new URL(value);

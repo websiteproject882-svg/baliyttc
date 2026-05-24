@@ -8,6 +8,7 @@ import { IMG } from "@/data/site";
 import { defaultLocale } from "@/i18n/routing";
 import { findStaticBlogPost } from "@/data/blog";
 import { normalizeLocale } from "@/lib/localized-content";
+import { getPublicBaseUrl } from "@/lib/public-url";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ type PublicBlogPost = {
   metaDescription?: string | null;
 };
 
-const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
+const baseUrl = getPublicBaseUrl();
 
 const publicPostWhere = (slug: string, locale: string) => ({
   slug_locale: { slug, locale },

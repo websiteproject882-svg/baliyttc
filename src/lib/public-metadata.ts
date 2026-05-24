@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { getPublicBaseUrl } from "@/lib/public-url";
 
-const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
+const baseUrl = getPublicBaseUrl();
 const defaultImage = `${baseUrl}/images/brand/logo-512.png`;
 
 export type PublicMetadataKey =

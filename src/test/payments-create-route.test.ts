@@ -307,6 +307,24 @@ describe("payment create route", () => {
     );
   });
 
+  it("allows PayPal return URLs on the configured public domain", async () => {
+    const response = await POST(
+      createRequest({
+        provider: "paypal",
+        returnUrl: "https://baliyttc.com/en/payment/return?provider=paypal",
+        cancelUrl: "https://baliyttc.com/en/payment/return?provider=paypal&status=cancelled",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.createPayPalOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        returnUrl: "https://baliyttc.com/en/payment/return?provider=paypal",
+        cancelUrl: "https://baliyttc.com/en/payment/return?provider=paypal&status=cancelled",
+      }),
+    );
+  });
+
   it("rejects external PayPal return URLs before creating a provider order", async () => {
     const response = await POST(
       createRequest({

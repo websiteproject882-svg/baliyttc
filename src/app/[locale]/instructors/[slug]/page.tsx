@@ -5,9 +5,10 @@ import type { Metadata } from "next";
 import { ArrowLeft, Award, BookOpen, CheckCircle2, Clock, GraduationCap } from "lucide-react";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { getInstructor, instructors } from "@/data/instructors";
+import { getPublicBaseUrl } from "@/lib/public-url";
 
 const locales = ["en", "es", "de", "fr", "id", "ko", "zh", "ja", "ru"];
-const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
+const baseUrl = getPublicBaseUrl();
 
 const profileFocus = [
   "Detailed technique explained in simple language",

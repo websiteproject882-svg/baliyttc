@@ -2,8 +2,9 @@ import type { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 import { locales } from '@/i18n/routing';
 import { instructors } from '../data/instructors';
+import { getPublicBaseUrl } from '../lib/public-url';
 
-const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://baliyttc.com').replace(/\/$/, '');
+const baseUrl = getPublicBaseUrl();
 const staticRoutes = [
   '',
   '/about',

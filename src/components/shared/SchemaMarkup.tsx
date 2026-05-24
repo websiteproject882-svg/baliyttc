@@ -1,7 +1,8 @@
 import { COURSES, SITE } from "@/data/site";
+import { getPublicBaseUrl } from "@/lib/public-url";
 import type { SiteSettings } from "@/lib/site-settings";
 
-const publicBaseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
+const publicBaseUrl = getPublicBaseUrl();
 const defaultLogoUrl = `${publicBaseUrl}/images/brand/logo-512.png`;
 
 type CourseSchemaData = {

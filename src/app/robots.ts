@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
+import { getPublicBaseUrl } from '../lib/public-url';
 
-const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://baliyttc.com').replace(/\/$/, '');
+const baseUrl = getPublicBaseUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {

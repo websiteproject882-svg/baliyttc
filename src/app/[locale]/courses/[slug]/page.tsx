@@ -5,9 +5,10 @@ import { notFound } from "next/navigation";
 import { courseSeo, courseSlugs, getStaticCourse, type CourseSlug, type StaticCoursePageData } from "@/lib/course-static";
 import { CourseSchema } from "@/components/shared/SchemaMarkup";
 import { applyCourseTranslation, normalizeLocale } from "@/lib/localized-content";
+import { getPublicBaseUrl } from "@/lib/public-url";
 import prisma from "@/lib/prisma";
 
-const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
+const baseUrl = getPublicBaseUrl();
 
 export const dynamic = "force-dynamic";
 
