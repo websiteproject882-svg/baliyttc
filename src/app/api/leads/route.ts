@@ -16,6 +16,7 @@ const leadSchema = z.object({
   source: z.string().trim().min(1).max(80).default("website"),
   course: z.string().trim().max(160).optional(),
   message: z.string().trim().max(3000).optional(),
+  website: z.string().trim().max(200).optional(),
 });
 
 const leadUpdateSchema = z
@@ -179,6 +180,10 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
+
+    if (data.website) {
+      return jsonWithRequestId({ success: true, lead: null }, undefined, request);
+    }
 
     const lead = await prisma.lead.create({
       data: {

@@ -12,6 +12,25 @@ const courses = [
 ];
 
 const dates = ["June 3, 2026", "July 8, 2026", "August 12, 2026", "September 9, 2026", "October 14, 2026"];
+const countries = [
+  "Australia",
+  "Austria",
+  "Belgium",
+  "Brazil",
+  "Canada",
+  "France",
+  "Germany",
+  "India",
+  "Indonesia",
+  "Japan",
+  "Netherlands",
+  "Singapore",
+  "Spain",
+  "Switzerland",
+  "United Kingdom",
+  "United States",
+  "Other",
+];
 
 export function ApplyPageClient() {
   const searchParams = useSearchParams();
@@ -28,6 +47,7 @@ export function ApplyPageClient() {
     experience: "Complete beginner",
     source: "",
     message: "",
+    website: "",
   });
 
   const whatsappLink = useMemo(() => {
@@ -49,6 +69,7 @@ export function ApplyPageClient() {
         source: "apply-page",
         course: `${form.course} - ${form.date}`,
         message: `Country: ${form.country}\nExperience: ${form.experience}\nHeard from: ${form.source || "Not specified"}\n\n${form.message}`,
+        website: form.website,
       }),
     }).catch(() => null);
 
@@ -63,11 +84,25 @@ export function ApplyPageClient() {
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
       <form onSubmit={submit} className="rounded-lg border border-sand bg-white p-5 shadow-sm md:p-8">
+        <input
+          tabIndex={-1}
+          autoComplete="off"
+          value={form.website}
+          onChange={(e) => setForm({ ...form, website: e.target.value })}
+          className="hidden"
+          aria-hidden="true"
+          name="website"
+        />
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Full name *"><input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={fieldClass} /></Field>
           <Field label="Email address *"><input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={fieldClass} /></Field>
           <Field label="Phone / WhatsApp *"><input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={fieldClass} placeholder="+62..." /></Field>
-          <Field label="Country of residence *"><input required value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className={fieldClass} /></Field>
+          <Field label="Country of residence *">
+            <select required value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className={fieldClass}>
+              <option value="">Choose country...</option>
+              {countries.map((country) => <option key={country} value={country}>{country}</option>)}
+            </select>
+          </Field>
           <Field label="Which course? *">
             <select value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} className={fieldClass}>
               {courses.map((course) => <option key={course.value} value={course.value}>{course.label}</option>)}
