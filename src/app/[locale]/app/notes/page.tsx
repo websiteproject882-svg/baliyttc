@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Loader2, Save, StickyNote } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Save, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -61,6 +61,35 @@ export default function StudentNotesPage() {
     return () => window.clearTimeout(timer);
   }, [loading, loadedNotes, notes, saveNotes]);
 
+  useEffect(() => {
+    const warnOnUnsavedChanges = (event: BeforeUnloadEvent) => {
+      if (notes === loadedNotes || saving) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnOnUnsavedChanges);
+    return () => window.removeEventListener("beforeunload", warnOnUnsavedChanges);
+  }, [loadedNotes, notes, saving]);
+
+  const downloadNotes = () => {
+    const content = notes.trim() || "No notes written yet.";
+    const stamp = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `bali-yttc-notes-${stamp}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const hasUnsavedChanges = notes !== loadedNotes;
+  const wordCount = notes.trim() ? notes.trim().split(/\s+/).length : 0;
+  const charCount = notes.length;
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <Card className="border-0 bg-white shadow-sm">
@@ -81,6 +110,8 @@ export default function StudentNotesPage() {
                   <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                   Saved {savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </>
+              ) : hasUnsavedChanges ? (
+                "Unsaved changes"
               ) : (
                 "Auto-save is on"
               )}
@@ -99,11 +130,23 @@ export default function StudentNotesPage() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             disabled={loading}
+            maxLength={10000}
           />
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => saveNotes()} disabled={saving}>
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Save now
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-gray-500">
+              {wordCount} words - {charCount}/10,000 characters
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" onClick={downloadNotes} disabled={loading}>
+                <Download className="mr-2 h-4 w-4" />
+                Download notes
+              </Button>
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => saveNotes()} disabled={saving || !hasUnsavedChanges}>
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Save now
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
