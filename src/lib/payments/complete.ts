@@ -18,6 +18,14 @@ function isPaidStatus(status: PaymentStatus) {
   return status === "DEPOSIT_PAID" || status === "FULL_PAID";
 }
 
+const paymentStatusRank: Record<PaymentStatus, number> = {
+  PENDING: 0,
+  FAILED: 0,
+  REFUNDED: 0,
+  DEPOSIT_PAID: 1,
+  FULL_PAID: 2,
+};
+
 type NotificationResult = {
   success?: boolean;
   error?: unknown;
@@ -77,7 +85,11 @@ export async function markPaymentComplete(params: {
     },
   });
 
-  const next = statusForPaymentType(params.paymentType || existingPayment.enrollment.paymentType);
+  const requestedNext = statusForPaymentType(params.paymentType || existingPayment.enrollment.paymentType);
+  const next =
+    paymentStatusRank[existingPayment.enrollment.paymentStatus] > paymentStatusRank[requestedNext.paymentStatus]
+      ? statusForPaymentType("full")
+      : requestedNext;
   await prisma.enrollment.update({
     where: { id: payment.enrollmentId },
     data: {

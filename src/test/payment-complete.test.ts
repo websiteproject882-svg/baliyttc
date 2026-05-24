@@ -207,6 +207,37 @@ describe("payment completion", () => {
     expect(mocks.batchUpdate).not.toHaveBeenCalled();
   });
 
+  it("does not downgrade a fully paid enrollment when a late deposit callback arrives", async () => {
+    mocks.paymentFindUnique.mockResolvedValue(
+      pendingPayment({
+        enrollment: {
+          ...pendingPayment().enrollment,
+          paymentStatus: "FULL_PAID",
+          accessLevel: "FULL",
+        },
+      }),
+    );
+
+    await markPaymentComplete({ paymentId: "payment_1", paymentType: "deposit" });
+
+    expect(mocks.enrollmentUpdate).toHaveBeenCalledWith({
+      where: { id: "enrollment_1" },
+      data: {
+        paymentStatus: "FULL_PAID",
+        accessLevel: "FULL",
+      },
+    });
+    expect(mocks.studentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          paymentStatus: "FULL_PAID",
+          accessLevel: "FULL",
+        }),
+      }),
+    );
+    expect(mocks.batchUpdate).not.toHaveBeenCalled();
+  });
+
   it("respects payment notification toggles", async () => {
     mocks.paymentFindUnique.mockResolvedValue(pendingPayment());
     mocks.getSiteSettings.mockResolvedValue({
