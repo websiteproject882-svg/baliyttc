@@ -64,7 +64,7 @@ FIREBASE_CLIENT_EMAIL=
 FIREBASE_PRIVATE_KEY=
 ```
 
-Email can use Gmail SMTP now:
+Email can use Gmail SMTP now. Public `/en/apply`, contact forms, enrollment confirmations, and admin lead notifications use this provider when configured:
 
 ```env
 GMAIL_EMAIL=
@@ -76,7 +76,18 @@ Or Resend later:
 
 ```env
 RESEND_API_KEY=
+EMAIL_FROM="Bali YTTC <noreply@baliyttc.com>"
 ```
+
+Firebase Admin is required for real student, staff, and admin Firebase token verification. Public marketing pages still deploy without it, but login APIs will return a clear service-unavailable response until these are set correctly:
+
+```env
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+For Vercel, paste the private key with escaped newlines (`\n`) exactly as shown. Do not set `ALLOW_PRODUCTION_TEST_LOGIN=true` for client production.
 
 Payment providers are optional until client accounts are ready:
 

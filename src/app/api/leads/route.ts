@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
+import { sendEmail } from "@/lib/resend";
 import { applyDeprecationHeaders, getClientIp, jsonWithRequestId, LEGACY_API_SUNSET, logApiError, logLegacyRouteAccess, rateLimit } from "@/lib/security";
 
 // Mixed route: public POST stays valid for website lead capture.
@@ -61,6 +62,54 @@ function withLeadsDeprecation(request: NextRequest, response: NextResponse) {
     sunset: LEGACY_API_SUNSET,
     message: "Use /api/admin/leads for authenticated lead management. Keep /api/leads only for public lead capture.",
   });
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function getAdminEmail() {
+  return process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL || "info@baliyttc.com";
+}
+
+function getPublicBaseUrl() {
+  return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+}
+
+function sendLeadNotification(data: z.infer<typeof leadSchema>, leadId: string, request: NextRequest) {
+  const course = data.course || "General inquiry";
+  const phone = data.phone || "Not provided";
+  const message = data.message || "No message";
+
+  return sendEmail({
+    to: getAdminEmail(),
+    subject: `New Bali YTTC Lead: ${data.name} - ${course}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #1f2937;">
+        <div style="background: #F04E23; padding: 22px; border-radius: 14px 14px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 22px;">New Website Lead</h1>
+        </div>
+        <div style="border: 1px solid #eee; border-top: 0; padding: 24px; border-radius: 0 0 14px 14px;">
+          <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
+          <p><strong>Email:</strong> <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></p>
+          <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
+          <p><strong>Course / date:</strong> ${escapeHtml(course)}</p>
+          <p><strong>Source:</strong> ${escapeHtml(data.source)}</p>
+          <div style="background: #faf8f5; padding: 16px; border-radius: 10px; margin: 18px 0;">
+            <strong>Message</strong>
+            <p style="white-space: pre-wrap; margin-bottom: 0;">${escapeHtml(message)}</p>
+          </div>
+          <p style="font-size: 13px; color: #6b7280;">Lead ID: ${escapeHtml(leadId)}</p>
+          <a href="${getPublicBaseUrl()}/en/admin/leads" style="display: inline-block; background: #1f2937; color: white; text-decoration: none; padding: 12px 18px; border-radius: 999px; font-weight: 700;">Open admin leads</a>
+        </div>
+      </div>
+    `,
+  }).catch((error) => logApiError("leads.notification-email", error, request, { leadId }));
 }
 
 export async function GET(request: NextRequest) {
@@ -142,6 +191,8 @@ export async function POST(request: NextRequest) {
         status: "NEW",
       },
     });
+
+    sendLeadNotification(data, lead.id, request);
 
     return withLeadsDeprecation(
       request,

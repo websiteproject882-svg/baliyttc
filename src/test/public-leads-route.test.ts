@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   rateLimit: vi.fn(),
   logApiError: vi.fn(),
   logLegacyRouteAccess: vi.fn(),
+  sendEmail: vi.fn(),
 }));
 
 vi.mock("@/lib/authz", () => ({
@@ -28,6 +29,10 @@ vi.mock("@/lib/prisma", () => ({
       update: mocks.leadUpdate,
     },
   },
+}));
+
+vi.mock("@/lib/resend", () => ({
+  sendEmail: mocks.sendEmail,
 }));
 
 vi.mock("@/lib/security", () => ({
@@ -100,6 +105,7 @@ beforeEach(() => {
   mocks.leadCreate.mockResolvedValue({ id: "lead_1", status: "NEW" });
   mocks.leadFindUnique.mockResolvedValue({ id: "lead_1", status: "NEW" });
   mocks.leadUpdate.mockResolvedValue({ id: "lead_1", status: "CONTACTED" });
+  mocks.sendEmail.mockResolvedValue({ success: true });
 });
 
 describe("public leads route", () => {
@@ -121,6 +127,9 @@ describe("public leads route", () => {
         status: "NEW",
       },
     });
+    expect(mocks.sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+      subject: "New Bali YTTC Lead: Asha Sharma - 200hr",
+    }));
   });
 
   it("rejects oversized public lead payloads", async () => {
