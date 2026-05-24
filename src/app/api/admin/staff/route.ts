@@ -9,20 +9,20 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const createStaffSchema = z.object({
-  email: z.string().trim().email().transform((value) => value.toLowerCase()),
-  name: z.string().trim().min(2),
+  email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+  name: z.string().trim().min(2).max(120),
   role: z.nativeEnum(StaffRole),
 });
 
 const updateStaffSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().trim().min(1).max(120),
   role: z.nativeEnum(StaffRole).optional(),
   status: z.nativeEnum(StaffStatus).optional(),
-  name: z.string().trim().min(2).optional(),
+  name: z.string().trim().min(2).max(120).optional(),
 });
 
 const toggleStaffSchema = z.object({
-  staffId: z.string().min(1),
+  staffId: z.string().trim().min(1).max(120),
   enabled: z.boolean(),
 });
 

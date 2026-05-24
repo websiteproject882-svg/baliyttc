@@ -264,6 +264,21 @@ describe("admin staff route", () => {
     expect(mocks.staffCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized staff invite names before user lookup", async () => {
+    const response = await POST(request("POST", {
+      email: "teacher@example.com",
+      name: "x".repeat(121),
+      role: "COURSE_MANAGER",
+    }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.userFindUnique).not.toHaveBeenCalled();
+    expect(mocks.userUpsert).not.toHaveBeenCalled();
+    expect(mocks.staffCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed staff invite JSON before user lookup", async () => {
     const response = await POST(rawRequest("POST", "{not-valid-json"));
     const body = await response?.json();
@@ -370,6 +385,17 @@ describe("admin staff route", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized staff update ids before lookup", async () => {
+    const response = await PATCH(request("PATCH", { id: "x".repeat(121), status: "ACTIVE" }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.staffFindUnique).not.toHaveBeenCalled();
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
+    expect(mocks.userUpdate).not.toHaveBeenCalled();
+  });
+
   it("validates toggle payloads", async () => {
     const response = await PUT(request("PUT", { staffId: "staff_1", enabled: "yes" }));
     const body = await response?.json();
@@ -389,6 +415,16 @@ describe("admin staff route", () => {
     expect(mocks.staffFindUnique).not.toHaveBeenCalled();
     expect(mocks.staffUpdate).not.toHaveBeenCalled();
     expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized staff toggle ids before lookup", async () => {
+    const response = await PUT(request("PUT", { staffId: "x".repeat(121), enabled: true }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.staffFindUnique).not.toHaveBeenCalled();
+    expect(mocks.staffUpdate).not.toHaveBeenCalled();
   });
 
   it("prevents disabling the last active super admin", async () => {
