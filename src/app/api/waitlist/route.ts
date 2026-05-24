@@ -214,6 +214,13 @@ export async function PATCH(request: NextRequest) {
 
     const { id, status, priority, notes } = parsed.data;
 
+    const existing = await prisma.waitlist.findUnique({
+      where: { id },
+    });
+    if (!existing) {
+      return jsonWithRequestId({ error: "Waitlist entry not found" }, { status: 404 }, request);
+    }
+
     const updateData: Record<string, unknown> = {};
     if (status) updateData.status = status;
     if (priority !== undefined) updateData.priority = priority;
@@ -231,6 +238,7 @@ export async function PATCH(request: NextRequest) {
       action: "waitlist.updated",
       entity: "waitlist",
       entityId: waitlist.id,
+      oldValue: existing,
       newValue: waitlist,
       request,
     });

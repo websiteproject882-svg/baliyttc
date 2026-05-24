@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   requirePermission: vi.fn(),
   writeAuditLog: vi.fn(),
   waitlistFindFirst: vi.fn(),
+  waitlistFindUnique: vi.fn(),
   waitlistCreate: vi.fn(),
   waitlistUpdate: vi.fn(),
   batchFindUnique: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock("@/lib/prisma", () => ({
   default: {
     waitlist: {
       findFirst: mocks.waitlistFindFirst,
+      findUnique: mocks.waitlistFindUnique,
       create: mocks.waitlistCreate,
       update: mocks.waitlistUpdate,
     },
@@ -115,6 +117,12 @@ beforeEach(() => {
   mocks.writeAuditLog.mockResolvedValue(undefined);
   mocks.rateLimit.mockReturnValue({ allowed: true, resetAt: Date.now() + 60_000 });
   mocks.waitlistFindFirst.mockResolvedValue(null);
+  mocks.waitlistFindUnique.mockResolvedValue({
+    id: "waitlist_1",
+    status: "WAITING",
+    priority: 0,
+    notes: null,
+  });
   mocks.batchFindUnique.mockResolvedValue({ id: "batch_1", status: "FULL" });
   mocks.waitlistCreate.mockResolvedValue({
     id: "waitlist_1",
@@ -220,7 +228,23 @@ describe("public waitlist route", () => {
       action: "waitlist.updated",
       entity: "waitlist",
       entityId: "waitlist_1",
+      oldValue: expect.objectContaining({ status: "WAITING" }),
     }));
+  });
+
+  it("returns 404 when updating a missing waitlist entry", async () => {
+    mocks.waitlistFindUnique.mockResolvedValue(null);
+
+    const response = await PATCH(patchRequest({
+      id: "missing",
+      status: "NOTIFIED",
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Waitlist entry not found");
+    expect(mocks.waitlistUpdate).not.toHaveBeenCalled();
+    expect(mocks.writeAuditLog).not.toHaveBeenCalled();
   });
 
   it("rejects invalid admin waitlist updates before writing", async () => {
