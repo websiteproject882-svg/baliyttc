@@ -99,7 +99,11 @@ const inferGalleryCategory = (image: PublicGalleryImage): GalleryFilter => {
   return "Practice";
 };
 
-const Gallery = () => {
+type GalleryProps = {
+  initialImages?: PublicGalleryImage[];
+};
+
+const Gallery = ({ initialImages = [] }: GalleryProps) => {
   const fallbackImages = useMemo<PublicGalleryImage[]>(
     () =>
       GALLERY.map((url, index) => ({
@@ -112,7 +116,7 @@ const Gallery = () => {
     [],
   );
   const [active, setActive] = useState<PublicGalleryImage | null>(null);
-  const [images, setImages] = useState<PublicGalleryImage[]>(fallbackImages);
+  const [images, setImages] = useState<PublicGalleryImage[]>(initialImages.length ? initialImages : fallbackImages);
   const [activeFilter, setActiveFilter] = useState<GalleryFilter>("All");
 
   useEffect(() => {

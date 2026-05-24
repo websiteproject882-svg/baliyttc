@@ -25,10 +25,14 @@ interface BlogPost {
 
 const POSTS_PER_PAGE = 6;
 
-const Blog = () => {
+type BlogProps = {
+  initialPosts?: BlogPost[];
+};
+
+const Blog = ({ initialPosts = [] }: BlogProps) => {
   const params = useParams<{ locale: string }>();
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
+  const [loading, setLoading] = useState(initialPosts.length === 0);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,17 +42,17 @@ const Blog = () => {
       try {
         const res = await fetch(`/api/blog?locale=${params?.locale || "en"}&limit=60`);
         const data = await res.json();
-        setPosts(data.posts?.length ? data.posts : STATIC_BLOG_POSTS);
+        setPosts(data.posts?.length ? data.posts : initialPosts.length ? initialPosts : STATIC_BLOG_POSTS);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
-        setPosts(STATIC_BLOG_POSTS);
+        setPosts(initialPosts.length ? initialPosts : STATIC_BLOG_POSTS);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPosts();
-  }, [params?.locale]);
+  }, [initialPosts, params?.locale]);
 
   useEffect(() => {
     setCurrentPage(1);

@@ -9,6 +9,10 @@ const publicPages = [
   { path: "/en/apply", marker: "Apply for 2026 Batch" },
   { path: "/en/contact", marker: "Contact Bali YTTC" },
   { path: "/en/gallery", marker: "Moments from" },
+  {
+    path: "/en/blog/200-hour-yoga-teacher-training-in-bali-what-students-study",
+    marker: "What Students Actually Study",
+  },
   { path: "/en/faq", marker: "FAQ" },
   { path: "/en/schedule", marker: "Schedule" },
   { path: "/en/accommodation", marker: "Accommodation" },
