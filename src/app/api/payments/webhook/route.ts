@@ -64,6 +64,9 @@ function providerMajorAmountMatches(payment: StoredPaymentForWebhook, amount: un
 export async function POST(request: NextRequest) {
   try {
     const provider = request.nextUrl.searchParams.get("provider") || "razorpay";
+    if (provider !== "razorpay" && provider !== "paypal") {
+      return jsonWithRequestId({ error: "Unsupported payment provider" }, { status: 400 }, request);
+    }
     const rawBody = await request.text();
 
     if (provider === "paypal") {

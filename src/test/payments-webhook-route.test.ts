@@ -45,7 +45,7 @@ vi.mock("@/lib/security", () => ({
   logApiError: mocks.logApiError,
 }));
 
-function webhookRequest(provider: "razorpay" | "paypal", body: unknown, headers: Record<string, string> = {}) {
+function webhookRequest(provider: string, body: unknown, headers: Record<string, string> = {}) {
   return new NextRequest(`https://example.com/api/payments/webhook?provider=${provider}`, {
     method: "POST",
     headers: {
@@ -56,7 +56,7 @@ function webhookRequest(provider: "razorpay" | "paypal", body: unknown, headers:
   });
 }
 
-function rawWebhookRequest(provider: "razorpay" | "paypal", body: string, headers: Record<string, string> = {}) {
+function rawWebhookRequest(provider: string, body: string, headers: Record<string, string> = {}) {
   return new NextRequest(`https://example.com/api/payments/webhook?provider=${provider}`, {
     method: "POST",
     headers: {
@@ -88,6 +88,18 @@ beforeEach(() => {
 });
 
 describe("payment webhook route", () => {
+  it("rejects unsupported webhook providers before signature checks", async () => {
+    const response = await POST(webhookRequest("stripe", { id: "evt_unknown" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("X-Request-Id")).toBe("req_payment_webhook");
+    expect(body).toEqual({ error: "Unsupported payment provider" });
+    expect(mocks.verifyRazorpayWebhookSignature).not.toHaveBeenCalled();
+    expect(mocks.verifyPayPalWebhook).not.toHaveBeenCalled();
+    expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
+  });
+
   it("rejects invalid Razorpay signatures before parsing business state", async () => {
     mocks.verifyRazorpayWebhookSignature.mockReturnValue(false);
 
