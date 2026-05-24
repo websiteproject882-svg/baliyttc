@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const moduleProgressSchema = z.object({
   completed: z.boolean().optional(),
-  notes: z.string().max(5000).optional(),
+  notes: z.string().trim().max(5000).optional(),
 });
 const moduleParamsSchema = z.object({
   moduleId: z.string().trim().min(1).max(120),

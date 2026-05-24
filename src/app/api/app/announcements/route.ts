@@ -7,12 +7,12 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 export const dynamic = "force-dynamic";
 
 const reactionSchema = z.object({
-  announcementId: z.string().min(1),
-  emoji: z.string().min(1).max(16),
+  announcementId: z.string().trim().min(1).max(120),
+  emoji: z.string().trim().min(1).max(16),
 });
 
 const replySchema = z.object({
-  announcementId: z.string().min(1),
+  announcementId: z.string().trim().min(1).max(120),
   content: z.string().trim().min(1).max(500),
 });
 

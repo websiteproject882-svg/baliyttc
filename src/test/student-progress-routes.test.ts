@@ -159,7 +159,7 @@ describe("student progress routes", () => {
   });
 
   it("updates module progress, recalculates completed hours, and audits the change", async () => {
-    const response = await patchModuleProgress(moduleRequest({ completed: true, notes: "Done" }), {
+    const response = await patchModuleProgress(moduleRequest({ completed: true, notes: "  Done  " }), {
       params: { moduleId: "module_1" },
     });
     const body = await response?.json();

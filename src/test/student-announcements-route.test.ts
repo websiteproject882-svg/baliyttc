@@ -164,7 +164,7 @@ describe("student announcements route", () => {
   });
 
   it("saves a coded reaction as a real emoji", async () => {
-    const response = await PATCH(request("PATCH", { announcementId: "announcement_1", emoji: "LOVE" }));
+    const response = await PATCH(request("PATCH", { announcementId: " announcement_1 ", emoji: " LOVE " }));
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
@@ -208,6 +208,16 @@ describe("student announcements route", () => {
     expect(body.error).toBe("Unsupported reaction");
   });
 
+  it("rejects oversized announcement ids before reaction lookup", async () => {
+    const response = await PATCH(request("PATCH", { announcementId: "x".repeat(121), emoji: "PRAY" }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.announcementFindUnique).not.toHaveBeenCalled();
+    expect(mocks.announcementReactionUpsert).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed reaction JSON before reading announcements", async () => {
     const response = await PATCH(rawRequest("PATCH", "{not-valid-json"));
     const body = await response?.json();
@@ -237,7 +247,7 @@ describe("student announcements route", () => {
   });
 
   it("creates a reply for a visible announcement", async () => {
-    const response = await POST(request("POST", { announcementId: "announcement_1", content: "See you there" }));
+    const response = await POST(request("POST", { announcementId: " announcement_1 ", content: "  See you there  " }));
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
@@ -249,6 +259,16 @@ describe("student announcements route", () => {
         content: "See you there",
       },
     });
+  });
+
+  it("rejects oversized announcement ids before reply lookup", async () => {
+    const response = await POST(request("POST", { announcementId: "x".repeat(121), content: "See you there" }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.announcementFindUnique).not.toHaveBeenCalled();
+    expect(mocks.announcementReplyCreate).not.toHaveBeenCalled();
   });
 
   it("validates reply content", async () => {
