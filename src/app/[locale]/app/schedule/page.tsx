@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, Clock, MapPin, Sparkles, UserRound } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, Copy, Download, MapPin, Sparkles, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Activity = {
@@ -28,6 +29,7 @@ export default function StudentSchedulePage() {
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     void fetch("/api/app/portal", { cache: "no-store" })
@@ -43,11 +45,88 @@ export default function StudentSchedulePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const makeScheduleSummary = () =>
+    schedule
+      .map((entry) => {
+        const date = new Date(entry.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+        const activities = entry.activities
+          .map((activity) => `${activity.time} - ${activity.title}`)
+          .join("; ");
+        return `Day ${entry.dayNumber} (${date}): ${entry.ceremonyBlocked ? "Balinese ceremony / no class" : activities || "Schedule details pending"}`;
+      })
+      .join("\n");
+
+  const copySchedule = async () => {
+    try {
+      await navigator.clipboard.writeText(makeScheduleSummary());
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Could not copy schedule. Please try again.");
+    }
+  };
+
+  const exportCalendar = () => {
+    const formatDate = (value: string) => {
+      const date = new Date(value);
+      return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`;
+    };
+    const escapeIcs = (value: string) => value.replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");
+    const events = schedule.map((entry) => {
+      const start = formatDate(entry.date);
+      const endDate = new Date(entry.date);
+      endDate.setUTCDate(endDate.getUTCDate() + 1);
+      const end = formatDate(endDate.toISOString());
+      const summary = entry.ceremonyBlocked ? `Bali YTTC Day ${entry.dayNumber}: Ceremony Day` : `Bali YTTC Day ${entry.dayNumber}`;
+      const description = entry.ceremonyBlocked
+        ? entry.notes || "Balinese ceremony day. Check your student portal for details."
+        : entry.activities.map((activity) => `${activity.time} - ${activity.title}`).join("\\n");
+      return [
+        "BEGIN:VEVENT",
+        `UID:${entry.id}@baliyttc`,
+        `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z")}`,
+        `DTSTART;VALUE=DATE:${start}`,
+        `DTEND;VALUE=DATE:${end}`,
+        `SUMMARY:${escapeIcs(summary)}`,
+        `DESCRIPTION:${escapeIcs(description || "Training schedule details in student portal.")}`,
+        "END:VEVENT",
+      ].join("\r\n");
+    });
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Bali YTTC//Student Schedule//EN", ...events, "END:VCALENDAR"].join("\r\n");
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "bali-yttc-schedule.ics";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
-        <p className="mt-1 text-sm text-gray-500">Weekly and daily class plan with teacher, time, yoga style, and room.</p>
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
+          <p className="mt-1 text-sm text-gray-500">Weekly and daily class plan with teacher, time, yoga style, and room.</p>
+        </div>
+        {schedule.length > 0 ? (
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={copySchedule}>
+              {copied ? <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> : <Copy className="mr-2 h-4 w-4" />}
+              {copied ? "Copied" : "Copy summary"}
+            </Button>
+            <Button className="bg-orange-500 text-white hover:bg-orange-600" onClick={exportCalendar}>
+              <Download className="mr-2 h-4 w-4" />
+              Export calendar
+            </Button>
+          </div>
+        ) : null}
       </div>
       {error && (
         <Card className="mb-4 border border-red-200 bg-red-50 shadow-sm">
