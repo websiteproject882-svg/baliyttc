@@ -43,14 +43,24 @@ describe("sitemap and robots metadata", () => {
     expect(urls).toContain("https://baliyttc.test/id/retreats");
     expect(urls.filter((url) => url.endsWith("/en/courses/200hr"))).toHaveLength(1);
     expect(urls.filter((url) => url.endsWith("/id/blog/first-post"))).toHaveLength(1);
+    expect(urls).toContain(
+      "https://baliyttc.test/en/blog/200-hour-yoga-teacher-training-in-bali-what-students-study",
+    );
     expect(mocks.courseFindMany).toHaveBeenCalledWith({
       where: { isActive: true },
       select: { slug: true },
     });
-    expect(mocks.blogPostFindMany).toHaveBeenCalledWith({
-      where: { status: "PUBLISHED" },
-      select: { slug: true },
-    });
+    expect(mocks.blogPostFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          OR: [
+            { status: "PUBLISHED", OR: [{ publishedAt: null }, { publishedAt: { lte: expect.any(Date) } }] },
+            { status: "SCHEDULED", scheduledAt: { lte: expect.any(Date) } },
+          ],
+        },
+        select: { slug: true },
+      }),
+    );
   });
 
   it("keeps sitemap resilient when the database is unavailable", async () => {
@@ -63,6 +73,9 @@ describe("sitemap and robots metadata", () => {
     expect(urls).toContain("https://baliyttc.test/en/courses/100hr");
     expect(urls).toContain("https://baliyttc.test/en/courses/200hr");
     expect(urls).toContain("https://baliyttc.test/en/courses/300hr");
+    expect(urls).toContain(
+      "https://baliyttc.test/en/blog/50-hour-hatha-vinyasa-yoga-teacher-training-in-bali",
+    );
   });
 
   it("disallows private and API routes in robots metadata", async () => {

@@ -1,7 +1,9 @@
 import type { MetadataRoute } from 'next';
+import { PostStatus } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { locales } from '@/i18n/routing';
 import { instructors } from '../data/instructors';
+import { STATIC_BLOG_POSTS } from '../data/blog';
 import { getPublicBaseUrl } from '../lib/public-url';
 
 const baseUrl = getPublicBaseUrl();
@@ -34,7 +36,8 @@ function localizedUrl(locale: string, path: string) {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let courseSlugs: string[] = ['50hr', '100hr', '200hr', '300hr'];
-  let blogSlugs: string[] = [];
+  let blogSlugs: string[] = STATIC_BLOG_POSTS.map((post) => post.slug);
+  const now = new Date();
 
   try {
     const [courses, posts] = await Promise.all([
@@ -43,7 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         select: { slug: true },
       }),
       prisma.blogPost.findMany({
-        where: { status: 'PUBLISHED' },
+        where: {
+          OR: [
+            { status: PostStatus.PUBLISHED, OR: [{ publishedAt: null }, { publishedAt: { lte: now } }] },
+            { status: PostStatus.SCHEDULED, scheduledAt: { lte: now } },
+          ],
+        },
         select: { slug: true },
       }),
     ]);
@@ -51,12 +59,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (courses.length > 0) {
       courseSlugs = Array.from(new Set(courses.map((course) => course.slug)));
     }
-    blogSlugs = Array.from(new Set(posts.map((post) => post.slug)));
+    blogSlugs = Array.from(new Set([...posts.map((post) => post.slug), ...blogSlugs]));
   } catch {
     // Keep sitemap generation resilient during first deploys before the DB is ready.
   }
 
-  const now = new Date();
   const entries: MetadataRoute.Sitemap = [];
 
   for (const locale of locales) {
