@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,12 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff, Users } from "lucide-react";
 import { getRoleHomePath } from "@/lib/rbac";
 import { isFirebaseConfigured, sendPortalPasswordReset } from "@/lib/firebase";
+import { withLocalePath } from "@/lib/localized-path";
 
 export default function StaffLoginPage() {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params.locale || "en";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
@@ -109,7 +112,7 @@ export default function StaffLoginPage() {
         description: "Redirecting to your dashboard...",
       });
 
-      router.push(data.redirectTo || getRoleHomePath(data.role));
+      router.push(withLocalePath(data.redirectTo || getRoleHomePath(data.role), locale));
     } catch (error) {
       toast({
         title: "Login failed",
@@ -146,7 +149,7 @@ export default function StaffLoginPage() {
         title: "Verification successful",
         description: "Redirecting to your dashboard...",
       });
-      router.push(data.redirectTo || getRoleHomePath(data.role));
+      router.push(withLocalePath(data.redirectTo || getRoleHomePath(data.role), locale));
     } catch (error) {
       toast({
         title: "Verification failed",

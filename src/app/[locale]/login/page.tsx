@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getRoleHomePath } from "@/lib/rbac";
 import { isFirebaseConfigured, sendPortalPasswordReset } from "@/lib/firebase";
 import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
+import { withLocalePath } from "@/lib/localized-path";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -78,7 +79,7 @@ export default function LoginPage() {
         description: "Redirecting to your dashboard...",
       });
 
-      router.push(result.redirectTo || getRoleHomePath(result.role || "STUDENT"));
+      router.push(withLocalePath(result.redirectTo || getRoleHomePath(result.role || "STUDENT"), locale));
     } catch (error: any) {
       toast({
         title: "Login failed",
@@ -104,7 +105,7 @@ export default function LoginPage() {
         title: "Verification successful",
         description: "Redirecting to your dashboard...",
       });
-      router.push(result.redirectTo || getRoleHomePath(result.role));
+      router.push(withLocalePath(result.redirectTo || getRoleHomePath(result.role), locale));
     } catch (error) {
       toast({
         title: "Verification failed",

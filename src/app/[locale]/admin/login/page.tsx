@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,12 @@ import { BalieytcLogo } from "@/components/shared/BalieytcLogo";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { isFirebaseConfigured, sendPortalPasswordReset } from "@/lib/firebase";
+import { withLocalePath } from "@/lib/localized-path";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params.locale || "en";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
@@ -110,7 +113,7 @@ export default function AdminLoginPage() {
         description: "Redirecting to admin dashboard...",
       });
 
-      router.push(data.redirectTo || "/admin/dashboard");
+      router.push(withLocalePath(data.redirectTo || "/admin/overview", locale));
     } catch (error) {
       toast({
         title: "Login failed",
@@ -147,7 +150,7 @@ export default function AdminLoginPage() {
         title: "Verification successful",
         description: "Redirecting to admin dashboard...",
       });
-      router.push(data.redirectTo || "/admin/dashboard");
+      router.push(withLocalePath(data.redirectTo || "/admin/overview", locale));
     } catch (error) {
       toast({
         title: "Verification failed",
