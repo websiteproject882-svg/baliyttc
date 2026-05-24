@@ -92,6 +92,16 @@ const googleReviews = [
   },
 ];
 
+export type PublicTestimonial = {
+  id: string;
+  name: string;
+  course: string;
+  quote: string;
+  rating: number;
+  location: string | null;
+  graduationYear: number | null;
+};
+
 const videoStories = [
   {
     title: "Laura Review",
@@ -115,7 +125,19 @@ const videoStories = [
   },
 ];
 
-export default function TestimonialsPage() {
+export default function TestimonialsPage({ initialTestimonials = [] }: { initialTestimonials?: PublicTestimonial[] }) {
+  const publicReviews =
+    initialTestimonials.length > 0
+      ? initialTestimonials.map((item) => ({
+          name: item.name,
+          course: item.course,
+          rating: item.rating,
+          location: item.location,
+          graduationYear: item.graduationYear,
+          summary: item.quote,
+        }))
+      : googleReviews.map((item) => ({ ...item, course: null, rating: 5, location: null, graduationYear: null }));
+
   return (
     <main className="min-h-screen bg-cream">
       <section className="relative overflow-hidden bg-warm-dark pt-36 pb-20 text-white md:pt-44 md:pb-28">
@@ -187,19 +209,27 @@ export default function TestimonialsPage() {
             <SectionHeading
               eyebrow="Google Reviews"
               title={<>Verified review <em className="text-terra">highlights</em></>}
-              sub="Short review summaries from students who shared their experience publicly."
+              sub="Approved student reviews from the Bali YTTC community."
             />
           </Reveal>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {googleReviews.map((review, index) => (
+            {publicReviews.map((review, index) => (
               <Reveal key={review.name} delay={index * 0.04}>
                 <article className="h-full rounded-2xl border border-warm-light/40 bg-cream p-5">
                   <div className="mb-4 flex gap-1">
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <Star key={n} className="h-3.5 w-3.5 fill-gold text-gold" />
+                      <Star
+                        key={n}
+                        className={`h-3.5 w-3.5 ${n <= review.rating ? "fill-gold text-gold" : "text-warm-light"}`}
+                      />
                     ))}
                   </div>
                   <p className="font-semibold text-warm-dark">{review.name}</p>
+                  {(review.course || review.location || review.graduationYear) && (
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-terra">
+                      {[review.course, review.location, review.graduationYear].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
                   <p className="mt-3 text-sm leading-7 text-warm-mid">{review.summary}</p>
                 </article>
               </Reveal>
