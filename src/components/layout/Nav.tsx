@@ -30,7 +30,7 @@ const menuColumns: MenuColumn[] = [
       { label: "200hr Yoga Teacher Training", to: "/courses/200hr" },
       { label: "300hr Advanced", to: "/courses/300hr" },
       { label: "Retreats", to: "/retreats", strong: true },
-      { label: "Short Courses", to: "/workshops" },
+      { label: "50hr Short Course", to: "/courses/50hr" },
     ],
   },
   {

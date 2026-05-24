@@ -72,6 +72,13 @@ const accommodationGallery = [
   { title: "Yoga Studio", image: IMG.yogaStudio },
 ];
 
+const toActivitySlug = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
 interface Course {
   id: string;
   slug: string;
@@ -90,11 +97,10 @@ const courseDetails = {
   "50hr": {
     name: "50-Hour Hatha-Vinyasa Yoga Teacher Training in Bali",
     summary:
-      "A focused 6-day short yoga teacher training in Ubud for beginners who want a practical foundation in traditional Hatha, Vinyasa flow, breathwork, alignment and teaching basics.",
+      "A focused 6-day, 5-night Hatha-Vinyasa foundation in Ubud for beginners who want traditional practice, sun salutations, alignment, breathwork and first-step teaching confidence.",
     description:
-      "This 50-hour Hatha-Vinyasa training is a compact foundation course for students new to yoga or anyone wanting to deepen traditional practice in a short format. The course introduces asana, sun salutations, basic sequencing, alignment, pranayama, meditation, anatomy and beginner teaching practice in a supportive Bali setting.",
-    image:
-      "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1080/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/09/50-hour-hatha-vinyasa-yoga-teacher-training-1.jpg",
+      "This 50-hour Hatha-Vinyasa training is a compact foundation course for students new to yoga or anyone wanting to deepen traditional practice in a short format. The course introduces Hatha and Vinyasa asana, sun salutations, posture categories, basic sequencing, alignment, pranayama, meditation, mantra, anatomy and beginner teaching practice in a supportive Bali setting.",
+    image: IMG.yogaStudio,
     eyebrow: "50-Hour YTT in Bali",
     foundationTitle: <>Short Hatha-Vinyasa <em className="text-terra">Foundation</em></>,
     curriculumTitle: "What the 50-hour training covers",
@@ -120,33 +126,33 @@ const courseDetails = {
     curriculum: [
       {
         title: "Hatha & Vinyasa Practice",
-        desc: "Learn warm-ups, sun salutations, foundational postures and basic Vinyasa flow structure.",
-        points: ["Pawanmuktasana warm-up", "Hatha sun salutation", "Vinyasa flow variations"],
+        desc: "Learn warm-ups, traditional Hatha sun salutations, Ashtanga-inspired sun salutation rhythm and basic Vinyasa flow structure.",
+        points: ["Pawanmuktasana warm-up", "Hatha and Ashtanga sun salutations", "Vinyasa flow variations"],
       },
       {
         title: "Asana Concepts",
-        desc: "Understand posture categories, effects, benefits and how different styles impact body and mind.",
-        points: ["Posture families", "Benefits and effects", "Safe practice basics"],
+        desc: "Understand posture categories, effects, benefits and how standing, seated, prone, supine and closing postures support body and mind.",
+        points: ["Standing and seated postures", "Prone and supine poses", "Inversions and closing sequence"],
       },
       {
         title: "Alignment & Modification",
-        desc: "Refine your understanding of asana through basic alignment, posture anatomy and student-friendly modifications.",
-        points: ["Anatomy of posture", "Alignment principles", "Modifications and props"],
+        desc: "Refine your understanding of asana through safe entry and exit, posture anatomy, benefits, modifications and intelligent prop use.",
+        points: ["Anatomy of posture", "Alignment and modification", "Props for different bodies"],
       },
       {
         title: "Teaching Practice",
-        desc: "Start practicing from day one with simple cueing, class structure and supervised teaching drills.",
-        points: ["Basic cueing", "Short class structure", "Feedback from teachers"],
+        desc: "Start practicing from day one with simple cueing, one-to-one teaching, small group guidance and supervised feedback from senior teachers.",
+        points: ["Basic cueing", "One-to-one teaching practice", "Small group feedback"],
       },
       {
         title: "Hands-on Adjustments",
-        desc: "Learn the art of safe, respectful beginner-level adjustment and observation.",
-        points: ["Consent-based touch", "Simple assists", "Observation skills"],
+        desc: "Learn the art of safe, respectful beginner-level adjustment through observation, communication and posture-specific support.",
+        points: ["Consent-based touch", "Hands-on adjustment basics", "Observation skills"],
       },
       {
         title: "Mantra, Meditation & Pranayama",
-        desc: "Build a daily inner practice through breathwork, meditation methods and mantra chanting.",
-        points: ["Pranayama techniques", "Meditation basics", "Mantra practice"],
+        desc: "Build a daily inner practice through pranayama, meditation methods and mantra chanting that support mental and physical steadiness.",
+        points: ["Pranayama techniques", "Meditation basics", "Mantra chanting"],
       },
       {
         title: "Anatomy Basics",
@@ -155,54 +161,46 @@ const courseDetails = {
       },
     ],
     schedule: [
-      { time: "Morning", title: "Mantra, Pranayama & Asana", desc: "Start the day with breath, cleansing and guided Hatha-Vinyasa practice." },
-      { time: "Breakfast", title: "Plant-Based Meal", desc: "A nourishing meal before theory and teaching work." },
-      { time: "Late Morning", title: "Philosophy & Anatomy", desc: "Simple foundations of yoga theory and body awareness." },
-      { time: "Lunch", title: "Rest & Integration", desc: "A short break for food, notes and recovery." },
-      { time: "Afternoon", title: "Alignment, Adjustment & Teaching", desc: "Hands-on learning, cueing practice and basic sequencing." },
-      { time: "Evening", title: "Asana, Meditation & Dinner", desc: "Closing movement, meditation and dinner." },
+      { time: "06:00 - 09:00", title: "Mantra, Pranayama & Asana", desc: "Cleansing, breathwork and guided Hatha-Vinyasa practice." },
+      { time: "09:00 - 10:15", title: "Breakfast", desc: "A nourishing plant-based meal before theory and teaching work." },
+      { time: "10:15 - 13:00", title: "Anatomy & Yoga Foundations", desc: "Body awareness, posture anatomy and yoga theory in simple language." },
+      { time: "13:15 - 14:00", title: "Lunch", desc: "A short break for food, notes and recovery." },
+      { time: "15:00 - 16:30", title: "Alignment, Adjustment & Teaching", desc: "Hands-on learning, cueing practice and basic sequencing." },
+      { time: "16:30 - 19:30", title: "Asana, Meditation & Dinner", desc: "Closing movement, meditation and dinner." },
     ],
     activities: [
       {
-        title: "Acro Yoga Introduction",
-        desc: "A playful beginner workshop for balance, trust and partner awareness.",
-        image: IMG.acroYoga,
+        title: "Holy Temple Purification",
+        desc: "A respectful Balinese cleansing experience with etiquette guidance and intention setting.",
+        image: IMG.templePurification,
       },
       {
-        title: "Balinese Welcome",
-        desc: "A soft cultural entry into the Bali YTTC community and Ubud training rhythm.",
+        title: "Balinese Welcome Ceremony",
+        desc: "A grounding campus ceremony that helps the group arrive, connect and begin with shared intention.",
         image:
           "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:864/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/Balinese-Welcome-Ceremony-for-YTT.jpg",
       },
       {
-        title: "Ubud Practice Setting",
-        desc: "Train in a peaceful yoga environment surrounded by nature, suitable for focused short immersion.",
-        image:
-          "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1080/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/09/Yoga-training-in-Bali.jpg",
+        title: "Acro Yoga Workshop",
+        desc: "A beginner-friendly partner workshop for balance, trust, communication and playful confidence.",
+        image: IMG.acroYoga,
       },
     ],
     pricing: [
       {
-        name: "Tuition Only",
+        name: "Without Accommodation",
         was: "EUR 699",
-        price: "EUR 499",
-        desc: "Short-course training package for students arranging their own stay.",
-        included: ["Hatha and Vinyasa practice", "Training equipment", "Foundation certificate"],
+        price: "EUR 399",
+        desc: "Training package for students arranging their own stay in Ubud.",
+        included: ["Hatha, Ashtanga and Vinyasa basics", "Excursion and cultural activity", "Yoga equipment", "Foundation certificate"],
       },
       {
-        name: "Shared Stay",
-        was: "EUR 999",
+        name: "Private Villa",
+        was: "EUR 1299",
         price: "EUR 799",
-        desc: "Six-day short course with meals and shared accommodation included.",
-        included: ["6 days meals and stay", "Course materials", "Daily training sessions"],
+        desc: "Six-day short course with private stay, meals and training rhythm included.",
+        included: ["6 days meals and accommodation", "Excursions", "All yoga equipment", "Foundation certificate"],
         featured: true,
-      },
-      {
-        name: "Private Room",
-        was: "EUR 1199",
-        price: "EUR 999",
-        desc: "Private room package for students who want a quieter short immersion.",
-        included: ["Private accommodation", "Meals and training", "Beginner workshops"],
       },
     ],
     faqs: [
@@ -1091,8 +1089,15 @@ const CoursePage = () => {
       {/* Hero */}
       <section className="relative pt-40 pb-20 md:pt-48 md:pb-28 overflow-hidden bg-warm-dark">
         <div className="absolute inset-0">
-          <img src={pageCourse.image} alt={pageCourse.name} className="w-full h-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-warm-dark/90 to-warm-dark/60" />
+          <img
+            src={pageCourse.image}
+            alt={pageCourse.name}
+            className="h-full w-full object-cover opacity-45"
+            onError={(event) => {
+              event.currentTarget.src = IMG.course100;
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-warm-dark/88 via-warm-dark/68 to-warm-dark/45" />
         </div>
         <div className="container-wide relative">
           <div className="max-w-3xl">
@@ -1525,7 +1530,7 @@ const CoursePage = () => {
               <div className="mt-7 grid gap-8 md:grid-cols-3">
                 {detail.activities.map((item, i) => (
                   <Reveal key={item.title} delay={i * 0.08}>
-                    <div className="group">
+                    <Link href={`/activities#${toActivitySlug(item.title)}`} className="group block">
                       <div className="overflow-hidden rounded-[6px] bg-stone-200 shadow-[0_14px_35px_rgba(31,28,23,0.08)]">
                         <img
                           src={item.image}
@@ -1538,12 +1543,16 @@ const CoursePage = () => {
                       </div>
                       <div className="pt-4">
                         <p className="label-caps mb-2 text-stone-400">
-                          {["Ceremony", "Nature", "Practice"][i] || "Experience"}
+                          {["Ceremony", "Ceremony", "Workshop"][i] || "Experience"}
                         </p>
                         <h3 className="display-sm text-warm-dark">{item.title}</h3>
                         <p className="mt-2 max-w-sm text-[0.92rem] leading-6 text-warm-mid">{item.desc}</p>
+                        <span className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-terra">
+                          View activity details
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </span>
                       </div>
-                    </div>
+                    </Link>
                   </Reveal>
                 ))}
               </div>

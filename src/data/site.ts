@@ -97,17 +97,17 @@ export const COURSES = [
     title: "50-Hour Hatha-Vinyasa YTT in Bali",
     style: "Hatha / Vinyasa / Short Course",
     summary:
-      "A focused 6-day short yoga teacher training in Ubud for beginners who want a practical foundation in traditional Hatha, Vinyasa flow, breathwork, alignment and teaching basics.",
-    priceFrom: 499,
+      "A focused 6-day, 5-night Hatha-Vinyasa foundation in Ubud for beginners who want traditional asana practice, sun salutations, alignment, breathwork, meditation and first-step teaching confidence.",
+    priceFrom: 399,
     image: "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1080/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/09/50-hour-hatha-vinyasa-yoga-teacher-training-1.jpg",
-    next: "Jan 12 - Jan 17, 2026",
+    next: "Jun 8 - Jun 13, 2026",
     seats: "Open",
-    highlights: ["Hatha fundamentals", "Vinyasa flow basics", "Breathwork", "Teaching foundations"],
+    highlights: ["Hatha & Vinyasa basics", "Sun salutation study", "Alignment and props", "Beginner teaching practice"],
     modules: [
-      { title: "Hatha & Vinyasa Practice", desc: "Warm-ups, sun salutations, foundational postures and simple Vinyasa flow structure." },
-      { title: "Alignment & Modification", desc: "Basic posture anatomy, alignment principles, modifications and props." },
-      { title: "Pranayama & Meditation", desc: "Daily breathwork, meditation basics and mantra practice." },
-      { title: "Teaching Basics", desc: "Cueing, short class structure and confidence-building practice teaching." }
+      { title: "Hatha & Vinyasa Practice", desc: "Warm-ups, traditional Hatha sun salutations, Vinyasa variations and posture families." },
+      { title: "Alignment & Modification", desc: "Safe entry, exit, props, posture benefits and beginner-friendly modifications." },
+      { title: "Pranayama, Meditation & Mantra", desc: "Daily breathwork, meditation basics and mantra chanting for mental steadiness." },
+      { title: "Teaching Basics", desc: "Cueing, short class structure, one-to-one practice and supervised teaching drills." }
     ]
   },
   {
@@ -354,7 +354,7 @@ export const HOME_GALLERY = [
 ];
 
 export const BATCHES = [
-  { course: "50-Hour Hatha-Vinyasa YTT", start: "Jan 12, 2026", end: "Jan 17, 2026", price: "$499", status: "Open" },
+  { course: "50-Hour Hatha-Vinyasa YTT", start: "Jun 8, 2026", end: "Jun 13, 2026", price: "$399", status: "Open" },
   { course: "100-Hour YTT", start: "Feb 5, 2026", end: "Feb 15, 2026", price: "$999", status: "6 seats left" },
   { course: "200-Hour YTT", start: "Mar 2, 2026", end: "Mar 22, 2026", price: "$1,499", status: "Only 4 seats left", urgent: true },
   { course: "300-Hour YTT", start: "Apr 6, 2026", end: "May 3, 2026", price: "$1,899", status: "Enrolment open" },
@@ -371,7 +371,7 @@ export const NAV = [
       { label: "200-Hour YTT", to: "/courses/200hr" },
       { label: "300-Hour YTT", to: "/courses/300hr" },
       { label: "Retreats", to: "/retreats" },
-      { label: "Workshops", to: "/workshops" },
+      { label: "50-Hour Short Course", to: "/courses/50hr" },
     ],
   },
   { label: "Pricing", to: "/pricing" },
