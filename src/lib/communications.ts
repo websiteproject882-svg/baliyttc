@@ -11,6 +11,19 @@ import { buildCommunicationQueues, type CandidateInput, type CommunicationRecipi
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+function escapeHtml(value: string | number | null | undefined) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function batchSuffix(batchName: string | null | undefined) {
+  return batchName ? ` (${escapeHtml(batchName)})` : "";
+}
+
 async function fetchCommunicationCandidates(): Promise<CandidateInput[]> {
   const students = await prisma.student.findMany({
     include: {
@@ -122,6 +135,9 @@ async function createLog(params: {
 }
 
 async function sendReviewRequestEmail(recipient: CommunicationRecipient) {
+  const safeName = escapeHtml(recipient.name);
+  const safeCourseName = escapeHtml(recipient.courseName);
+
   return sendEmail({
     to: recipient.email,
     subject: `How was your Bali YTTC experience?`,
@@ -131,8 +147,8 @@ async function sendReviewRequestEmail(recipient: CommunicationRecipient) {
           <h1 style="color: white; margin: 0;">Share your Bali YTTC story</h1>
         </div>
         <div style="padding: 30px;">
-          <p>Hi ${recipient.name},</p>
-          <p>We hope your ${recipient.courseName} journey was meaningful. Your review helps future students decide with confidence.</p>
+          <p>Hi ${safeName},</p>
+          <p>We hope your ${safeCourseName} journey was meaningful. Your review helps future students decide with confidence.</p>
           <p>
             <a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/en/app/reviews" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Submit your review
@@ -147,6 +163,10 @@ async function sendReviewRequestEmail(recipient: CommunicationRecipient) {
 
 async function sendVisaGuidanceEmail(recipient: CommunicationRecipient) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const safeName = escapeHtml(recipient.name);
+  const safeCourseName = escapeHtml(recipient.courseName);
+  const safeDaysUntilStart = escapeHtml(recipient.daysUntilStart ?? "a few");
+
   return sendEmail({
     to: recipient.email,
     subject: `Visa guidance for your Bali YTTC arrival`,
@@ -156,8 +176,8 @@ async function sendVisaGuidanceEmail(recipient: CommunicationRecipient) {
           <h1 style="color: white; margin: 0;">Plan your Bali arrival</h1>
         </div>
         <div style="padding: 30px;">
-          <p>Hi ${recipient.name},</p>
-          <p>Your ${recipient.courseName}${recipient.batchName ? ` (${recipient.batchName})` : ""} starts in about ${recipient.daysUntilStart ?? "a few"} days.</p>
+          <p>Hi ${safeName},</p>
+          <p>Your ${safeCourseName}${batchSuffix(recipient.batchName)} starts in about ${safeDaysUntilStart} days.</p>
           <p>Now is the right time to check passport validity, pick the right visa route, and review arrival requirements for Bali.</p>
           <ul>
             <li>Passport must usually be valid for at least 6 months</li>
@@ -178,6 +198,10 @@ async function sendVisaGuidanceEmail(recipient: CommunicationRecipient) {
 }
 
 async function sendAbandonedEnrollmentEmail(recipient: CommunicationRecipient) {
+  const safeName = escapeHtml(recipient.name);
+  const safeCourseName = escapeHtml(recipient.courseName);
+  const safeDaysUntilStart = escapeHtml(recipient.daysUntilStart ?? "coming up");
+
   return sendEmail({
     to: recipient.email,
     subject: `Complete your Bali YTTC enrollment`,
@@ -187,9 +211,9 @@ async function sendAbandonedEnrollmentEmail(recipient: CommunicationRecipient) {
           <h1 style="color: white; margin: 0;">Your spot is still open</h1>
         </div>
         <div style="padding: 30px;">
-          <p>Hi ${recipient.name},</p>
-          <p>We noticed you started the enrollment process for ${recipient.courseName}${recipient.batchName ? ` (${recipient.batchName})` : ""} but have not completed payment yet.</p>
-          <p>Your batch is ${recipient.daysUntilStart ?? "coming up"} days away. If you want us to hold your spot or help with payment options, reply to this email and our team will assist.</p>
+          <p>Hi ${safeName},</p>
+          <p>We noticed you started the enrollment process for ${safeCourseName}${batchSuffix(recipient.batchName)} but have not completed payment yet.</p>
+          <p>Your batch is ${safeDaysUntilStart} days away. If you want us to hold your spot or help with payment options, reply to this email and our team will assist.</p>
           <p>
             <a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/en/pricing" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Review pricing and next steps
