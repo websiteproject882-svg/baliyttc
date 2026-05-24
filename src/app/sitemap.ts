@@ -1,12 +1,17 @@
 import type { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 import { locales } from '@/i18n/routing';
+import { instructors } from '../data/instructors';
 
 const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://baliyttc.com').replace(/\/$/, '');
 const staticRoutes = [
   '',
   '/about',
   '/courses',
+  '/apply',
+  '/schedule',
+  '/faq',
+  '/accommodation',
   '/pricing',
   '/visa',
   '/retreats',
@@ -69,6 +74,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: now,
         changeFrequency: 'weekly',
         priority: slug === '200hr' ? 0.95 : 0.9,
+      });
+    }
+
+    for (const instructor of instructors) {
+      entries.push({
+        url: localizedUrl(locale, `/instructors/${instructor.slug}`),
+        lastModified: now,
+        changeFrequency: 'monthly',
+        priority: 0.7,
       });
     }
 

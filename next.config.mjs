@@ -32,8 +32,34 @@ const nextConfig = {
     return [
       {
         source: '/:path*',
-        headers: securityHeaders,
+        headers: [
+          ...securityHeaders,
+          { key: 'X-Robots-Tag', value: 'index, follow' },
+        ],
       },
+      {
+        source: '/api/:path*',
+        headers: [
+          ...securityHeaders,
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      },
+      ...['admin', 'app', 'staff'].flatMap((privatePath) => [
+        {
+          source: `/${privatePath}/:path*`,
+          headers: [
+            ...securityHeaders,
+            { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          ],
+        },
+        {
+          source: `/:locale/${privatePath}/:path*`,
+          headers: [
+            ...securityHeaders,
+            { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          ],
+        },
+      ]),
     ];
   },
   // Exclude seed file from build

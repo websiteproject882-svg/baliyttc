@@ -15,6 +15,10 @@ export type PublicMetadataKey =
   | "yogaAlliance"
   | "contact"
   | "pricing"
+  | "apply"
+  | "schedule"
+  | "faq"
+  | "accommodation"
   | "visa"
   | "retreats"
   | "workshops"
@@ -87,6 +91,30 @@ const publicMetadata: Record<PublicMetadataKey, { title: string; description: st
     description:
       "See Bali YTTC course fees in Ubud, Bali: 50hr from EUR 399, 100hr EUR 699, 200hr EUR 1,499 and 300hr EUR 1,899.",
     keywords: ["yoga teacher training pricing bali", "Bali YTTC fees", "200 hour YTT Bali price"],
+  },
+  apply: {
+    title: "Apply for Yoga Teacher Training Bali | Bali YTTC",
+    description:
+      "Apply for Bali YTTC 2026 training in Ubud, Bali. Choose 50hr, 100hr, 200hr or 300hr dates and secure your seat with admissions.",
+    keywords: ["apply yoga teacher training bali", "Bali YTTC application", "2026 yoga training Bali"],
+  },
+  schedule: {
+    title: "Yoga Teacher Training Schedule Bali | Bali YTTC",
+    description:
+      "View 2026 Bali YTTC start dates in Ubud, Bali for 50hr, 100hr, 200hr and 300hr yoga teacher training with prices and seats.",
+    keywords: ["yoga teacher training schedule bali", "Bali YTTC dates", "200 hour YTT Bali dates"],
+  },
+  faq: {
+    title: "Bali Yoga Teacher Training FAQ | Bali YTTC",
+    description:
+      "Get answers about Bali YTTC training in Ubud, Bali including certification, accommodation, meals, visas, payment and graduation.",
+    keywords: ["Bali yoga teacher training FAQ", "Bali YTTC questions", "Ubud yoga school FAQ"],
+  },
+  accommodation: {
+    title: "Yoga Training Accommodation Ubud Bali | Bali YTTC",
+    description:
+      "See Bali YTTC accommodation in Ubud, Bali with shared and private villa rooms, pool, shala, WiFi, meals and campus amenities.",
+    keywords: ["yoga training accommodation bali", "Bali YTTC accommodation", "Ubud yoga school villa"],
   },
   visa: {
     title: "Bali Visa Guide for Yoga Students | Bali YTTC",
