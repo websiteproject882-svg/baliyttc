@@ -5,6 +5,8 @@ import { verifyPayPalWebhook } from "@/lib/payments/paypal";
 import { verifyRazorpayWebhookSignature } from "@/lib/payments/razorpay";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 type RazorpayWebhookEvent = {
   id?: string;
   event?: string;

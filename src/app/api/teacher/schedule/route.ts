@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { currentUserHasPermission, requireSameOrigin, requireStaffUser, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const scheduleBaseSchema = z.object({
   batchId: z.string().trim().min(1).max(120),
   teacherId: z.string().trim().min(1).max(120).nullable().optional(),

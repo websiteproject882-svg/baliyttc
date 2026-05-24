@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { requireSameOrigin } from "@/lib/authz";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const validateSchema = z.object({
   code: z.string().trim().min(1).max(80).transform((value) => value.toUpperCase()),
   amount: z.number().int().positive().max(10_000_000),

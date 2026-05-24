@@ -7,6 +7,8 @@ import { getCertificateEligibility } from "@/lib/certificate-eligibility";
 import { getCurrentUser, requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const createCertificateSchema = z.object({
   studentId: z.string().trim().min(1).max(120),
   courseSlug: z.string().trim().min(1).max(120),

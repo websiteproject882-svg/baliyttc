@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { currentUserHasPermission, requireSameOrigin, requireStaffUser, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const announcementSchema = z.object({
   title: z.string().trim().min(1).max(160),
   content: z.string().trim().min(1).max(5000),

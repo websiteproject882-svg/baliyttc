@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import { currentUserHasPermission, requireStaffUser } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const { user, response } = await requireStaffUser();
   if (!user || response) {

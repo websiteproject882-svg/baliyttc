@@ -5,6 +5,8 @@ import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz
 import { sendEmail } from "@/lib/resend";
 import { applyDeprecationHeaders, getClientIp, jsonWithRequestId, LEGACY_API_SUNSET, logApiError, logLegacyRouteAccess, rateLimit } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 // Mixed route: public POST stays valid for website lead capture.
 // GET/PATCH management behavior is legacy compatibility and should be removed
 // after the 2026-08-31 sunset in favor of /api/admin/leads.

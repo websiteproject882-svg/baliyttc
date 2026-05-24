@@ -6,6 +6,8 @@ import { verifyRazorpayPaymentSignature } from "@/lib/payments/razorpay";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { requireSameOrigin } from "@/lib/authz";
 
+export const dynamic = "force-dynamic";
+
 const verifySchema = z.object({
   razorpay_order_id: z.string().trim().min(1).max(120),
   razorpay_payment_id: z.string().trim().min(1).max(120),

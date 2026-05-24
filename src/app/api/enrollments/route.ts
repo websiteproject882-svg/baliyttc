@@ -9,6 +9,8 @@ import { resolveEnrollmentPricing } from "@/lib/payments/enrollment-pricing";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 const optionalTrimmed = (max: number) =>
   z.string().trim().max(max).transform((value) => value || undefined).optional();
 

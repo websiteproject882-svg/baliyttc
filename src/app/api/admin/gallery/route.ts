@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const optionalTrimmedText = (max: number) =>
   z.preprocess((value) => {
     if (value === null || value === undefined) return value;

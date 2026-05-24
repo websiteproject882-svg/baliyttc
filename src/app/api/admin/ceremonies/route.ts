@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 // Note: Ceremonies are stored in the ScheduleEntry table with ceremonyBlocked flag
 // This API manages ceremony dates which block class in student schedules
 

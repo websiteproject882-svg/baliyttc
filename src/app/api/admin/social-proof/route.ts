@@ -5,6 +5,8 @@ import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { SOCIAL_PROOF_SETTINGS_KEY, getSocialProofStats, socialProofSchema } from "@/lib/social-proof";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const { response } = await requirePermission("social_proof.view");
   if (response) return response;

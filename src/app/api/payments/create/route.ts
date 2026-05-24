@@ -10,6 +10,8 @@ import { getClientIp, jsonWithRequestId, logApiError, rateLimit } from "@/lib/se
 import { getSiteSettings } from "@/lib/site-settings";
 import { requireSameOrigin } from "@/lib/authz";
 
+export const dynamic = "force-dynamic";
+
 const paymentCreateSchema = z.object({
   enrollmentId: z.string().trim().min(1).max(120),
   amount: z.number().positive(),

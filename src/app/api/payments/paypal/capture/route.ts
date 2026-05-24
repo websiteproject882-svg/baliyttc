@@ -6,6 +6,8 @@ import { capturePayPalOrder } from "@/lib/payments/paypal";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { requireSameOrigin } from "@/lib/authz";
 
+export const dynamic = "force-dynamic";
+
 const captureSchema = z.object({
   orderId: z.string().trim().min(1).max(120),
 });
