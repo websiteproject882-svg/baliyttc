@@ -15,7 +15,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { hasPermission } from "@/lib/rbac";
+import { hasPermission, isAdminPanelRole } from "@/lib/rbac";
 
 const navigationItems = [
   {
@@ -23,28 +23,32 @@ const navigationItems = [
     href: (role?: string | null) => (role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/overview"),
     icon: LayoutDashboard,
     permission: null,
+    adminOnly: false,
   },
   {
     name: "Schedule",
     href: (role?: string | null) => (role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/calendar"),
     icon: Calendar,
     permission: "schedule.view",
+    adminOnly: false,
   },
   {
     name: "My Batch",
     href: () => "/app/teacher/dashboard",
     icon: Users,
     permission: "students.view_own_batch",
+    adminOnly: false,
   },
   {
     name: "Announcements",
     href: (role?: string | null) => (role === "TEACHER" ? "/app/teacher/dashboard" : "/admin/announcements"),
     icon: MessageSquare,
     permission: "announcements.view",
+    adminOnly: false,
   },
-  { name: "Blog", href: () => "/admin/blog", icon: FileText, permission: "blog.view" },
-  { name: "Gallery", href: () => "/admin/gallery", icon: Image, permission: "gallery.view" },
-  { name: "Admin Home", href: () => "/admin/overview", icon: Settings, permission: null },
+  { name: "Blog", href: () => "/admin/blog", icon: FileText, permission: "blog.view", adminOnly: true },
+  { name: "Gallery", href: () => "/admin/gallery", icon: Image, permission: "gallery.view", adminOnly: true },
+  { name: "Admin Home", href: () => "/admin/overview", icon: Settings, permission: null, adminOnly: true },
 ];
 
 export function StaffSidebar() {
@@ -53,9 +57,14 @@ export function StaffSidebar() {
   const { role, logout } = useAuth();
   const locale = params.locale || "en";
 
-  const filteredNav = navigationItems.filter(
-    (item) => !item.permission || (role && hasPermission(role, item.permission))
-  );
+  const canUseAdminPanel = Boolean(role && (isAdminPanelRole(role) || role === "ADMIN" || role === "SUPER_ADMIN"));
+  const filteredNav = navigationItems.filter((item) => {
+    if (item.adminOnly && !canUseAdminPanel) {
+      return false;
+    }
+
+    return !item.permission || (role && hasPermission(role, item.permission));
+  });
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-emerald-900 text-white flex flex-col">
