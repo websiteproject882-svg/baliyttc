@@ -393,7 +393,7 @@ export default function BlogPage() {
                           <div className="flex items-center gap-2 shrink-0">
                             {post.status === "PUBLISHED" && (
                               <Button variant="ghost" size="sm" asChild>
-                                <a href={publicPostUrl(post)} target="_blank" rel="noreferrer" aria-label={`Open ${post.title}`}>
+                                <a href={publicPostUrl(post)} target="_blank" rel="noopener noreferrer" aria-label={`Open ${post.title}`}>
                                   <ExternalLink className="h-4 w-4" />
                                 </a>
                               </Button>

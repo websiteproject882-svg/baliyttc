@@ -213,7 +213,7 @@ export default function PreArrivalPage() {
             preArrivalResources.map((resource) => {
               const Icon = resource.type === "VIDEO" ? Video : FileText;
               return (
-                <a key={resource.id} href={resource.url} target="_blank" rel="noreferrer" className="group rounded-lg border border-gray-100 p-4 hover:border-orange-200">
+                <a key={resource.id} href={resource.url} target="_blank" rel="noopener noreferrer" className="group rounded-lg border border-gray-100 p-4 hover:border-orange-200">
                   <div className="flex items-start gap-3">
                     <div className="rounded-lg bg-orange-50 p-2">
                       <Icon className="h-4 w-4 text-orange-600" />

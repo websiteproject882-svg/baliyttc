@@ -135,13 +135,13 @@ export default function StudentReviewsPage() {
             </CardHeader>
             <CardContent className="grid gap-3">
               <Button asChild className="justify-between bg-orange-500 text-white hover:bg-orange-600">
-                <a href={googleReviewUrl} target="_blank" rel="noreferrer">
+                <a href={googleReviewUrl} target="_blank" rel="noopener noreferrer">
                   Google Review
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </Button>
               <Button asChild variant="outline" className="justify-between">
-                <a href={tripadvisorReviewUrl} target="_blank" rel="noreferrer">
+                <a href={tripadvisorReviewUrl} target="_blank" rel="noopener noreferrer">
                   TripAdvisor Review
                   <ExternalLink className="h-4 w-4" />
                 </a>

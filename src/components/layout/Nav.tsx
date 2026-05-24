@@ -292,7 +292,7 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
                             key={link.label}
                             href={link.href}
                             target={link.href.startsWith("http") ? "_blank" : undefined}
-                            rel="noopener"
+                            rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                             onClick={() => setMenuOpen(false)}
                             className={cls}
                           >

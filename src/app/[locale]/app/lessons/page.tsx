@@ -135,7 +135,7 @@ export default function VideoLessonsPage() {
                         allowFullScreen
                       />
                     ) : (
-                      <a href={resource.url} target="_blank" rel="noreferrer" className="flex min-h-40 items-center justify-center bg-gray-50 text-sm text-orange-600">
+                      <a href={resource.url} target="_blank" rel="noopener noreferrer" className="flex min-h-40 items-center justify-center bg-gray-50 text-sm text-orange-600">
                         <PlayCircle className="mr-2 h-5 w-5" />
                         Open protected video
                       </a>

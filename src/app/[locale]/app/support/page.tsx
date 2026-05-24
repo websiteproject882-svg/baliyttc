@@ -186,7 +186,7 @@ export default function StudentSupportPage() {
               </a>
             </Button>
             <Button asChild variant="outline" className="w-full">
-              <a href={whatsappUrl} target="_blank" rel="noreferrer">
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                 <Phone className="mr-2 h-4 w-4" />
                 WhatsApp support
               </a>

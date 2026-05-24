@@ -55,7 +55,7 @@ export const LocationMap = () => {
               </div>
             </div>
             <a
-              href={siteSettings.mapsLinkUrl} target="_blank" rel="noopener"
+              href={siteSettings.mapsLinkUrl} target="_blank" rel="noopener noreferrer"
               className="mt-8 inline-flex items-center justify-center gap-2 bg-warm-dark text-cream py-3 rounded-md hover:bg-warm-mid transition-colors text-sm font-medium"
             >
               Get directions <ExternalLink className="w-4 h-4" />

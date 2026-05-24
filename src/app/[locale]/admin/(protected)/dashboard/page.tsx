@@ -2082,7 +2082,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       {resource.description ? <p className="text-sm leading-6 text-gray-600">{resource.description}</p> : null}
-                      <a href={resource.url} target="_blank" rel="noreferrer" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                      <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-orange-600 hover:text-orange-700">
                         {resource.url}
                       </a>
                     </CardContent>

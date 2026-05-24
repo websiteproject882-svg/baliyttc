@@ -567,7 +567,7 @@ export default function StudentDashboardPage() {
                     key={item.id}
                     href={item.url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors group"
                   >
                     <div className={`rounded-lg p-2 ${TypeConfig.color}`}>
