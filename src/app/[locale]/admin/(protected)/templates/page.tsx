@@ -32,6 +32,16 @@ const templateConfig: Record<string, { label: string; icon: string; description:
   visa: { label: "Visa Information", icon: "🛂", description: "Visa assistance info", defaultSubject: "Bali Visa Information - Important Read" },
 };
 
+const cleanTemplateConfig: typeof templateConfig = {
+  enrollment: { label: "Enrollment Confirmation", icon: "EN", description: "Sent when student completes enrollment", defaultSubject: "Welcome to Bali YTTC - Enrollment Confirmed!" },
+  prearrival: { label: "Pre-Arrival", icon: "PA", description: "Sent 7 days before batch starts", defaultSubject: "Your Bali YTTC Journey Begins Soon!" },
+  reminder: { label: "Payment Reminder", icon: "PM", description: "Sent for pending payments", defaultSubject: "Complete Your Enrollment - Payment Reminder" },
+  certificate: { label: "Certificate", icon: "CT", description: "Sent when certificate is issued", defaultSubject: "Congratulations! Your YTTC Certificate is Ready" },
+  review: { label: "Review Request", icon: "RV", description: "Sent after training completes", defaultSubject: "Share Your Bali YTTC Experience" },
+  earlybird: { label: "Early Bird", icon: "EB", description: "Early bird discount announcement", defaultSubject: "Early Bird Special - Save on Your YTTC!" },
+  visa: { label: "Visa Information", icon: "VI", description: "Visa assistance info", defaultSubject: "Visa Information - Important Read" },
+};
+
 const defaultTemplates: EmailTemplate[] = [
   {
     id: "enrollment",
@@ -424,7 +434,7 @@ export default function TemplatesPage() {
         {/* Template List */}
         <div className={`grid md:grid-cols-2 lg:grid-cols-3 gap-4 ${loading ? "opacity-60" : ""}`}>
           {templates.map(template => {
-            const config = templateConfig[template.type];
+            const config = cleanTemplateConfig[template.type];
             return (
               <Card
                 key={template.id}
@@ -436,7 +446,7 @@ export default function TemplatesPage() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{config.icon}</span>
+                      <span className="rounded bg-orange-50 px-2 py-1 text-xs font-bold text-orange-600">{config.icon}</span>
                       <div>
                         <h3 className="font-medium text-gray-900">{config.label}</h3>
                         <p className="text-xs text-gray-500">{config.description}</p>
@@ -465,10 +475,10 @@ export default function TemplatesPage() {
             <CardHeader className="border-b bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{templateConfig[selectedTemplate.type].icon}</span>
+                  <span className="text-xs font-bold text-orange-600">{cleanTemplateConfig[selectedTemplate.type].icon}</span>
                   <div>
-                    <CardTitle>{templateConfig[selectedTemplate.type].label}</CardTitle>
-                    <p className="text-sm text-gray-500">{templateConfig[selectedTemplate.type].description}</p>
+                    <CardTitle>{cleanTemplateConfig[selectedTemplate.type].label}</CardTitle>
+                    <p className="text-sm text-gray-500">{cleanTemplateConfig[selectedTemplate.type].description}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
