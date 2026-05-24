@@ -2,8 +2,6 @@
 // Setup: https://business.whatsapp.com/
 
 const WHATSAPP_API_URL = "https://graph.facebook.com/v18.0";
-const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
-const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || "";
 
 export interface WhatsAppMessage {
   to: string;
@@ -24,7 +22,16 @@ interface WhatsAppResponse {
 }
 
 function isWhatsAppConfigured(): boolean {
-  return !!PHONE_NUMBER_ID && !!ACCESS_TOKEN;
+  const { accessToken, phoneNumberId } = getWhatsAppConfig();
+  return !!phoneNumberId && !!accessToken;
+}
+
+function getWhatsAppConfig() {
+  return {
+    accessToken: process.env.WHATSAPP_ACCESS_TOKEN || "",
+    apiUrl: WHATSAPP_API_URL,
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || "",
+  };
 }
 
 function formatPhoneNumber(phone: string): string {
@@ -57,6 +64,7 @@ export async function sendWhatsAppMessage(message: WhatsAppMessage): Promise<{ s
   }
 
   try {
+    const { accessToken, apiUrl, phoneNumberId } = getWhatsAppConfig();
     const formattedPhone = formatPhoneNumber(message.to);
 
     const payload = {
@@ -72,10 +80,10 @@ export async function sendWhatsAppMessage(message: WhatsAppMessage): Promise<{ s
       },
     };
 
-    const response = await fetch(`${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`, {
+    const response = await fetch(`${apiUrl}/${phoneNumberId}/messages`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
+        "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
