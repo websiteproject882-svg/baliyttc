@@ -130,7 +130,7 @@ export default function TeacherDashboardPage() {
         <main className="max-w-7xl mx-auto px-4 py-8">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
+            <Card id="batches">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="p-4 bg-purple-100 rounded-xl">
@@ -146,7 +146,7 @@ export default function TeacherDashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="schedule">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="p-4 bg-blue-100 rounded-xl">
@@ -260,21 +260,21 @@ export default function TeacherDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Link href={`/${locale}/app/teacher/schedule`}>
+                  <Link href={`/${locale}/app/teacher/dashboard#schedule`}>
                     <Button variant="outline" className="w-full justify-start">
                       <Calendar className="h-4 w-4 mr-2" />
                       View Full Schedule
                       <ChevronRight className="h-4 w-4 ml-auto" />
                     </Button>
                   </Link>
-                  <Link href={`/${locale}/app/teacher/students`}>
+                  <Link href={`/${locale}/app/teacher/dashboard#batches`}>
                     <Button variant="outline" className="w-full justify-start">
                       <Users className="h-4 w-4 mr-2" />
                       View Student List
                       <ChevronRight className="h-4 w-4 ml-auto" />
                     </Button>
                   </Link>
-                  <Link href={`/${locale}/app/teacher/announcements`}>
+                  <Link href={`/${locale}/app/teacher/dashboard#announcements`}>
                     <Button variant="outline" className="w-full justify-start">
                       <Bell className="h-4 w-4 mr-2" />
                       Post Announcement
@@ -286,7 +286,7 @@ export default function TeacherDashboardPage() {
             </Card>
 
             {/* Announcements */}
-            <Card>
+            <Card id="announcements">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-amber-600" />

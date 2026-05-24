@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function AdminRootPage() {
-  redirect("/en/admin/overview");
+export default function AdminRootPage({ params }: { params: { locale: string } }) {
+  redirect(`/${params.locale}/admin/overview`);
 }
