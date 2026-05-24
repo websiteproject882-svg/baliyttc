@@ -36,6 +36,7 @@ export const Footer = () => {
   const tFooter = useTranslations("Footer");
   const siteSettings = usePublicSiteSettings();
   const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   // Social media links - update these with real URLs
   const socials = {
@@ -44,14 +45,41 @@ export const Footer = () => {
     youtube: "https://www.youtube.com/@baliyttc",
   };
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    toast({
-      title: tFooter("newsletterSuccess"),
-      description: tFooter("newsletterDesc"),
-    });
-    setEmail("");
+    setIsSubscribing(true);
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Newsletter subscriber",
+          email,
+          source: "newsletter-footer",
+          course: "Newsletter",
+          message: "Subscribed from the website footer newsletter form.",
+          website: "",
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Could not subscribe right now.");
+      }
+      toast({
+        title: tFooter("newsletterSuccess"),
+        description: tFooter("newsletterDesc"),
+      });
+      setEmail("");
+    } catch (error) {
+      toast({
+        title: "Subscription failed",
+        description: error instanceof Error ? error.message : "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubscribing(false);
+    }
   };
 
   return (
@@ -140,8 +168,8 @@ export const Footer = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
               />
-              <Button type="submit" className="bg-brand hover:bg-brand-dark text-white rounded-full">
-                {tFooter("subscribe")}
+              <Button type="submit" disabled={isSubscribing} className="bg-brand hover:bg-brand-dark text-white rounded-full disabled:opacity-70">
+                {isSubscribing ? "Saving..." : tFooter("subscribe")}
               </Button>
             </form>
           </div>
