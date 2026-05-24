@@ -6,5 +6,5 @@ export function getPublicBaseUrl() {
 
 export function buildPublicUrl(path = "/", locale = "en") {
   const localizedPath = withLocalePath(path, normalizeLocale(locale));
-  return /^https?:\/\//i.test(localizedPath) ? localizedPath : `${getPublicBaseUrl()}${localizedPath}`;
+  return /^(https?:\/\/|mailto:|tel:)/i.test(localizedPath) ? localizedPath : `${getPublicBaseUrl()}${localizedPath}`;
 }

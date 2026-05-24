@@ -64,5 +64,7 @@ describe("public URL helpers", () => {
   it("passes through external absolute URLs", () => {
     process.env.NEXT_PUBLIC_BASE_URL = "https://baliyttc.com/";
     expect(buildPublicUrl("https://payments.example.com/checkout", "de")).toBe("https://payments.example.com/checkout");
+    expect(buildPublicUrl("mailto:info@baliyttc.com", "de")).toBe("mailto:info@baliyttc.com");
+    expect(buildPublicUrl("tel:+6281999333327", "de")).toBe("tel:+6281999333327");
   });
 });
