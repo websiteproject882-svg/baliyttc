@@ -7,6 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Clock, Users, Award } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
+import { createPublicMetadata } from "@/lib/public-metadata";
+
+export function generateMetadata({ params }: { params: { locale: string } }) {
+  return createPublicMetadata("courses", params.locale, "/courses");
+}
 
 async function getCourses(locale: string) {
   try {

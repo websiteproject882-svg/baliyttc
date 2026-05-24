@@ -4,6 +4,11 @@ import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/routing';
 import '../globals.css';
 import SupportBot from '@/components/shared/SupportBot';
+import { createPublicMetadata } from '@/lib/public-metadata';
+
+export function generateMetadata({ params }: { params: { locale: string } }) {
+  return createPublicMetadata('home', params.locale, '/');
+}
 
 export default async function LocaleLayout({
   children,
