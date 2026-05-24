@@ -8,47 +8,19 @@ import { ArrowRight, Clock, Users, Award } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { createPublicMetadata } from "@/lib/public-metadata";
-import { COURSES as STATIC_COURSES } from "@/data/site";
-
-type PublicCourse = {
-  id: string;
-  slug: string;
-  name: string;
-  duration: string;
-  summary: string;
-  priceFrom: number;
-  image?: string | null;
-};
+import { normalizeLocale } from "@/lib/localized-content";
+import { getPublicCourses, getStaticPublicCourses, type PublicCourse } from "../../../lib/public-courses";
 
 const COURSE_IMAGE_FALLBACK =
   "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1080/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/200-hour-Yoga-Teacher-Training-for-Beginners.jpg";
-
-function getStaticCourseCards(): PublicCourse[] {
-  return STATIC_COURSES.map((course) => ({
-    id: `static-course-${course.slug}`,
-    slug: course.slug,
-    name: course.title,
-    duration: `${course.duration} | ${course.days}`,
-    summary: course.summary,
-    priceFrom: course.priceFrom,
-    image: course.image,
-  }));
-}
 
 export function generateMetadata({ params }: { params: { locale: string } }) {
   return createPublicMetadata("courses", params.locale, "/courses");
 }
 
 async function getCourses(locale: string) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/courses?locale=${encodeURIComponent(locale)}`, { cache: "no-store" });
-    if (!res.ok) return getStaticCourseCards();
-    const data = await res.json();
-    return Array.isArray(data.courses) && data.courses.length ? (data.courses as PublicCourse[]) : getStaticCourseCards();
-  } catch {
-    return getStaticCourseCards();
-  }
+  const result = await getPublicCourses(normalizeLocale(locale));
+  return result.courses.length ? result.courses : getStaticPublicCourses();
 }
 
 export default async function CoursesPage({ params }: { params: { locale: string } }) {
