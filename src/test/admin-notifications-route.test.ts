@@ -176,6 +176,25 @@ describe("admin notifications route", () => {
     expect(mocks.notificationCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects unsafe notification action URLs before create", async () => {
+    const response = await POST(request("POST", payload({ actionUrl: "javascript:alert(1)" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.notificationCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects protocol-relative notification action URLs before update", async () => {
+    const response = await PATCH(request("PATCH", payload({ id: "notification_1", actionUrl: "//evil.example/path" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.notificationFindUnique).not.toHaveBeenCalled();
+    expect(mocks.notificationUpdate).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed notification create JSON before writes", async () => {
     const response = await POST(rawRequest("POST", "{not-valid-json"));
     const body = await response?.json();

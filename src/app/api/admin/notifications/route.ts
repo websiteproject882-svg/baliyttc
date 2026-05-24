@@ -15,6 +15,16 @@ const optionalTrimmed = (max: number) =>
     return trimmed || undefined;
   }, z.string().min(1).max(max).optional());
 
+const safeActionUrl = optionalTrimmed(2048).refine((value) => {
+  if (!value) return true;
+  if (value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\")) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, "Action URL must use https or start with /");
+
 const notificationSchema = z.object({
   title: z.string().trim().min(3).max(160),
   message: z.string().trim().min(5).max(4000),
@@ -22,7 +32,7 @@ const notificationSchema = z.object({
   audience: z.nativeEnum(NotificationAudience),
   batchId: optionalTrimmed(120),
   studentId: optionalTrimmed(120),
-  actionUrl: optionalTrimmed(2048),
+  actionUrl: safeActionUrl,
 });
 
 const updateSchema = notificationSchema.extend({
