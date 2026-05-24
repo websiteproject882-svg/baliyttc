@@ -4,6 +4,8 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
 
+export const dynamic = "force-dynamic";
+
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 12;
 

@@ -6,6 +6,8 @@ import { applyCourseTranslation, normalizeLocale } from "@/lib/localized-content
 import type { Locale } from "@/i18n/routing";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const courseSlugSchema = z.string().trim().min(1).max(180).regex(/^[a-z0-9-]+$/).optional();
 
 function getStaticCourses() {

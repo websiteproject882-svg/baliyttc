@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { getSiteSettings } from "@/lib/site-settings";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const settings = await getSiteSettings();

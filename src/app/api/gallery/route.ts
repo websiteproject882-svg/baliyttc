@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 const MAX_LIMIT = 60;
 const DEFAULT_LIMIT = 24;
 
