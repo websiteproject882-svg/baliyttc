@@ -436,7 +436,7 @@ export default function GalleryPage() {
                 {selectedImage.caption && <p className="text-gray-600">{selectedImage.caption}</p>}
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => window.open(selectedImage.url, "_blank")}>
+                <Button variant="outline" onClick={() => window.open(selectedImage.url, "_blank", "noopener,noreferrer")}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open Original
                 </Button>
