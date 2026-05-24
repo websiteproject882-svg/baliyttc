@@ -13,8 +13,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["'Cormorant Garamond'", "Georgia", "serif"],
-        display: ["'Cormorant Garamond'", "Georgia", "serif"],
+        serif: ["'DM Sans'", "system-ui", "sans-serif"],
+        display: ["'DM Sans'", "system-ui", "sans-serif"],
         sans: ["'DM Sans'", "system-ui", "sans-serif"],
       },
       colors: {

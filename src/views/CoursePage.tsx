@@ -1262,7 +1262,7 @@ const CoursePage = () => {
                         onClick={() => setSelectedDeepDive(item)}
                         className="group grid w-full gap-5 py-7 text-left transition hover:bg-white/60 md:grid-cols-[0.16fr_0.34fr_1fr_auto] md:items-start md:px-4"
                       >
-                        <span className="font-serif text-4xl font-semibold text-warm-dark md:text-5xl">
+                        <span className="number-value text-2xl text-warm-dark md:text-3xl">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         <span>
@@ -1370,7 +1370,7 @@ const CoursePage = () => {
                         >
                           <AccordionTrigger className="px-5 py-5 text-left hover:no-underline md:px-6">
                             <div className="flex items-center gap-5">
-                              <span className="font-serif text-sm text-stone-400">{String(i + 1).padStart(2, "0")}</span>
+                              <span className="number-value text-sm text-stone-400">{String(i + 1).padStart(2, "0")}</span>
                               <span className="text-[1.05rem] font-semibold leading-snug text-warm-dark md:text-[1.18rem]">{item.title}</span>
                             </div>
                           </AccordionTrigger>
@@ -1751,7 +1751,7 @@ const CoursePage = () => {
             <div>
               <div className="border-b border-stone-200 bg-white p-6 md:p-8">
                 <p className="label-caps text-terra">{selectedDeepDive.kicker}</p>
-                <DialogTitle className="mt-3 font-serif text-3xl font-light leading-tight text-warm-dark md:text-4xl">
+                <DialogTitle className="mt-3 font-sans text-2xl font-bold leading-tight text-warm-dark md:text-3xl">
                   {selectedDeepDive.title}
                 </DialogTitle>
                 <DialogDescription className="mt-4 text-base leading-8 text-warm-mid">

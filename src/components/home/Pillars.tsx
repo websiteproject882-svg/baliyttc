@@ -53,7 +53,7 @@ export const Pillars = () => {
                   <span className={`number-value text-lg ${isActive ? "text-brand" : "text-stone-400"}`}>
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  <span className={`flex-1 font-serif text-lg ${isActive ? "font-semibold text-charcoal" : "font-normal text-charcoal"}`}>
+                  <span className={`flex-1 font-sans text-base ${isActive ? "font-bold text-charcoal" : "font-semibold text-charcoal"}`}>
                     {pillar.title}
                   </span>
                   <span className={`text-sm transition-all duration-300 ${isActive ? "translate-x-1 text-brand" : "text-stone-300"}`}>
@@ -78,7 +78,7 @@ export const Pillars = () => {
                 className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-transparent to-transparent" />
-              <span className="absolute bottom-5 left-6 font-serif text-2xl font-semibold text-white drop-shadow-lg">
+              <span className="absolute bottom-5 left-6 number-value text-white drop-shadow-lg">
                 {String(active + 1).padStart(2, "0")}
               </span>
             </div>
@@ -117,7 +117,7 @@ export const Pillars = () => {
                     <span className={`number-value text-lg ${isActive ? "text-brand" : "text-stone-400"}`}>
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className={`flex-1 font-serif text-lg leading-tight ${isActive ? "text-charcoal" : "text-ink-soft"}`}>
+                    <span className={`flex-1 font-sans text-base font-semibold leading-tight ${isActive ? "text-charcoal" : "text-ink-soft"}`}>
                       {title}
                     </span>
                     <span className={`text-xl leading-none transition-transform ${isActive ? "rotate-45 text-brand" : "text-stone-400"}`}>

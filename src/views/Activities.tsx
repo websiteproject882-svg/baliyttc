@@ -362,7 +362,7 @@ const Activities = () => {
                 >
                   <AccordionTrigger className="px-5 py-5 text-left hover:no-underline md:px-6">
                     <div className="flex items-center gap-4">
-                      <span className="font-serif text-sm text-stone-400">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="number-value text-sm text-stone-400">{String(index + 1).padStart(2, "0")}</span>
                       <span className="text-[1.05rem] font-semibold text-gray-950 md:text-[1.18rem]">{activity.title}</span>
                     </div>
                   </AccordionTrigger>

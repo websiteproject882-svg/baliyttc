@@ -120,7 +120,7 @@ export const Testimonials = () => {
                 </div>
 
                 {/* Quote */}
-                <p className="flex-1 font-serif text-[1.08rem] font-normal italic leading-8 text-charcoal md:text-[1.18rem]">
+                <p className="flex-1 font-sans text-[1rem] font-medium leading-8 text-charcoal md:text-[1.08rem]">
                   &ldquo;{testimonial.quote}&rdquo;
                 </p>
 
