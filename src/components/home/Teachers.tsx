@@ -154,7 +154,7 @@ export const Teachers = () => {
 
     const loadTeachers = async () => {
       try {
-        const response = await fetch("/api/teachers");
+        const response = await fetch("/api/teachers", { cache: "no-store" });
         if (!response.ok) return;
         const data = (await response.json()) as { teachers?: PublicTeacher[] };
         if (!Array.isArray(data.teachers) || data.teachers.length === 0 || cancelled) return;

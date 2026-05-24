@@ -35,7 +35,7 @@ export const FAQ = () => {
 
     async function loadFaqs() {
       try {
-        const response = await fetch(`/api/faq?locale=${encodeURIComponent(locale)}&limit=12`);
+        const response = await fetch(`/api/faq?locale=${encodeURIComponent(locale)}&limit=12`, { cache: "no-store" });
         if (!response.ok) return;
         const data = (await response.json()) as {
           faqs?: Array<{ id: string; question: string; answer: string }>;

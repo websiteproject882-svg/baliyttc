@@ -43,7 +43,7 @@ export const Testimonials = () => {
   }, [socialProofStats.averageRating, socialProofStats.totalReviews]);
 
   useEffect(() => {
-    void fetch("/api/testimonials?limit=6")
+    void fetch("/api/testimonials?limit=6", { cache: "no-store" })
       .then((response) => response.json())
       .then((result) => {
         if (Array.isArray(result.testimonials) && result.testimonials.length > 0) {

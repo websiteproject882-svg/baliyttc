@@ -278,7 +278,7 @@ export const FeaturedCourses = () => {
     const controller = new AbortController();
     const locale = params?.locale || "en";
 
-    fetch(`/api/courses?locale=${encodeURIComponent(locale)}`, { signal: controller.signal })
+    fetch(`/api/courses?locale=${encodeURIComponent(locale)}`, { cache: "no-store", signal: controller.signal })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (Array.isArray(data?.courses)) {

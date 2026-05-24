@@ -55,7 +55,7 @@ export const GalleryTeaser = () => {
 
     async function loadGallery() {
       try {
-        const response = await fetch("/api/gallery?limit=12");
+        const response = await fetch("/api/gallery?limit=12", { cache: "no-store" });
         if (!response.ok) return;
         const data = (await response.json()) as { images?: PublicGalleryImage[] };
         if (!cancelled && data.images?.length) {
