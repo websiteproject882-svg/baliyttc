@@ -50,6 +50,43 @@ const staticGalleryCategories: GalleryFilter[] = [
   "Courses",
 ];
 
+const staticGalleryLabels = [
+  "Aerial view of Bali YTTC campus",
+  "Open-air yoga shala in Ubud",
+  "Yoga studio and pool sanctuary",
+  "Private villa pool",
+  "Swimming pool and garden",
+  "Second pool view",
+  "Private villa exterior",
+  "Campus reception area",
+  "Shared villa room",
+  "Private villa room",
+  "Shared room with natural light",
+  "Villa room garden view",
+  "Clean en-suite bathroom",
+  "Opening ceremony for 200-hour YTT",
+  "Yoga teacher training class",
+  "Temple purification ceremony",
+  "Arm balancing workshop",
+  "Sound healing session",
+  "Acro yoga practice",
+  "Beach yoga at sunrise",
+  "Mandala meditation art",
+  "Vivek Kalura teaching portrait",
+  "Sachin Rautela teaching portrait",
+  "100-hour YTT schedule moment",
+  "Student review moment",
+  "Balinese ceremony practice",
+  "Pranayama class",
+  "Graduation ceremony",
+  "200-hour YTT group training",
+  "Certified yoga teacher training",
+];
+
+function getStaticGalleryLabel(index: number) {
+  return staticGalleryLabels[index] || `Bali YTTC training moment ${index + 1}`;
+}
+
 const inferGalleryCategory = (image: PublicGalleryImage): GalleryFilter => {
   if (image.category) return image.category;
 
@@ -68,7 +105,8 @@ const Gallery = () => {
       GALLERY.map((url, index) => ({
         id: `static-gallery-${index}`,
         url,
-        alt: `Bali YTTC gallery image ${index + 1}`,
+        alt: getStaticGalleryLabel(index),
+        caption: getStaticGalleryLabel(index),
         category: staticGalleryCategories[index] || "Practice",
       })),
     [],
@@ -101,7 +139,19 @@ const Gallery = () => {
   }, []);
 
   const galleryImages = useMemo(
-    () => images.map((image) => ({ ...image, category: inferGalleryCategory(image) })),
+    () =>
+      images.map((image, index) => {
+        const fallbackLabel = getStaticGalleryLabel(index);
+        const rawLabel = image.caption || image.alt || fallbackLabel;
+        const label = /bali yttc gallery( image)? \d+/i.test(rawLabel) ? fallbackLabel : rawLabel;
+
+        return {
+          ...image,
+          alt: label,
+          caption: label,
+          category: inferGalleryCategory({ ...image, alt: label, caption: label }),
+        };
+      }),
     [images],
   );
 
@@ -163,12 +213,15 @@ const Gallery = () => {
                 >
                   <img
                     src={image.url}
-                    alt={image.alt || image.caption || ""}
+                    alt={image.alt || image.caption || "Bali YTTC training moment"}
                     className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
                   <span className="absolute left-3 top-3 rounded-full bg-black/50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
                     {image.category}
+                  </span>
+                  <span className="absolute inset-x-3 bottom-3 rounded-md bg-black/55 px-3 py-2 text-left text-xs font-semibold leading-5 text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+                    {image.caption}
                   </span>
                 </button>
               </Reveal>
@@ -179,7 +232,12 @@ const Gallery = () => {
 
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
         <DialogContent className="max-w-5xl bg-warm-dark border-warm-dark p-2">
-          {active && <img src={active.url} alt={active.alt || active.caption || ""} className="w-full h-auto rounded" />}
+          {active && (
+            <div>
+              <img src={active.url} alt={active.alt || active.caption || "Bali YTTC training moment"} className="w-full h-auto rounded" />
+              {(active.caption || active.alt) && <p className="px-2 py-3 text-sm font-semibold text-white">{active.caption || active.alt}</p>}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

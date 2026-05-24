@@ -14,6 +14,26 @@ type PublicGalleryImage = {
   caption?: string | null;
 };
 
+const fallbackHomeGalleryLabels = [
+  "Opening ceremony",
+  "Yoga class in the shala",
+  "Temple purification",
+  "Arm balancing workshop",
+  "Sound healing session",
+  "Acro yoga practice",
+  "Beach yoga at sunrise",
+  "Mandala meditation art",
+  "Lead teacher Vivek Kalura",
+  "Senior teacher Sachin Rautela",
+];
+
+function cleanGalleryLabel(label: string | null | undefined, index: number) {
+  const fallback = fallbackHomeGalleryLabels[index % fallbackHomeGalleryLabels.length] || `Training moment ${index + 1}`;
+  if (!label) return fallback;
+  if (/^bali yttc gallery \d+$/i.test(label.trim())) return fallback;
+  return label;
+}
+
 export const GalleryTeaser = () => {
   const copy = useHomeCopy();
   const galleryLabels = copy.common.galleryItems;
@@ -22,8 +42,8 @@ export const GalleryTeaser = () => {
       HOME_GALLERY.map((url, index) => ({
         id: `static-home-gallery-${index}`,
         url,
-        alt: galleryLabels[index] || `Bali YTTC gallery ${index + 1}`,
-        caption: galleryLabels[index],
+        alt: cleanGalleryLabel(galleryLabels[index], index),
+        caption: cleanGalleryLabel(galleryLabels[index], index),
       })),
     [galleryLabels],
   );
@@ -87,11 +107,7 @@ export const GalleryTeaser = () => {
           <div className="flex w-max animate-marquee-reverse gap-3 px-4 pb-3 [animation-duration:48s] hover:[animation-play-state:paused] md:gap-5 md:px-8">
             {marqueeGallery.map((image, i) => {
               const total = galleryImages.length || HOME_GALLERY.length;
-              const label =
-                image.caption ||
-                image.alt ||
-                galleryLabels[i % galleryLabels.length] ||
-                `Gallery ${(i % total) + 1}`;
+              const label = cleanGalleryLabel(image.caption || image.alt || galleryLabels[i % galleryLabels.length], i);
 
               return (
               <motion.div
