@@ -5,6 +5,7 @@ import { GET } from "../app/api/app/resources/[id]/route";
 const mocks = vi.hoisted(() => ({
   requireStudentUser: vi.fn(),
   preArrivalResourceFindUnique: vi.fn(),
+  taskProgressUpsert: vi.fn(),
   logApiError: vi.fn(),
 }));
 
@@ -16,6 +17,9 @@ vi.mock("@/lib/prisma", () => ({
   default: {
     preArrivalResource: {
       findUnique: mocks.preArrivalResourceFindUnique,
+    },
+    taskProgress: {
+      upsert: mocks.taskProgressUpsert,
     },
   },
 }));
@@ -58,7 +62,9 @@ beforeEach(() => {
     url: "https://example-cdn.com/visa-guide.pdf",
     audience: "PRE_ARRIVAL",
     isActive: true,
+    taskKey: null,
   });
+  mocks.taskProgressUpsert.mockResolvedValue({ id: "task_1" });
 });
 
 describe("student resource redirect route", () => {
@@ -69,6 +75,41 @@ describe("student resource redirect route", () => {
     expect(response?.headers.get("location")).toBe("https://example-cdn.com/visa-guide.pdf");
     expect(mocks.preArrivalResourceFindUnique).toHaveBeenCalledWith({
       where: { id: "resource_1" },
+    });
+  });
+
+  it("marks task-linked resources complete when opened", async () => {
+    mocks.preArrivalResourceFindUnique.mockResolvedValue({
+      id: "resource_1",
+      title: "Course Manual",
+      url: "https://example-cdn.com/course-manual.pdf",
+      audience: "PRE_ARRIVAL",
+      isActive: true,
+      taskKey: "read_manual",
+    });
+
+    const response = await GET(request(), params());
+
+    expect(response?.status).toBe(307);
+    expect(mocks.taskProgressUpsert).toHaveBeenCalledWith({
+      where: {
+        studentId_taskKey: {
+          studentId: "student_1",
+          taskKey: "read_manual",
+        },
+      },
+      update: {
+        taskTitle: "Course Manual",
+        completed: true,
+        completedAt: expect.any(Date),
+      },
+      create: {
+        studentId: "student_1",
+        taskKey: "read_manual",
+        taskTitle: "Course Manual",
+        completed: true,
+        completedAt: expect.any(Date),
+      },
     });
   });
 
@@ -102,6 +143,7 @@ describe("student resource redirect route", () => {
     expect(response?.status).toBe(404);
     expect(response?.headers.get("X-Request-Id")).toBe("req_student_resources");
     expect(body.error).toBe("Resource not found");
+    expect(mocks.taskProgressUpsert).not.toHaveBeenCalled();
   });
 
   it("hides resources outside the student's access level", async () => {

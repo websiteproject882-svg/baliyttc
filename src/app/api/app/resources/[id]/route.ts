@@ -45,6 +45,29 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return jsonWithRequestId({ error: "Resource URL is invalid" }, { status: 400 }, request);
     }
 
+    if (resource.taskKey) {
+      await prisma.taskProgress.upsert({
+        where: {
+          studentId_taskKey: {
+            studentId: student.id,
+            taskKey: resource.taskKey,
+          },
+        },
+        update: {
+          taskTitle: resource.title,
+          completed: true,
+          completedAt: new Date(),
+        },
+        create: {
+          studentId: student.id,
+          taskKey: resource.taskKey,
+          taskTitle: resource.title,
+          completed: true,
+          completedAt: new Date(),
+        },
+      });
+    }
+
     return NextResponse.redirect(new URL(resource.url, request.url));
   } catch (error) {
     logApiError("app.resources.redirect", error, request, { resourceId: params.id, studentId: student.id });
