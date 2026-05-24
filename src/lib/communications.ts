@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import { sendReminderEmail, sendEmail } from "@/lib/resend";
 import { sendBatchReminderWhatsApp } from "@/lib/whatsapp";
 import { buildCommunicationQueues, type CandidateInput, type CommunicationRecipient } from "@/lib/communications-queue";
+import { buildPublicUrl } from "@/lib/public-url";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -150,7 +151,7 @@ async function sendReviewRequestEmail(recipient: CommunicationRecipient) {
           <p>Hi ${safeName},</p>
           <p>We hope your ${safeCourseName} journey was meaningful. Your review helps future students decide with confidence.</p>
           <p>
-            <a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/en/app/reviews" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            <a href="${buildPublicUrl("/app/reviews")}" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Submit your review
             </a>
           </p>
@@ -162,7 +163,6 @@ async function sendReviewRequestEmail(recipient: CommunicationRecipient) {
 }
 
 async function sendVisaGuidanceEmail(recipient: CommunicationRecipient) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const safeName = escapeHtml(recipient.name);
   const safeCourseName = escapeHtml(recipient.courseName);
   const safeDaysUntilStart = escapeHtml(recipient.daysUntilStart ?? "a few");
@@ -186,7 +186,7 @@ async function sendVisaGuidanceEmail(recipient: CommunicationRecipient) {
             <li>Travel insurance is strongly recommended</li>
           </ul>
           <p>
-            <a href="${baseUrl}/en/visa" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            <a href="${buildPublicUrl("/visa")}" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Review visa guidance
             </a>
           </p>
@@ -215,7 +215,7 @@ async function sendAbandonedEnrollmentEmail(recipient: CommunicationRecipient) {
           <p>We noticed you started the enrollment process for ${safeCourseName}${batchSuffix(recipient.batchName)} but have not completed payment yet.</p>
           <p>Your batch is ${safeDaysUntilStart} days away. If you want us to hold your spot or help with payment options, reply to this email and our team will assist.</p>
           <p>
-            <a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/en/pricing" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            <a href="${buildPublicUrl("/pricing")}" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Review pricing and next steps
             </a>
           </p>

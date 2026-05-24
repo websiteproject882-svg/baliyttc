@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { buildPublicUrl } from "@/lib/public-url";
 
 // Gmail SMTP Configuration
 // To set up: https://myaccount.google.com/apppasswords
@@ -36,10 +37,6 @@ export const isGmailConfigured = () => {
     process.env.GMAIL_EMAIL !== "your-email@gmail.com"
   );
 };
-
-function getPublicBaseUrl() {
-  return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
-}
 
 function getSupportEmail() {
   return process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || process.env.GMAIL_EMAIL || "info@baliyttc.com";
@@ -171,7 +168,7 @@ export async function sendEnrollmentConfirmationEmail(data: {
       <p style="font-size: 14px; color: #666;">You'll receive access to your student portal within 24 hours after payment confirmation.</p>
 
       <div style="text-align: center; margin-top: 30px;">
-        <a href="${getPublicBaseUrl()}/en/app/dashboard" style="display: inline-block; background: #F04E23; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Access Student Portal</a>
+        <a href="${buildPublicUrl("/app/dashboard")}" style="display: inline-block; background: #F04E23; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Access Student Portal</a>
       </div>
 
       <p style="font-size: 14px; color: #666; margin-top: 30px;">Questions? Reply to this email or contact us at ${getSupportEmail()}</p>
@@ -237,7 +234,7 @@ export async function sendAdminNotificationEmail(data: {
         <tr><td style="padding: 8px; color: #666;">Time:</td><td style="padding: 8px;">${new Date().toLocaleString()}</td></tr>
       </table>
       <div style="margin-top: 20px;">
-        <a href="${getPublicBaseUrl()}/en/admin/${data.type === "enrollment" ? "enrollments" : data.type === "lead" ? "leads" : "leads"}" style="display: inline-block; background: #F04E23; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">View in Admin</a>
+        <a href="${buildPublicUrl(`/admin/${data.type === "enrollment" ? "enrollments" : "leads"}`)}" style="display: inline-block; background: #F04E23; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">View in Admin</a>
       </div>
     </div>
   </div>

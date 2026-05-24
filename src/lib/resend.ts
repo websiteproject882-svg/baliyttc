@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { isGmailConfigured, sendGmailEmail } from "@/lib/gmail-smtp";
+import { buildPublicUrl } from "@/lib/public-url";
 
 let resendClient: Resend | null = null;
 
@@ -25,10 +26,6 @@ function getSupportEmail() {
 
 function getAdminEmail() {
   return process.env.ADMIN_EMAIL || getSupportEmail();
-}
-
-function getPublicBaseUrl() {
-  return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
 function escapeHtml(value: string | number | undefined) {
@@ -190,7 +187,7 @@ export async function sendAdminEnrollmentNotification(data: {
             <p><strong>Payment:</strong> ${data.paymentType === "deposit" ? "Deposit" : "Full"} - ${safeCurrency} ${safeAmount}</p>
           </div>
 
-          <p><a href="${getPublicBaseUrl()}/en/admin/enrollments" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View in Admin Dashboard</a></p>
+          <p><a href="${buildPublicUrl("/admin/enrollments")}" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View in Admin Dashboard</a></p>
         </div>
       </div>
     `,
@@ -259,7 +256,7 @@ export async function sendReminderEmail(data: {
       subject: `Reminder: Complete Your Payment - ${data.course}`,
       content: `
         <p>This is a friendly reminder to complete your payment for ${safeCourse}. The remaining balance is due 30 days before your start date.</p>
-          <p><a href="${getPublicBaseUrl()}/en/app/dashboard" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Complete Payment</a></p>
+          <p><a href="${buildPublicUrl("/app/dashboard")}" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Complete Payment</a></p>
       `,
     },
     preparation: {
@@ -273,7 +270,7 @@ export async function sendReminderEmail(data: {
           <li>Complete your profile</li>
           <li>Join the batch WhatsApp group</li>
         </ul>
-        <p><a href="${getPublicBaseUrl()}/en/app/dashboard" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Tasks</a></p>
+        <p><a href="${buildPublicUrl("/app/dashboard")}" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Tasks</a></p>
       `,
     },
     general: {

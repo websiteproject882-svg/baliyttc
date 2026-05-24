@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { sendEmail } from "@/lib/resend";
 import { applyDeprecationHeaders, getClientIp, jsonWithRequestId, LEGACY_API_SUNSET, logApiError, logLegacyRouteAccess, rateLimit } from "@/lib/security";
+import { buildPublicUrl } from "@/lib/public-url";
 
 export const dynamic = "force-dynamic";
 
@@ -80,10 +81,6 @@ function getAdminEmail() {
   return process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL || "info@baliyttc.com";
 }
 
-function getPublicBaseUrl() {
-  return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
-}
-
 function sendLeadNotification(data: z.infer<typeof leadSchema>, leadId: string, request: NextRequest) {
   const course = data.course || "General inquiry";
   const phone = data.phone || "Not provided";
@@ -108,7 +105,7 @@ function sendLeadNotification(data: z.infer<typeof leadSchema>, leadId: string, 
             <p style="white-space: pre-wrap; margin-bottom: 0;">${escapeHtml(message)}</p>
           </div>
           <p style="font-size: 13px; color: #6b7280;">Lead ID: ${escapeHtml(leadId)}</p>
-          <a href="${getPublicBaseUrl()}/en/admin/leads" style="display: inline-block; background: #1f2937; color: white; text-decoration: none; padding: 12px 18px; border-radius: 999px; font-weight: 700;">Open admin leads</a>
+          <a href="${buildPublicUrl("/admin/leads")}" style="display: inline-block; background: #1f2937; color: white; text-decoration: none; padding: 12px 18px; border-radius: 999px; font-weight: 700;">Open admin leads</a>
         </div>
       </div>
     `,
