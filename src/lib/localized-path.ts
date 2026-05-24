@@ -1,4 +1,4 @@
-import { defaultLocale, locales, type Locale } from "@/i18n/routing";
+import { defaultLocale, locales, type Locale } from "../i18n/routing";
 
 export function normalizeLocale(value?: string | null): Locale {
   return locales.includes(value as Locale) ? (value as Locale) : defaultLocale;
