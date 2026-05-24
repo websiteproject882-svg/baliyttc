@@ -6,6 +6,16 @@ import { jsonWithRequestId, logApiError } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
+const emptyString = z.literal("");
+const httpsOrRelativeUrl = z.string().trim().refine((value) => {
+  if (value.startsWith("/")) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, "URL must use https or start with /");
+
 const courseSchema = z.object({
   name: z.string().trim().min(2).max(160),
   slug: z.string()
@@ -19,13 +29,13 @@ const courseSchema = z.object({
   description: z.string().trim().min(20).max(20000),
   priceFrom: z.coerce.number().nonnegative(),
   priceFull: z.coerce.number().nonnegative().nullable().optional(),
-  image: z.string().url().optional().or(z.literal("")),
+  image: httpsOrRelativeUrl.optional().or(emptyString),
   translations: z.record(z.object({
     name: z.string().trim().max(160).optional(),
     duration: z.string().trim().max(80).optional(),
     summary: z.string().trim().max(600).optional(),
     description: z.string().trim().max(20000).optional(),
-    image: z.string().url().optional().or(z.literal("")),
+    image: httpsOrRelativeUrl.optional().or(emptyString),
   }).partial()).optional(),
   isActive: z.boolean().optional(),
 });

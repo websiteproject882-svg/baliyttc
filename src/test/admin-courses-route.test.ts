@@ -97,8 +97,8 @@ function payload(overrides: Record<string, unknown> = {}) {
     description: "A complete Yoga Alliance certified teacher training in Bali.",
     priceFrom: 1499,
     priceFull: 1899,
-    image: "https://example.com/course.jpg",
-    translations: { es: { name: "Formacion 200 horas" } },
+    image: " /images/courses/200hr.jpg ",
+    translations: { es: { name: " Formacion 200 horas ", image: " https://example.com/course-es.jpg " } },
     isActive: true,
     ...overrides,
   };
@@ -160,8 +160,8 @@ describe("admin courses route", () => {
         description: "A complete Yoga Alliance certified teacher training in Bali.",
         priceFrom: 1499,
         priceFull: 1899,
-        image: "https://example.com/course.jpg",
-        translations: { es: { name: "Formacion 200 horas" } },
+        image: "/images/courses/200hr.jpg",
+        translations: { es: { name: "Formacion 200 horas", image: "https://example.com/course-es.jpg" } },
         isActive: true,
       },
     });
@@ -190,6 +190,15 @@ describe("admin courses route", () => {
 
   it("validates create payloads", async () => {
     const response = await POST(request("POST", payload({ slug: "bad slug !", description: "short" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.courseCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects insecure course image URLs before saving", async () => {
+    const response = await POST(request("POST", payload({ image: "ftp://example.com/course.jpg" })));
     const body = await response?.json();
 
     expect(response?.status).toBe(400);
@@ -241,7 +250,7 @@ describe("admin courses route", () => {
         name: "Updated YTT",
         slug: "200-hour-ytt",
         priceFull: 1899,
-        image: "https://example.com/course.jpg",
+        image: "/images/courses/200hr.jpg",
       }),
     });
     expect(mocks.writeAuditLog).toHaveBeenCalledWith(
