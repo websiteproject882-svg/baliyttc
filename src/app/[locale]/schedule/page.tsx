@@ -3,7 +3,9 @@ import { CalendarDays, CheckCircle2, Clock, Euro, Users } from "lucide-react";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { scheduleCourses } from "@/data/marketing-pages";
 
-export default function SchedulePage() {
+export default function SchedulePage({ params }: { params: { locale: string } }) {
+  const locale = params.locale || "en";
+
   return (
     <NextLayoutWrapper>
       <section className="bg-cream pt-36 pb-16">
@@ -30,7 +32,7 @@ export default function SchedulePage() {
                     <span className="inline-flex items-center gap-2"><Euro className="h-4 w-4 text-terra" />{course.price}</span>
                   </div>
                 </div>
-                <Link href={`/en/courses/${course.slug}`} className="text-sm font-bold uppercase tracking-wide text-terra">
+                <Link href={`/${locale}/courses/${course.slug}`} className="text-sm font-bold uppercase tracking-wide text-terra">
                   View course details
                 </Link>
               </div>
@@ -53,7 +55,7 @@ export default function SchedulePage() {
                         {date.status}
                       </span>
                       <Link
-                        href={`/en/apply?course=${course.slug}&date=${encodeURIComponent(date.start)}`}
+                        href={`/${locale}/apply?course=${course.slug}&date=${encodeURIComponent(date.start)}`}
                         className="inline-flex h-11 items-center justify-center rounded-full bg-terra px-5 text-sm font-semibold text-white hover:bg-terra-deep"
                       >
                         Apply for this date
