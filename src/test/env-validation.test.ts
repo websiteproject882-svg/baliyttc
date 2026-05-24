@@ -9,14 +9,14 @@ afterEach(() => {
 });
 
 describe("env validation", () => {
-  it("fails when required shared env is missing", () => {
+  it("fails when required secret env is missing and warns for public URL fallback", () => {
     delete process.env.NEXT_PUBLIC_BASE_URL;
     delete process.env.SESSION_SECRET;
 
     const result = validateRuntimeEnv();
     expect(result.ok).toBe(false);
-    expect(result.errors.some((item) => item.includes("NEXT_PUBLIC_BASE_URL"))).toBe(true);
     expect(result.errors.some((item) => item.includes("SESSION_SECRET"))).toBe(true);
+    expect(result.warnings.some((item) => item.includes("NEXT_PUBLIC_BASE_URL is not configured"))).toBe(true);
   });
 
   it("warns in non-production when prod-only env is absent", () => {

@@ -51,7 +51,7 @@ function hasValidFirebasePrivateKeyFormat(value: string | undefined) {
 }
 
 export function validateRuntimeEnv(): ValidationResult {
-  const requiredInAll = ["NEXT_PUBLIC_BASE_URL", "SESSION_SECRET"];
+  const requiredInAll = ["SESSION_SECRET"];
   const requiredInProduction = ["DATABASE_URL"];
   const firebaseAdminKeys = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"];
 
@@ -131,7 +131,9 @@ export function validateRuntimeEnv(): ValidationResult {
     warnings.push("FIREBASE_PRIVATE_KEY does not look like a complete PEM private key");
   }
 
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
+  if (!process.env.NEXT_PUBLIC_BASE_URL?.trim()) {
+    warnings.push("NEXT_PUBLIC_BASE_URL is not configured; using https://baliyttc.com as the public fallback");
+  } else {
     try {
       const baseUrl = new URL(process.env.NEXT_PUBLIC_BASE_URL);
       const isLocalHost =
