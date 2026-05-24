@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { StaffSidebar } from "./StaffSidebar";
+
+export const metadata: Metadata = {
+  title: "Staff Portal | Bali YTTC",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   return (

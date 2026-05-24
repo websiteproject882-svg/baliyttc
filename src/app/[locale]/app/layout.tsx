@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import {
   LayoutDashboard, UserCircle2, BarChart3, Calendar,
@@ -7,6 +8,14 @@ import {
 import prisma from "@/lib/prisma";
 import { getStudentSession } from "@/lib/session";
 import { PWAStatus } from "@/components/student/PWAStatus";
+
+export const metadata: Metadata = {
+  title: "Student Portal | Bali YTTC",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function AppLayout({
   children,

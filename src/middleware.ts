@@ -32,8 +32,13 @@ function authFailureResponse(request: NextRequest, locale: string, type?: 'admin
   }
 
   const url = request.nextUrl.clone();
-  url.pathname = `/${locale}/login`;
-  url.search = type ? `?type=${type}` : '';
+  url.pathname =
+    type === 'admin'
+      ? `/${locale}/admin/login`
+      : type === 'staff'
+        ? `/${locale}/staff/login`
+        : `/${locale}/login`;
+  url.search = '';
   return NextResponse.redirect(url);
 }
 

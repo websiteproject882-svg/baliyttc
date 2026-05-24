@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Portal | Bali YTTC",
+  title: "Student Login | Bali YTTC",
   robots: {
     index: false,
     follow: false,
   },
 };
 
-export default function AdminSegmentLayout({ children }: { children: React.ReactNode }) {
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return children;
 }
