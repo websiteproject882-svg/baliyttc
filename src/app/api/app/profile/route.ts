@@ -12,7 +12,7 @@ const profileSchema = z.object({
     .string()
     .trim()
     .max(250000)
-    .refine((value) => !value || value.startsWith("data:image/") || /^https?:\/\//.test(value), {
+    .refine((value) => !value || value.startsWith("data:image/") || /^https:\/\//.test(value), {
       message: "Photo must be an image upload or URL",
     })
     .optional()

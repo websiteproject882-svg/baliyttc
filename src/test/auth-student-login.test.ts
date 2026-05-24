@@ -193,7 +193,7 @@ describe("student auth login", () => {
       uid: "firebase_uid",
       email: "student@example.com",
       name: "Student User",
-      picture: "javascript:alert(1)",
+      picture: "http://example.com/avatar.png",
     });
 
     const response = await POST(request({ idToken: "token" }));
@@ -203,6 +203,26 @@ describe("student auth login", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           photoURL: null,
+        }),
+      }),
+    );
+  });
+
+  it("allows Firebase data image profile photos during profile sync", async () => {
+    mocks.verifyIdToken.mockResolvedValue({
+      uid: "firebase_uid",
+      email: "student@example.com",
+      name: "Student User",
+      picture: "data:image/png;base64,abc",
+    });
+
+    const response = await POST(request({ idToken: "token" }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.userUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          photoURL: "data:image/png;base64,abc",
         }),
       }),
     );

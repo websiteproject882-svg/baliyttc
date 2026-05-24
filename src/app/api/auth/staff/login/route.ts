@@ -14,7 +14,7 @@ const loginSchema = z.object({
 function normalizeAuthPhotoUrl(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return trimmed.startsWith("data:image/") || /^https?:\/\//.test(trimmed) ? trimmed : null;
+  return trimmed.startsWith("data:image/") || /^https:\/\//.test(trimmed) ? trimmed : null;
 }
 
 export async function POST(request: NextRequest) {

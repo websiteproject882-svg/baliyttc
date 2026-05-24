@@ -143,7 +143,7 @@ describe("student profile and notes routes", () => {
   });
 
   it("validates profile photo URL before saving", async () => {
-    const response = await patchProfile(profileRequest({ photoURL: "ftp://example.com/photo.jpg" }));
+    const response = await patchProfile(profileRequest({ photoURL: "http://example.com/photo.jpg" }));
     const body = await response?.json();
 
     expect(response?.status).toBe(400);

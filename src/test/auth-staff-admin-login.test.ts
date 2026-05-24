@@ -174,13 +174,36 @@ describe("admin and staff Firebase login", () => {
       uid: "new_uid",
       email: "owner@example.com",
       name: "Owner",
-      picture: "ftp://example.com/avatar.png",
+      picture: "http://example.com/avatar.png",
     });
     mocks.userFindUnique
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(adminUser);
 
     const response = await adminLogin(request("https://example.com/api/auth/admin/login"));
+
+    expect(response.status).toBe(200);
+    expect(mocks.userUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          photoURL: null,
+        }),
+      }),
+    );
+  });
+
+  it("drops unsafe Firebase profile photo URLs during staff profile sync", async () => {
+    mocks.verifyIdToken.mockResolvedValue({
+      uid: "new_uid",
+      email: "teacher@example.com",
+      name: "Teacher",
+      picture: "http://example.com/avatar.png",
+    });
+    mocks.userFindUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(staffUser);
+
+    const response = await staffLogin(request("https://example.com/api/auth/staff/login"));
 
     expect(response.status).toBe(200);
     expect(mocks.userUpdate).toHaveBeenCalledWith(

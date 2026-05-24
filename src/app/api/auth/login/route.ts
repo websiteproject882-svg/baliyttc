@@ -21,7 +21,7 @@ const accessRank = {
 function normalizeAuthPhotoUrl(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return trimmed.startsWith("data:image/") || /^https?:\/\//.test(trimmed) ? trimmed : null;
+  return trimmed.startsWith("data:image/") || /^https:\/\//.test(trimmed) ? trimmed : null;
 }
 
 function accessFromPaymentStatus(status: string) {
