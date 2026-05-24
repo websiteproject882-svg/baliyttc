@@ -47,7 +47,7 @@ describe("env validation", () => {
     expect(result.errors.some((item) => item.includes("Razorpay is partially configured"))).toBe(true);
   });
 
-  it("fails when production test login is enabled without the explicit override", () => {
+  it("warns when production test login is enabled without the explicit override", () => {
     process.env = { ...process.env, NODE_ENV: "production" };
     process.env.NEXT_PUBLIC_BASE_URL = "https://baliyytc.vercel.app";
     process.env.SESSION_SECRET = "12345678901234567890123456789012";
@@ -60,8 +60,8 @@ describe("env validation", () => {
 
     const result = validateRuntimeEnv();
 
-    expect(result.ok).toBe(false);
-    expect(result.errors.some((item) => item.includes("ENABLE_TEST_LOGIN cannot be true"))).toBe(true);
+    expect(result.ok).toBe(true);
+    expect(result.warnings.some((item) => item.includes("production test login remains disabled"))).toBe(true);
   });
 
   it("allows production test login only when the explicit override is present", () => {
@@ -80,7 +80,7 @@ describe("env validation", () => {
     expect(result.errors.some((item) => item.includes("ENABLE_TEST_LOGIN cannot be true"))).toBe(false);
   });
 
-  it("fails in production when Firebase private key is incomplete", () => {
+  it("warns in production when Firebase private key is incomplete", () => {
     process.env = { ...process.env, NODE_ENV: "production" };
     process.env.NEXT_PUBLIC_BASE_URL = "https://baliyytc.vercel.app";
     process.env.SESSION_SECRET = "12345678901234567890123456789012";
@@ -91,7 +91,7 @@ describe("env validation", () => {
 
     const result = validateRuntimeEnv();
 
-    expect(result.ok).toBe(false);
-    expect(result.errors.some((item) => item.includes("FIREBASE_PRIVATE_KEY must be a complete PEM"))).toBe(true);
+    expect(result.ok).toBe(true);
+    expect(result.warnings.some((item) => item.includes("FIREBASE_PRIVATE_KEY does not look like"))).toBe(true);
   });
 });

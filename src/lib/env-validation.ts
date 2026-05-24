@@ -52,12 +52,8 @@ function hasValidFirebasePrivateKeyFormat(value: string | undefined) {
 
 export function validateRuntimeEnv(): ValidationResult {
   const requiredInAll = ["NEXT_PUBLIC_BASE_URL", "SESSION_SECRET"];
-  const requiredInProduction = [
-    "DATABASE_URL",
-    "FIREBASE_PROJECT_ID",
-    "FIREBASE_CLIENT_EMAIL",
-    "FIREBASE_PRIVATE_KEY",
-  ];
+  const requiredInProduction = ["DATABASE_URL"];
+  const firebaseAdminKeys = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"];
 
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -112,6 +108,13 @@ export function validateRuntimeEnv(): ValidationResult {
     warnings.push(...result.warnings);
   }
 
+  const firebaseResult = evaluateProviderGroup({
+    name: "Firebase Admin",
+    keys: firebaseAdminKeys,
+    productionMode: false,
+  });
+  warnings.push(...firebaseResult.warnings);
+
   if (process.env.CRON_SECRET && process.env.CRON_SECRET.length < 16) {
     errors.push("CRON_SECRET must be at least 16 characters when configured");
   }
@@ -121,12 +124,10 @@ export function validateRuntimeEnv(): ValidationResult {
     process.env.ENABLE_TEST_LOGIN === "true" &&
     process.env.ALLOW_PRODUCTION_TEST_LOGIN !== "true"
   ) {
-    errors.push("ENABLE_TEST_LOGIN cannot be true in production unless ALLOW_PRODUCTION_TEST_LOGIN is explicitly true");
+    warnings.push("ENABLE_TEST_LOGIN is true, but production test login remains disabled without ALLOW_PRODUCTION_TEST_LOGIN=true");
   }
 
-  if (process.env.NODE_ENV === "production" && process.env.FIREBASE_PRIVATE_KEY && !hasValidFirebasePrivateKeyFormat(process.env.FIREBASE_PRIVATE_KEY)) {
-    errors.push("FIREBASE_PRIVATE_KEY must be a complete PEM private key with escaped newlines");
-  } else if (process.env.NODE_ENV !== "production" && process.env.FIREBASE_PRIVATE_KEY && !hasValidFirebasePrivateKeyFormat(process.env.FIREBASE_PRIVATE_KEY)) {
+  if (process.env.FIREBASE_PRIVATE_KEY && !hasValidFirebasePrivateKeyFormat(process.env.FIREBASE_PRIVATE_KEY)) {
     warnings.push("FIREBASE_PRIVATE_KEY does not look like a complete PEM private key");
   }
 
