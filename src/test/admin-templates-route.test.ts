@@ -80,6 +80,7 @@ function rawRequest(method: "PUT", body: string) {
 function payload(overrides: Record<string, unknown> = {}) {
   return {
     id: "template_1",
+    type: "enrollment",
     name: "Enrollment Confirmation",
     subject: "Welcome to Bali YTTC",
     content: "Hi {{studentName}}, your course {{courseName}} is confirmed.",
@@ -153,7 +154,7 @@ describe("admin templates route", () => {
       create: {
         id: "template_1",
         title: "Enrollment Confirmation",
-        slug: "enrollment-confirmation",
+        slug: "enrollment",
         content: "Hi {{studentName}}, your course {{courseName}} is confirmed.",
         excerpt: "Welcome to Bali YTTC",
         category: "email_template",
@@ -163,6 +164,7 @@ describe("admin templates route", () => {
       },
       update: {
         title: "Enrollment Confirmation",
+        slug: "enrollment",
         content: "Hi {{studentName}}, your course {{courseName}} is confirmed.",
         metaTitle: "Welcome to Bali YTTC",
         updatedAt: expect.any(Date),

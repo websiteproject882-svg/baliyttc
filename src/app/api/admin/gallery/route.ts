@@ -25,6 +25,7 @@ const galleryImageSchema = z.object({
   url: httpsOrRelativeUrl,
   alt: z.string().trim().max(300).optional(),
   caption: optionalTrimmedText(500),
+  category: z.enum(["Practice", "Ceremony", "Campus", "Nature", "Teachers", "Courses"]).default("Practice"),
   type: z.enum(["PROFESSIONAL", "STUDENT"]).default("PROFESSIONAL"),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "ACTIVE"]).default("ACTIVE"),
 });
@@ -66,13 +67,14 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
     }
 
-    const { url, alt, caption, type, status } = parsed.data;
+    const { url, alt, caption, category, type, status } = parsed.data;
 
     const image = await prisma.galleryImage.create({
       data: {
         url,
         alt: alt || url,
         caption,
+        category,
         type,
         status,
       },
@@ -110,7 +112,7 @@ export async function PATCH(request: NextRequest) {
       return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
     }
 
-    const { id, url, alt, caption, type, status, order } = parsed.data;
+    const { id, url, alt, caption, category, type, status, order } = parsed.data;
 
     const existing = await prisma.galleryImage.findUnique({ where: { id } });
     if (!existing) {
@@ -121,6 +123,7 @@ export async function PATCH(request: NextRequest) {
     if (url !== undefined) updateData.url = url;
     if (alt !== undefined) updateData.alt = alt;
     if (caption !== undefined) updateData.caption = caption;
+    if (category !== undefined) updateData.category = category;
     if (type !== undefined) updateData.type = type;
     if (status !== undefined) updateData.status = status;
     if (order !== undefined) updateData.order = order;

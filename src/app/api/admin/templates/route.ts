@@ -13,6 +13,7 @@ const DEFAULT_TEMPLATE_UPDATED_AT = "1970-01-01T00:00:00.000Z";
 
 const templateSchema = z.object({
   id: z.string().trim().min(1).max(120).optional(),
+  type: z.enum(["enrollment", "prearrival", "reminder", "certificate", "review", "earlybird", "visa"]).optional(),
   name: z.string().trim().min(1).max(160),
   subject: z.string().trim().min(1).max(240),
   content: z.string().max(50000),
@@ -86,13 +87,15 @@ export async function PUT(request: NextRequest) {
     }
 
     const { id, name, subject, content } = parsed.data;
+    const type = parsed.data.type || id || name.toLowerCase().replace(/\s+/g, "-");
+    const templateId = id || type;
 
     const template = await prisma.blogPost.upsert({
-      where: { id: id || `template_${Date.now()}` },
+      where: { id: templateId },
       create: {
-        id: id || `template_${Date.now()}`,
+        id: templateId,
         title: name,
-        slug: name.toLowerCase().replace(/\s+/g, "-"),
+        slug: type,
         content,
         excerpt: subject,
         category: "email_template",
@@ -102,6 +105,7 @@ export async function PUT(request: NextRequest) {
       },
       update: {
         title: name,
+        slug: type,
         content,
         metaTitle: subject,
         updatedAt: new Date(),
@@ -121,7 +125,7 @@ export async function PUT(request: NextRequest) {
       template: {
         id: template.id,
         name,
-        type: template.slug,
+        type,
         subject,
         content,
         lastUpdated: template.updatedAt.toISOString(),

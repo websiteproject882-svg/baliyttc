@@ -55,6 +55,7 @@ const image = {
   url: "https://example.com/gallery.jpg",
   alt: "Students practicing yoga",
   caption: "Morning practice",
+  category: "Practice",
   type: "PROFESSIONAL",
   status: "ACTIVE",
   order: 2,
@@ -89,6 +90,7 @@ function payload(overrides: Record<string, unknown> = {}) {
     url: " /images/gallery/morning-practice.jpg ",
     alt: "Students practicing yoga",
     caption: "Morning practice",
+    category: "Practice",
     type: "PROFESSIONAL",
     status: "ACTIVE",
     ...overrides,
@@ -133,6 +135,7 @@ describe("admin gallery route", () => {
         url: "/images/gallery/morning-practice.jpg",
         alt: "Students practicing yoga",
         caption: "Morning practice",
+        category: "Practice",
         type: "PROFESSIONAL",
         status: "ACTIVE",
       },
@@ -216,6 +219,20 @@ describe("admin gallery route", () => {
         entityId: "gallery_1",
       }),
     );
+  });
+
+  it("updates gallery image categories for public filters", async () => {
+    const response = await PATCH(request("PATCH", { id: "gallery_1", category: "Campus" }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(200);
+    expect(body.image).toEqual(expect.objectContaining({ id: "gallery_1" }));
+    expect(mocks.galleryUpdate).toHaveBeenCalledWith({
+      where: { id: "gallery_1" },
+      data: {
+        category: "Campus",
+      },
+    });
   });
 
   it("returns 404 when updating a missing gallery image", async () => {

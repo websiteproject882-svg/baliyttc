@@ -249,7 +249,64 @@ export default function TemplatesPage() {
   const [editedSubject, setEditedSubject] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [previewDialog, setPreviewDialog] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTemplates() {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/admin/templates");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load templates");
+        }
+
+        const storedTemplates = Array.isArray(data.templates) ? data.templates : [];
+        const merged = defaultTemplates.map((template) => {
+          const stored = storedTemplates.find((item: Partial<EmailTemplate> & { slug?: string }) =>
+            item.type === template.type || item.id === template.id || item.slug === template.type,
+          );
+
+          if (!stored) return template;
+
+          return {
+            ...template,
+            id: String(stored.id || template.id),
+            name: String(stored.name || template.name),
+            subject: String(stored.subject || template.subject),
+            content: stored.content ? String(stored.content) : template.content,
+            lastUpdated: String(stored.lastUpdated || template.lastUpdated),
+            variables: Array.isArray(stored.variables) && stored.variables.length ? stored.variables : template.variables,
+          };
+        });
+
+        if (!cancelled) {
+          setTemplates(merged);
+          setSelectedTemplate((current) => {
+            if (!current) return current;
+            return merged.find((template) => template.type === current.type) || current;
+          });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load templates");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void loadTemplates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleEdit = (template: EmailTemplate) => {
     setSelectedTemplate(template);
@@ -261,20 +318,43 @@ export default function TemplatesPage() {
   const handleSave = async () => {
     if (!selectedTemplate) return;
     setSaving(true);
+    setError(null);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch("/api/admin/templates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedTemplate.id,
+          type: selectedTemplate.type,
+          name: selectedTemplate.name,
+          subject: editedSubject,
+          content: editedContent,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save template");
+      }
 
-    setTemplates(templates.map(t =>
-      t.id === selectedTemplate.id
-        ? { ...t, content: editedContent, subject: editedSubject, lastUpdated: new Date().toISOString() }
-        : t
-    ));
+      const updatedTemplate: EmailTemplate = {
+        ...selectedTemplate,
+        subject: data.template?.subject || editedSubject,
+        content: data.template?.content || editedContent,
+        lastUpdated: data.template?.lastUpdated || new Date().toISOString(),
+        variables: data.template?.variables?.length ? data.template.variables : selectedTemplate.variables,
+      };
 
-    setSaving(false);
-    setSaved(true);
-    setEditMode(false);
-    setTimeout(() => setSaved(false), 3000);
+      setTemplates((current) => current.map((template) => (template.type === selectedTemplate.type ? updatedTemplate : template)));
+      setSelectedTemplate(updatedTemplate);
+      setSaved(true);
+      setEditMode(false);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save template");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleReset = () => {
@@ -327,8 +407,22 @@ export default function TemplatesPage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {error && (
+          <Card className="border border-red-200 bg-red-50 shadow-sm">
+            <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+          </Card>
+        )}
+
+        {loading && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((item) => (
+              <Skeleton key={item} className="h-36 rounded-xl" />
+            ))}
+          </div>
+        )}
+
         {/* Template List */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={`grid md:grid-cols-2 lg:grid-cols-3 gap-4 ${loading ? "opacity-60" : ""}`}>
           {templates.map(template => {
             const config = templateConfig[template.type];
             return (

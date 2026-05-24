@@ -17,6 +17,7 @@ async function getInitialGalleryImages() {
         url: true,
         alt: true,
         caption: true,
+        category: true,
         type: true,
       },
     });

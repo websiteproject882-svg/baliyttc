@@ -14,11 +14,14 @@ interface GalleryImage {
   url: string;
   alt: string | null;
   caption: string | null;
+  category: "Practice" | "Ceremony" | "Campus" | "Nature" | "Teachers" | "Courses";
   type: "PROFESSIONAL" | "STUDENT";
   status: "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE";
   order: number;
   createdAt: string;
 }
+
+const galleryCategories: GalleryImage["category"][] = ["Practice", "Ceremony", "Campus", "Nature", "Teachers", "Courses"];
 
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -33,6 +36,7 @@ export default function GalleryPage() {
     url: "",
     alt: "",
     caption: "",
+    category: "Practice" as GalleryImage["category"],
     type: "PROFESSIONAL" as GalleryImage["type"],
     status: "ACTIVE" as GalleryImage["status"],
     order: "0",
@@ -78,7 +82,7 @@ export default function GalleryPage() {
         throw new Error(data.error || "Failed to create gallery image");
       }
       setShowUploadDialog(false);
-      setForm({ url: "", alt: "", caption: "", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
+      setForm({ url: "", alt: "", caption: "", category: "Practice", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
       await fetchImages();
     } catch (err) {
       console.error("Failed to create gallery image:", err);
@@ -130,7 +134,7 @@ export default function GalleryPage() {
   };
 
   const openAddDialog = () => {
-    setForm({ url: "", alt: "", caption: "", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
+    setForm({ url: "", alt: "", caption: "", category: "Practice", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
     setShowUploadDialog(true);
   };
 
@@ -141,6 +145,7 @@ export default function GalleryPage() {
       url: image.url,
       alt: image.alt || "",
       caption: image.caption || "",
+      category: image.category || "Practice",
       type: image.type,
       status: image.status,
       order: String(image.order || 0),
@@ -160,6 +165,7 @@ export default function GalleryPage() {
           url: form.url,
           alt: form.alt,
           caption: form.caption,
+          category: form.category,
           type: form.type,
           status: form.status,
           order: form.order,
@@ -170,7 +176,7 @@ export default function GalleryPage() {
         throw new Error(data.error || "Failed to update gallery image");
       }
       setEditingImage(null);
-      setForm({ url: "", alt: "", caption: "", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
+      setForm({ url: "", alt: "", caption: "", category: "Practice", type: "PROFESSIONAL", status: "ACTIVE", order: "0" });
       await fetchImages();
     } catch (err) {
       console.error("Failed to update gallery image:", err);
@@ -184,7 +190,8 @@ export default function GalleryPage() {
     const matchSearch =
       !search ||
       (image.alt || "").toLowerCase().includes(search.toLowerCase()) ||
-      (image.caption || "").toLowerCase().includes(search.toLowerCase());
+      (image.caption || "").toLowerCase().includes(search.toLowerCase()) ||
+      (image.category || "").toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter === "all" || image.type === typeFilter;
     return matchSearch && matchType;
   });
@@ -316,6 +323,7 @@ export default function GalleryPage() {
                     </div>
                     <div className="absolute top-2 left-2 flex gap-2">
                       <Badge variant="secondary">{image.type}</Badge>
+                      <Badge variant="outline">{image.category || "Practice"}</Badge>
                       <Badge className={image.status === "ACTIVE" || image.status === "APPROVED" ? "bg-green-500 text-white" : "bg-amber-500 text-white"}>
                         {image.status}
                       </Badge>
@@ -371,6 +379,14 @@ export default function GalleryPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Category</label>
+                <select className="w-full rounded-lg border px-3 py-2" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as GalleryImage["category"] })}>
+                  {galleryCategories.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
                 <select className="w-full rounded-lg border px-3 py-2" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as GalleryImage["type"] })}>
                   <option value="PROFESSIONAL">Professional</option>
@@ -415,6 +431,7 @@ export default function GalleryPage() {
               <img src={selectedImage.url} alt={selectedImage.alt || "Gallery image"} className="w-full max-h-[500px] object-contain rounded-lg" />
               <div className="flex items-center gap-4">
                 <Badge variant="secondary">{selectedImage.type}</Badge>
+                <Badge variant="outline">{selectedImage.category || "Practice"}</Badge>
                 <Badge variant="outline">{selectedImage.status}</Badge>
                 {selectedImage.caption && <p className="text-gray-600">{selectedImage.caption}</p>}
               </div>
@@ -455,7 +472,15 @@ export default function GalleryPage() {
               <label className="text-sm font-medium text-gray-700 mb-2 block">Caption</label>
               <Input placeholder="Optional caption" value={form.caption} onChange={(e) => setForm({ ...form, caption: e.target.value })} />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Category</label>
+                <select className="w-full rounded-lg border px-3 py-2" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as GalleryImage["category"] })}>
+                  {galleryCategories.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
                 <select className="w-full rounded-lg border px-3 py-2" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as GalleryImage["type"] })}>

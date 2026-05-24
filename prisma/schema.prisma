@@ -738,6 +738,7 @@ model GalleryImage {
   url     String
   caption String?
   alt     String?
+  category String @default("Practice")
 
   type   GalleryType @default(PROFESSIONAL)
   status ImageStatus @default(ACTIVE)

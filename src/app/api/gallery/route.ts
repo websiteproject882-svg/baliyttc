@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
         url: true,
         alt: true,
         caption: true,
+        category: true,
         type: true,
       },
     });

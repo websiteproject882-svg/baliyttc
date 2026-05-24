@@ -18,9 +18,11 @@ interface ContactFormData {
 
 export async function sendContactEmail(data: ContactFormData): Promise<{ success: boolean; error?: string }> {
   try {
-    // Save to database
+    let leadSaved = false;
+    let leadError = "Could not save your message. Please try WhatsApp instead.";
+
     try {
-      await fetch("/api/leads", {
+      const response = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -33,14 +35,20 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
           status: "NEW",
         }),
       });
+      if (response.ok) {
+        leadSaved = true;
+      } else {
+        const body = await response.json().catch(() => null);
+        leadError = body?.error || leadError;
+      }
     } catch (dbError) {
       console.error("Failed to save lead to database:", dbError);
     }
 
-    // If EmailJS is not configured, simulate success for development
+    // In production the public lead API is the source of truth; it also triggers
+    // server-side notification email when Resend is configured.
     if (!EMAILJS_PUBLIC_KEY) {
-      console.log("EmailJS not configured. Simulating email send:", data);
-      return { success: true };
+      return leadSaved ? { success: true } : { success: false, error: leadError };
     }
 
     const templateParams = {
@@ -83,8 +91,10 @@ export async function sendApplicationEmail(data: {
 }): Promise<{ success: boolean; error?: string }> {
   try {
     if (!EMAILJS_PUBLIC_KEY) {
-      console.log("EmailJS not configured. Simulating application email:", data);
-      return { success: true };
+      return {
+        success: false,
+        error: "Application email is not configured. Please use the website application form or WhatsApp.",
+      };
     }
 
     const templateParams = {

@@ -14,7 +14,7 @@ type PublicGalleryImage = {
   url: string;
   alt?: string | null;
   caption?: string | null;
-  category?: GalleryFilter;
+  category?: string | null;
 };
 
 const staticGalleryCategories: GalleryFilter[] = [
@@ -88,7 +88,9 @@ function getStaticGalleryLabel(index: number) {
 }
 
 const inferGalleryCategory = (image: PublicGalleryImage): GalleryFilter => {
-  if (image.category) return image.category;
+  if (image.category && galleryFilters.includes(image.category as GalleryFilter) && image.category !== "All") {
+    return image.category as GalleryFilter;
+  }
 
   const source = `${image.url} ${image.alt || ""} ${image.caption || ""}`.toLowerCase();
   if (source.includes("villa") || source.includes("room") || source.includes("pool") || source.includes("campus") || source.includes("studio") || source.includes("reception")) return "Campus";

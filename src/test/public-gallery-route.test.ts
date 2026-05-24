@@ -29,6 +29,7 @@ const image = {
   url: "https://example.com/gallery.jpg",
   alt: "Students practicing yoga",
   caption: "Morning practice",
+  category: "Practice",
   type: "PROFESSIONAL",
 };
 
@@ -65,6 +66,7 @@ describe("public gallery route", () => {
         url: true,
         alt: true,
         caption: true,
+        category: true,
         type: true,
       },
     });
