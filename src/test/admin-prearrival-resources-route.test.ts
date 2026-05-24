@@ -182,6 +182,15 @@ describe("admin pre-arrival resources route", () => {
     expect(mocks.preArrivalResourceCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects protocol-relative resource URLs", async () => {
+    const response = await POST(request("POST", payload({ url: "//evil.example/visa.pdf" })));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(400);
+    expect(body.error).toBe("Validation failed");
+    expect(mocks.preArrivalResourceCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed resource create JSON before writes", async () => {
     const response = await POST(rawRequest("POST", "{not-valid-json"));
     const body = await response?.json();
