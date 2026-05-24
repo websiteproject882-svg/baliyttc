@@ -14,7 +14,7 @@ export default function StudentNotesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void fetch("/api/app/notes")
+    void fetch("/api/app/notes", { cache: "no-store" })
       .then(async (response) => {
         const result = await response.json();
         if (!response.ok) {

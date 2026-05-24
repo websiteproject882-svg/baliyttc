@@ -143,7 +143,7 @@ export default function StudentDashboardPage() {
     setLoading(true);
     setPortalError(null);
     try {
-      const response = await fetch("/api/app/portal");
+      const response = await fetch("/api/app/portal", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to load portal");
       setPortal(result);

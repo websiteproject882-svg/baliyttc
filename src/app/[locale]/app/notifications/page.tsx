@@ -32,7 +32,7 @@ export default function NotificationsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/app/notifications");
+      const response = await fetch("/api/app/notifications", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Failed to load notifications");

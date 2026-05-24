@@ -45,7 +45,7 @@ export default function StudentProfilePage() {
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
-    void fetch("/api/app/profile")
+    void fetch("/api/app/profile", { cache: "no-store" })
       .then(async (response) => {
         const result = await response.json();
         if (!response.ok) {
