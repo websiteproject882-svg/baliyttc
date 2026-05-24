@@ -161,7 +161,7 @@ export function ApplyPageClient() {
             ))}
           </ol>
         </div>
-        <a href={whatsappLink} target="_blank" className="flex items-center justify-center gap-2 rounded-full border border-leaf bg-leaf px-5 py-4 text-sm font-semibold text-white">
+        <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-full border border-leaf bg-leaf px-5 py-4 text-sm font-semibold text-white">
           <MessageCircle className="h-5 w-5" /> Apply via WhatsApp
         </a>
         <div className="rounded-lg border border-sand bg-cream p-5 text-sm leading-7 text-ink-soft">

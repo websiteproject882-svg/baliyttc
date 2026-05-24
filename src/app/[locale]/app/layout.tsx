@@ -173,6 +173,7 @@ export default async function AppLayout({
           <Link
             href={`/${params.locale}`}
             target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors"
           >
             <ExternalLink className="h-3.5 w-3.5" />
