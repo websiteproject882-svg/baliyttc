@@ -82,11 +82,11 @@ export default function StudentSchedulePage() {
               <CardContent className="space-y-3">
                 {entry.ceremonyBlocked ? (
                   <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
-                    Classes are blocked for a Balinese ceremony. Admin can add ceremony notes for this date.
+                    Classes are paused for a Balinese ceremony. Check the notes below for any meeting point or preparation guidance.
                   </div>
                 ) : null}
                 {entry.activities.map((activity, index) => {
-                  const teacher = activity.teacher || entry.teacher?.name || "Teacher TBD";
+                  const teacher = activity.teacher || entry.teacher?.name || "Teacher to be confirmed";
                   const style = activity.style || activity.type || entry.teacher?.styles?.[0] || "Yoga";
                   const room = activity.room || "Main Shala";
 

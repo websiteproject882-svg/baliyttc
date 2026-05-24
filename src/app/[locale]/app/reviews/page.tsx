@@ -17,12 +17,22 @@ type TestimonialItem = {
   createdAt: string;
 };
 
+type PortalProfile = {
+  student: {
+    accessLevel: "NONE" | "PRE_ARRIVAL" | "FULL" | "ALUMNI";
+    enrolledCourse?: string | null;
+    batch?: { course?: { name: string } | null } | null;
+    nationality?: string | null;
+  };
+};
+
 export default function StudentReviewsPage() {
   const [items, setItems] = useState<TestimonialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [accessLevel, setAccessLevel] = useState<PortalProfile["student"]["accessLevel"]>("PRE_ARRIVAL");
   const [form, setForm] = useState({
     rating: 5,
     quote: "",
@@ -51,9 +61,25 @@ export default function StudentReviewsPage() {
 
   useEffect(() => {
     void loadTestimonials();
+    void fetch("/api/app/portal", { cache: "no-store" })
+      .then(async (response) => {
+        const result: PortalProfile = await response.json();
+        if (!response.ok) return;
+        setAccessLevel(result.student.accessLevel);
+        setForm((current) => ({
+          ...current,
+          courseName: current.courseName || result.student.batch?.course?.name || result.student.enrolledCourse || "",
+          location: current.location || result.student.nationality || "",
+        }));
+      })
+      .catch(() => undefined);
   }, []);
 
   const submit = async () => {
+    if (accessLevel !== "FULL" && accessLevel !== "ALUMNI") {
+      setMessage("Website testimonials unlock after full course access is active.");
+      return;
+    }
     setSaving(true);
     setMessage(null);
     try {
@@ -141,7 +167,12 @@ export default function StudentReviewsPage() {
               <input className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Course name" value={form.courseName} onChange={(e) => setForm((current) => ({ ...current, courseName: e.target.value }))} />
               <input className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Graduation year" value={form.graduationYear} onChange={(e) => setForm((current) => ({ ...current, graduationYear: e.target.value }))} />
               <textarea className="min-h-[220px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Describe your experience in detail." value={form.quote} onChange={(e) => setForm((current) => ({ ...current, quote: e.target.value }))} />
-              <Button className="bg-orange-500 text-white hover:bg-orange-600" onClick={submit} disabled={saving || form.quote.trim().length < 30}>
+              {accessLevel !== "FULL" && accessLevel !== "ALUMNI" ? (
+                <div className="rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">
+                  You can draft your review now. Website submission opens after your full course access is active.
+                </div>
+              ) : null}
+              <Button className="bg-orange-500 text-white hover:bg-orange-600" onClick={submit} disabled={saving || form.quote.trim().length < 30 || (accessLevel !== "FULL" && accessLevel !== "ALUMNI")}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Submit for approval
               </Button>

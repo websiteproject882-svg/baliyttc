@@ -207,7 +207,7 @@ export default function PreArrivalPage() {
         <CardContent className="grid gap-3 md:grid-cols-2">
           {preArrivalResources.length === 0 ? (
             <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500 md:col-span-2">
-              Course manual, prep videos, and travel documents will appear here once admin publishes them.
+              Your course manual, prep videos, and travel documents will appear here as your arrival date gets closer.
             </div>
           ) : (
             preArrivalResources.map((resource) => {

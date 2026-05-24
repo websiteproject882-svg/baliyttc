@@ -556,7 +556,7 @@ export default function StudentDashboardPage() {
             {portal.resources.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <BookOpen className="h-10 w-10 mx-auto text-gray-300 mb-3" />
-                <p className="text-sm">No resources published yet.</p>
+                <p className="text-sm">Your learning resources will appear here as they are assigned to your access level.</p>
               </div>
             ) : (
               portal.resources.slice(0, 4).map((item) => {
@@ -620,7 +620,7 @@ export default function StudentDashboardPage() {
             {portal.announcements.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Bell className="h-10 w-10 mx-auto text-gray-300 mb-3" />
-                <p className="text-sm">No announcements yet.</p>
+                <p className="text-sm">No current announcements for your batch.</p>
               </div>
             ) : (
               portal.announcements.slice(0, 3).map((announcement) => (

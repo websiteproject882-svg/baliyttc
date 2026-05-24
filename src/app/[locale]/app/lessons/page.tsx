@@ -119,7 +119,7 @@ export default function VideoLessonsPage() {
           <CardContent className="space-y-4">
             {videoResources.length === 0 ? (
               <div className="rounded-lg bg-gray-50 p-6 text-sm text-gray-500">
-                No video lessons have been published yet. Admin can add YouTube unlisted links and assign them to pre-arrival or full-course access.
+                Your video library is being prepared. Any pre-arrival or full-course lessons assigned to your batch will appear here.
               </div>
             ) : (
               videoResources.map((resource) => {
@@ -160,7 +160,7 @@ export default function VideoLessonsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {portal.progress.length === 0 ? (
-              <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500">Modules will appear once the course syllabus is published.</div>
+              <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500">Your course modules will appear here once your syllabus is assigned.</div>
             ) : (
               portal.progress.map((module, index) => (
                 <div key={module.moduleId} className="rounded-lg border border-gray-100 p-4">

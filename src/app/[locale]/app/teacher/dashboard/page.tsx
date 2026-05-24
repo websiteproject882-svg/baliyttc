@@ -52,19 +52,21 @@ export default function TeacherDashboardPage() {
     recentAnnouncements: Announcement[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
+    setError(null);
     try {
       const res = await fetch("/api/teacher/dashboard", { cache: "no-store" });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to fetch teacher data");
       setData(result);
     } catch (err) {
-      console.error("Failed to fetch teacher data:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch teacher dashboard");
     } finally {
       setLoading(false);
     }
@@ -126,6 +128,14 @@ export default function TeacherDashboardPage() {
             </div>
           </div>
         </header>
+
+        {error ? (
+          <div className="max-w-7xl mx-auto px-4 pt-6">
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+            </Card>
+          </div>
+        ) : null}
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           {/* Quick Stats */}
