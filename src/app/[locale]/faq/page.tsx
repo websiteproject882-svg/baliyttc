@@ -1,12 +1,66 @@
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { faqs } from "@/data/marketing-pages";
-import { FAQPageClient } from "./FAQPageClient";
+import { defaultLocale } from "@/i18n/routing";
+import { normalizeLocale } from "@/lib/localized-content";
+import prisma from "@/lib/prisma";
+import { FAQPageClient, type PublicFAQItem } from "./FAQPageClient";
 
-export default function FAQPage() {
+export const dynamic = "force-dynamic";
+
+type FAQPageProps = {
+  params: {
+    locale: string;
+  };
+};
+
+async function getInitialFaqs(localeParam: string): Promise<PublicFAQItem[]> {
+  const locale = normalizeLocale(localeParam);
+
+  try {
+    let dbFaqs = await prisma.fAQ.findMany({
+      where: { locale, isActive: true },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      take: 80,
+      select: {
+        question: true,
+        answer: true,
+        category: true,
+      },
+    });
+
+    if (dbFaqs.length === 0 && locale !== defaultLocale) {
+      dbFaqs = await prisma.fAQ.findMany({
+        where: { locale: defaultLocale, isActive: true },
+        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+        take: 80,
+        select: {
+          question: true,
+          answer: true,
+          category: true,
+        },
+      });
+    }
+
+    if (dbFaqs.length > 0) {
+      return dbFaqs.map((item) => ({
+        category: item.category,
+        q: item.question,
+        a: item.answer,
+      }));
+    }
+  } catch {
+    // Static FAQs keep the page available if the CMS database is unreachable.
+  }
+
+  return faqs;
+}
+
+export default async function FAQPage({ params }: FAQPageProps) {
+  const initialFaqs = await getInitialFaqs(params.locale);
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((item) => ({
+    mainEntity: initialFaqs.map((item) => ({
       "@type": "Question",
       name: item.q,
       acceptedAnswer: {
@@ -32,7 +86,7 @@ export default function FAQPage() {
       </section>
       <section className="bg-cream pb-24">
         <div className="container-edit">
-          <FAQPageClient />
+          <FAQPageClient initialFaqs={initialFaqs} />
           <div className="mt-10 rounded-lg bg-warm-dark p-6 text-white md:flex md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-bold">Still have questions?</h2>

@@ -4,20 +4,28 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { faqs } from "@/data/marketing-pages";
 
-const categories = ["All", ...Array.from(new Set(faqs.map((item) => item.category)))];
+export type PublicFAQItem = {
+  category: string;
+  q: string;
+  a: string;
+};
 
-export function FAQPageClient() {
+export function FAQPageClient({ initialFaqs = faqs }: { initialFaqs?: PublicFAQItem[] }) {
   const [active, setActive] = useState("All");
   const [query, setQuery] = useState("");
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(initialFaqs.map((item) => item.category)))],
+    [initialFaqs],
+  );
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return faqs.filter((item) => {
+    return initialFaqs.filter((item) => {
       const matchesCategory = active === "All" || item.category === active;
       const matchesQuery = !normalized || `${item.q} ${item.a}`.toLowerCase().includes(normalized);
       return matchesCategory && matchesQuery;
     });
-  }, [active, query]);
+  }, [active, initialFaqs, query]);
 
   return (
     <>
