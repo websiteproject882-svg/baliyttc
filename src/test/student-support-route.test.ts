@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { POST } from "../app/api/app/support/route";
+import { GET, POST } from "../app/api/app/support/route";
 
 const mocks = vi.hoisted(() => ({
   requireSameOrigin: vi.fn(),
   requireStudentUser: vi.fn(),
   writeAuditLog: vi.fn(),
   studentFindUnique: vi.fn(),
+  leadFindMany: vi.fn(),
   leadCreate: vi.fn(),
   logApiError: vi.fn(),
 }));
@@ -23,6 +24,7 @@ vi.mock("@/lib/prisma", () => ({
       findUnique: mocks.studentFindUnique,
     },
     lead: {
+      findMany: mocks.leadFindMany,
       create: mocks.leadCreate,
     },
   },
@@ -81,10 +83,45 @@ beforeEach(() => {
     id: "lead_1",
     source: "student_portal_support",
   });
+  mocks.leadFindMany.mockResolvedValue([
+    {
+      id: "lead_1",
+      course: "200 Hour Yoga Teacher Training - June 2026",
+      message: "Subject: Arrival question\n\nCan I confirm pickup?",
+      status: "NEW",
+      notes: null,
+      followUpAt: null,
+      createdAt: new Date("2026-05-24T10:00:00.000Z"),
+      updatedAt: new Date("2026-05-24T10:00:00.000Z"),
+    },
+  ]);
   mocks.writeAuditLog.mockResolvedValue(undefined);
 });
 
 describe("student support route", () => {
+  it("lists support tickets for the logged-in student", async () => {
+    const response = await GET(supportRequest());
+    const body = await response?.json();
+
+    expect(response?.status).toBe(200);
+    expect(mocks.leadFindMany).toHaveBeenCalledWith({
+      where: {
+        email: "student@example.com",
+        source: "student_portal_support",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: expect.any(Object),
+    });
+    expect(body.tickets[0]).toEqual(
+      expect.objectContaining({
+        id: "lead_1",
+        subject: "Arrival question",
+        status: "NEW",
+      }),
+    );
+  });
+
   it("creates an admin lead from a student support request", async () => {
     const response = await POST(
       supportRequest({

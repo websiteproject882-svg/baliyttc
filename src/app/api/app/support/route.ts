@@ -11,6 +11,63 @@ const supportSchema = z.object({
   message: z.string().trim().min(10).max(3000),
 });
 
+export async function GET(request: NextRequest) {
+  const { user, student, response } = await requireStudentUser({ minimumAccess: "PRE_ARRIVAL" });
+  if (!user || !student || response) {
+    return response;
+  }
+
+  try {
+    const tickets = await prisma.lead.findMany({
+      where: {
+        email: user.email,
+        source: "student_portal_support",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        course: true,
+        message: true,
+        status: true,
+        notes: true,
+        followUpAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return jsonWithRequestId(
+      {
+        tickets: tickets.map((ticket) => {
+          const subjectLine =
+            ticket.message
+              ?.split("\n")
+              .find((line) => line.toLowerCase().startsWith("subject:"))
+              ?.replace(/^subject:\s*/i, "")
+              .trim() || "Student portal support";
+
+          return {
+            id: ticket.id,
+            subject: subjectLine,
+            course: ticket.course,
+            status: ticket.status,
+            notes: ticket.notes,
+            followUpAt: ticket.followUpAt,
+            createdAt: ticket.createdAt,
+            updatedAt: ticket.updatedAt,
+          };
+        }),
+      },
+      undefined,
+      request,
+    );
+  } catch (error) {
+    logApiError("app.support.list", error, request, { studentId: student.id });
+    return jsonWithRequestId({ error: "Failed to load support requests" }, { status: 500 }, request);
+  }
+}
+
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) {
