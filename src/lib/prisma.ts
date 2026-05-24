@@ -27,11 +27,28 @@ function createPrismaClient(): PrismaClient {
   ) as PrismaClient;
 }
 
-// Prevent multiple instances during hot reload in development
-export const prisma = globalThis.prisma ?? createPrismaClient();
+export function getPrismaClient(): PrismaClient {
+  if (!globalThis.prisma) {
+    globalThis.prisma = createPrismaClient();
+  }
 
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.prisma = prisma;
+  return globalThis.prisma;
 }
+
+// Lazy proxy keeps static generation safe: importing this module no longer
+// opens a database pool until code actually performs a Prisma operation.
+export const prisma = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      if (prop === "then") return undefined;
+
+      const client = getPrismaClient();
+      const value = Reflect.get(client, prop);
+
+      return typeof value === "function" ? value.bind(client) : value;
+    },
+  }
+) as PrismaClient;
 
 export default prisma;
