@@ -210,6 +210,55 @@ export const BreadcrumbSchema = ({ items }: { items: Array<{ name: string; url: 
   />
 );
 
+type ArticleSchemaData = {
+  title: string;
+  description: string;
+  url: string;
+  image?: string | null;
+  author?: string | null;
+  publishedAt?: Date | string | null;
+  modifiedAt?: Date | string | null;
+};
+
+export const ArticleSchema = ({ article }: { article: ArticleSchemaData }) => {
+  const publishedAt = article.publishedAt ? new Date(article.publishedAt).toISOString() : undefined;
+  const modifiedAt = article.modifiedAt ? new Date(article.modifiedAt).toISOString() : publishedAt;
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: article.title,
+          description: article.description,
+          image: absoluteUrl(article.image),
+          url: article.url,
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": article.url,
+          },
+          datePublished: publishedAt,
+          dateModified: modifiedAt,
+          author: {
+            "@type": "Person",
+            name: article.author || `${SITE.name} Team`,
+          },
+          publisher: {
+            "@type": "Organization",
+            name: SITE.name,
+            logo: {
+              "@type": "ImageObject",
+              url: defaultLogoUrl,
+            },
+          },
+        }),
+      }}
+    />
+  );
+};
+
 // Local Business Schema
 export const LocalBusinessSchema = ({ settings }: { settings?: SiteSettings }) => {
   const data = schemaSettings(settings);

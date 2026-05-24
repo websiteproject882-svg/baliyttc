@@ -4,6 +4,7 @@ import { PostStatus } from "@prisma/client";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
+import { ArticleSchema, BreadcrumbSchema } from "@/components/shared/SchemaMarkup";
 import { IMG } from "@/data/site";
 import { defaultLocale } from "@/i18n/routing";
 import { findStaticBlogPost } from "@/data/blog";
@@ -108,9 +109,27 @@ export default async function BlogPostPage({ params }: BlogPostPageParams) {
   if (!post) notFound();
 
   const publishedDate = formatDate(post.publishedAt);
+  const postUrl = `${baseUrl}/${params.locale}/blog/${post.slug}`;
 
   return (
     <NextLayoutWrapper>
+      <ArticleSchema
+        article={{
+          title: post.title,
+          description: post.excerpt,
+          url: postUrl,
+          image: post.featuredImage || IMG.classMain,
+          author: post.author,
+          publishedAt: post.publishedAt,
+        }}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: `${baseUrl}/${params.locale}` },
+          { name: "Blog", url: `${baseUrl}/${params.locale}/blog` },
+          { name: post.title, url: postUrl },
+        ]}
+      />
       <main className="min-h-screen bg-[#FAFAFA] pb-24 pt-32">
         <article className="container-wide max-w-4xl">
           <Link href="/blog" className="label-caps mb-8 inline-flex items-center gap-2 text-gray-500 transition-colors hover:text-[#F04E23]">
