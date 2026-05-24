@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireStudentUser } from "@/lib/authz";
-import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { applySecurityHeaders, jsonWithRequestId, logApiError, withRequestId } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 const MAX_RESOURCE_ID_LENGTH = 120;
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       });
     }
 
-    return NextResponse.redirect(new URL(resource.url, request.url));
+    return applySecurityHeaders(withRequestId(NextResponse.redirect(new URL(resource.url, request.url)), request));
   } catch (error) {
     logApiError("app.resources.redirect", error, request, { resourceId: params.id, studentId: student.id });
     return jsonWithRequestId({ error: "Failed to open resource" }, { status: 500 }, request);

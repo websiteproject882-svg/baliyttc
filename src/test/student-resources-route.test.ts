@@ -25,12 +25,21 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/security", () => ({
+  applySecurityHeaders: (response: Response) => {
+    response.headers.set("Cache-Control", "no-store, max-age=0");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    return response;
+  },
   jsonWithRequestId: (body: unknown, init: ResponseInit | undefined, request: NextRequest) => {
     const response = Response.json(body, init);
     response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
     return response;
   },
   logApiError: mocks.logApiError,
+  withRequestId: (response: Response, request: NextRequest) => {
+    response.headers.set("X-Request-Id", request.headers.get("x-request-id") || "generated-request-id");
+    return response;
+  },
 }));
 
 const student = {
@@ -73,6 +82,8 @@ describe("student resource redirect route", () => {
 
     expect(response?.status).toBe(307);
     expect(response?.headers.get("location")).toBe("https://example-cdn.com/visa-guide.pdf");
+    expect(response?.headers.get("X-Request-Id")).toBe("req_student_resources");
+    expect(response?.headers.get("Cache-Control")).toBe("no-store, max-age=0");
     expect(mocks.preArrivalResourceFindUnique).toHaveBeenCalledWith({
       where: { id: "resource_1" },
     });
