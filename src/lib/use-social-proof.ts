@@ -17,7 +17,7 @@ export function useSocialProof() {
 
     async function loadStats() {
       try {
-        const response = await fetch("/api/social-proof");
+        const response = await fetch("/api/social-proof", { cache: "no-store" });
         if (!response.ok) return;
         const data = (await response.json()) as { stats?: SocialProofStats };
         if (!cancelled && data.stats) {

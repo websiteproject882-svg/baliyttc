@@ -62,7 +62,7 @@ export function usePublicSiteSettings() {
 
     async function loadSettings() {
       try {
-        const response = await fetch("/api/site-settings");
+        const response = await fetch("/api/site-settings", { cache: "no-store" });
         if (!response.ok) return;
         const data = (await response.json()) as { settings?: PublicSiteSettings };
         if (!cancelled && data.settings) {

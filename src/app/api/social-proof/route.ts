@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { getSocialProofStats } from "@/lib/social-proof";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const { stats } = await getSocialProofStats();
