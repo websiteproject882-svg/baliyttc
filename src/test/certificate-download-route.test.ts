@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { GET } from "../app/api/certificates/[id]/download/route";
+import { dynamic, GET } from "../app/api/certificates/[id]/download/route";
 
 const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
@@ -100,6 +100,10 @@ beforeEach(() => {
 });
 
 describe("certificate download route", () => {
+  it("stays dynamic because certificate downloads are authenticated and template-driven", () => {
+    expect(dynamic).toBe("force-dynamic");
+  });
+
   it("requires authentication", async () => {
     mocks.getCurrentUser.mockResolvedValue(null);
 

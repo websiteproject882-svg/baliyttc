@@ -7,6 +7,8 @@ import { getCurrentUser } from "@/lib/authz";
 import { applySecurityHeaders, jsonWithRequestId, logApiError, withRequestId } from "@/lib/security";
 import { getSiteSettings } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 const certificateIdParamSchema = z.string().trim().min(1).max(120);
 
 export async function GET(
