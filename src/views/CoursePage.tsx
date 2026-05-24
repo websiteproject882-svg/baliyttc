@@ -24,7 +24,9 @@ import {
   Target,
   Users,
   X,
+  ArrowUpRight,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 const includedList = [
   "Yoga Alliance certification on graduation",
@@ -845,6 +847,170 @@ const twoHundredTrustBlocks = [
   },
 ];
 
+type CourseDeepDiveItem = {
+  kicker: string;
+  title: string;
+  intro: string;
+  details: string;
+  points: string[];
+  impact: string;
+};
+
+const courseDeepDives: Record<string, CourseDeepDiveItem[]> = {
+  "50hr": [
+    {
+      kicker: "Start here",
+      title: "Short course, real foundation",
+      intro: "A focused six-day immersion for students who want a serious first step without committing to a long residential program.",
+      details:
+        "The 50-hour course keeps the learning clear and practical. You work with Hatha and Vinyasa fundamentals, safe posture transitions, simple sequencing, breath awareness and beginner teaching language. It is designed to remove confusion and give students a clean structure they can keep practising after the course.",
+      points: ["Hatha and Vinyasa basics", "Beginner-friendly sequencing", "Daily breath and meditation", "Short teaching drills"],
+      impact: "Best for students who want confidence, not overload.",
+    },
+    {
+      kicker: "Technique",
+      title: "Alignment made simple",
+      intro: "Learn how common postures work, where students usually struggle and how to make practice safer.",
+      details:
+        "Instead of memorising pose names only, students study posture families, entry and exit points, basic anatomy and simple modifications. The goal is to understand the shape, purpose and safety of each posture so your practice becomes more intelligent.",
+      points: ["Posture families", "Props and modifications", "Common alignment patterns", "Safe entry and exit"],
+      impact: "You leave with practical body awareness for your own practice and future teaching.",
+    },
+    {
+      kicker: "Inner work",
+      title: "Breath, meditation and steadiness",
+      intro: "A short training still needs inner practice, so each day includes pranayama, meditation and quiet integration.",
+      details:
+        "Breathwork and meditation are taught in a grounded way. Students learn simple techniques that calm the nervous system, improve focus and make physical practice more balanced. The practices are accessible for beginners and useful after the course ends.",
+      points: ["Pranayama foundations", "Guided meditation", "Mantra introduction", "Daily self-practice rhythm"],
+      impact: "The course becomes more than exercise; it becomes a daily discipline.",
+    },
+    {
+      kicker: "Bali experience",
+      title: "Culture without rushing",
+      intro: "Even in a short course, students experience Bali through ceremony, community and mindful campus life.",
+      details:
+        "The course includes selected cultural and integration experiences so students feel the setting, not just the schedule. Ceremonies and workshops are introduced respectfully with context, etiquette and time to reflect.",
+      points: ["Temple or ceremony context", "Community learning", "Restorative integration", "Simple local connection"],
+      impact: "Students understand why Bali is part of the training, not only the location.",
+    },
+  ],
+  "100hr": [
+    {
+      kicker: "01",
+      title: "Multi-style approach",
+      intro: "A balanced foundation across Hatha, Ashtanga and Vinyasa for students who want variety with structure.",
+      details:
+        "The 100-hour pathway introduces three important yoga streams without making the course feel scattered. Hatha builds alignment and steadiness, Ashtanga builds discipline and breath rhythm, while Vinyasa teaches intelligent movement and sequencing. Together they give beginners a rounded view of modern and traditional practice.",
+      points: ["Hatha posture foundations", "Ashtanga rhythm and discipline", "Vinyasa flow creation", "Theme-based sequencing"],
+      impact: "Students understand different styles and can choose their next path with clarity.",
+    },
+    {
+      kicker: "02",
+      title: "Perfect for beginners",
+      intro: "Built for students who are new to yoga or returning after a long gap.",
+      details:
+        "No previous teacher training is required. The 11-day format gives enough time to learn vocabulary, posture basics, breathwork, simple anatomy and the first steps of teaching. Classes are structured to make new students feel supported while still giving committed practitioners meaningful depth.",
+      points: ["Beginner-safe progressions", "Clear terminology", "Small teaching exercises", "Supportive correction"],
+      impact: "A student can start with uncertainty and leave with a real foundation.",
+    },
+    {
+      kicker: "03",
+      title: "Teaching practice starts early",
+      intro: "Students do not wait until the end to speak, cue and guide.",
+      details:
+        "Practice teaching begins in small steps: one-to-one cueing, short posture explanations, simple class sections and group feedback. This helps students build confidence gradually instead of feeling pressure on the final day.",
+      points: ["Voice and timing", "One-to-one teaching", "Small group practice", "Senior teacher feedback"],
+      impact: "The course builds teacher confidence from the first half of training.",
+    },
+    {
+      kicker: "04",
+      title: "Bali tradition and integration",
+      intro: "The program includes culture, ceremony and restorative experiences that support the learning process.",
+      details:
+        "Students join selected Balinese experiences such as temple purification, sound healing, Acro Yoga or nature visits depending on the schedule. These experiences help students integrate training through trust, silence, community and respect for local culture.",
+      points: ["Temple context", "Sound healing", "Partner practice", "Nature and reflection"],
+      impact: "The training feels lived, not only studied.",
+    },
+  ],
+  "200hr": [
+    {
+      kicker: "Flagship",
+      title: "Complete Yoga Alliance foundation",
+      intro: "A full 21-day pathway for students who want to become confident, responsible yoga teachers.",
+      details:
+        "The 200-hour program is the complete entry point for professional teaching. It gives enough time for daily practice, philosophy, anatomy, pranayama, meditation, sequencing, adjustment, teaching methodology and supervised practicum. The structure is intensive but progressive, so students grow step by step.",
+      points: ["Daily multi-style practice", "Anatomy and philosophy", "Teaching methodology", "Final practical integration"],
+      impact: "This is the strongest choice for students who want to teach internationally.",
+    },
+    {
+      kicker: "Method",
+      title: "From student mindset to teacher presence",
+      intro: "The training develops how you observe, speak, sequence and hold a class space.",
+      details:
+        "Students learn to move beyond copying classes. They study class arcs, warm-ups, peak posture logic, cooling sequences, cueing, demonstration, classroom presence and student-specific support. Teaching labs turn theory into usable classroom skill.",
+      points: ["Class planning", "Cueing and voice", "Observation skills", "Mentored feedback"],
+      impact: "You graduate with teaching structure, not only a certificate.",
+    },
+    {
+      kicker: "Safety",
+      title: "Alignment, props and modification",
+      intro: "A good teacher knows how to adapt practice for real bodies.",
+      details:
+        "The course studies posture mechanics, benefits, contraindications and modification. Students learn when to use props, how to simplify a pose, how to offer safe options and how to respect consent in hands-on adjustment.",
+      points: ["Posture anatomy", "Contraindications", "Prop usage", "Consent-based assists"],
+      impact: "Students learn to teach responsibly instead of forcing shapes.",
+    },
+    {
+      kicker: "Immersion",
+      title: "Residential rhythm in Ubud",
+      intro: "Practice, meals, accommodation and community stay connected throughout the course.",
+      details:
+        "The residential format makes the learning deeper. Students stay close to the shala, eat plant-based meals, share community time and experience Bali through ceremonies, nature and restorative sessions. This rhythm supports focus and transformation.",
+      points: ["Campus-based rhythm", "Sattvic meals", "Small community", "Bali cultural experiences"],
+      impact: "The environment supports the work instead of distracting from it.",
+    },
+  ],
+  "300hr": [
+    {
+      kicker: "Advanced",
+      title: "For teachers ready to refine",
+      intro: "A deeper course for 200-hour graduates who want stronger practice and more mature teaching.",
+      details:
+        "The 300-hour course assumes students already understand the basics. The training goes further into advanced asana, sequencing logic, subtle body work, meditation, pranayama, yoga therapy foundations and teacher mentorship.",
+      points: ["Advanced asana", "Refined sequencing", "Subtle body study", "Teaching mentorship"],
+      impact: "It is designed for growth after the first teaching foundation.",
+    },
+    {
+      kicker: "Depth",
+      title: "Advanced sequencing and class intelligence",
+      intro: "Learn how to design classes with purpose, progression and energetic rhythm.",
+      details:
+        "Students explore peak-pose planning, layered sequencing, mixed-level teaching, breath pacing and energetic structure. The course helps teachers build classes that feel intentional rather than random.",
+      points: ["Peak-pose sequencing", "Layered progressions", "Mixed-level teaching", "Energetic class arcs"],
+      impact: "Your classes become clearer, safer and more memorable.",
+    },
+    {
+      kicker: "Therapy",
+      title: "Yoga therapy foundations",
+      intro: "Understand how yoga tools can support wellbeing within responsible scope.",
+      details:
+        "The course introduces therapeutic adaptation through movement, breath, rest and observation. Students learn to modify practice for limitations while staying honest about scope and safety.",
+      points: ["Adaptation principles", "Observation", "Breath and rest tools", "Responsible language"],
+      impact: "Teachers learn to support students without overpromising.",
+    },
+    {
+      kicker: "Mentorship",
+      title: "Feedback for your real teaching voice",
+      intro: "Advanced training should sharpen the teacher, not only add more content.",
+      details:
+        "Mentored teaching labs help students refine tone, presence, cueing, class management and confidence. Feedback is practical, direct and aimed at making each teacher more useful to real students.",
+      points: ["Teacher presence", "Advanced cueing", "Observation and correction", "Personal feedback"],
+      impact: "You leave with a more mature voice and clearer teaching identity.",
+    },
+  ],
+};
+
 const CoursePage = () => {
   const params = useParams();
   const router = useRouter();
@@ -852,6 +1018,7 @@ const CoursePage = () => {
 
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDeepDive, setSelectedDeepDive] = useState<CourseDeepDiveItem | null>(null);
 
   const fetchCourse = useCallback(async () => {
     setLoading(true);
@@ -877,6 +1044,17 @@ const CoursePage = () => {
     }
   }, [fetchCourse, slug]);
 
+  useEffect(() => {
+    if (loading || !course || typeof window === "undefined") return;
+
+    const hash = window.location.hash.replace("#", "");
+    if (!hash) return;
+
+    window.setTimeout(() => {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+  }, [course, loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -892,6 +1070,7 @@ const CoursePage = () => {
   const availableBatches = course.batches?.filter(b => b.enrolled < b.capacity) || [];
   const detail = courseDetails[course.slug as keyof typeof courseDetails];
   const isTwoHundredHour = course.slug === "200hr";
+  const deepDiveItems = courseDeepDives[course.slug] || [];
   const isStaticFallbackCourse = course.id.startsWith("static-course-");
   const pageCourse = detail && isStaticFallbackCourse
     ? {
@@ -1064,6 +1243,45 @@ const CoursePage = () => {
               </div>
             </div>
           </section>
+
+          {deepDiveItems.length > 0 && (
+            <section id="course-detail-notes" className="bg-[#F7F4EF] py-14 md:py-16 scroll-mt-28">
+              <div className="container-wide">
+                <Reveal>
+                  <SectionHeading
+                    eyebrow="Course Details"
+                    title={<>What makes this training <em className="text-terra">work</em></>}
+                    sub="Open each note for a deeper explanation of the method, course rhythm and student outcomes."
+                  />
+                </Reveal>
+                <div className="mt-8 divide-y divide-stone-200 border-y border-stone-200">
+                  {deepDiveItems.map((item, i) => (
+                    <Reveal key={item.title} delay={i * 0.05}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDeepDive(item)}
+                        className="group grid w-full gap-5 py-7 text-left transition hover:bg-white/60 md:grid-cols-[0.16fr_0.34fr_1fr_auto] md:items-start md:px-4"
+                      >
+                        <span className="font-serif text-4xl font-semibold text-warm-dark md:text-5xl">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span>
+                          <span className="label-caps text-terra">{item.kicker}</span>
+                          <span className="mt-3 block display-sm text-warm-dark">{item.title}</span>
+                        </span>
+                        <span className="text-sm leading-7 text-warm-mid md:text-base md:leading-8">
+                          {item.intro}
+                        </span>
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-stone-300 bg-white text-warm-dark transition group-hover:border-terra group-hover:bg-terra group-hover:text-white">
+                          <ArrowUpRight className="h-5 w-5" />
+                        </span>
+                      </button>
+                    </Reveal>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
           {isTwoHundredHour && (
             <section className="py-14 md:py-16 bg-[#F7F4EF]">
@@ -1526,6 +1744,55 @@ const CoursePage = () => {
           </Reveal>
         </div>
       </section>
+
+      <Dialog open={!!selectedDeepDive} onOpenChange={(open) => !open && setSelectedDeepDive(null)}>
+        <DialogContent className="max-h-[88vh] max-w-3xl overflow-y-auto border-stone-200 bg-cream p-0">
+          {selectedDeepDive && (
+            <div>
+              <div className="border-b border-stone-200 bg-white p-6 md:p-8">
+                <p className="label-caps text-terra">{selectedDeepDive.kicker}</p>
+                <DialogTitle className="mt-3 font-serif text-3xl font-light leading-tight text-warm-dark md:text-4xl">
+                  {selectedDeepDive.title}
+                </DialogTitle>
+                <DialogDescription className="mt-4 text-base leading-8 text-warm-mid">
+                  {selectedDeepDive.intro}
+                </DialogDescription>
+              </div>
+              <div className="p-6 md:p-8">
+                <p className="text-base leading-8 text-warm-mid">{selectedDeepDive.details}</p>
+                <div className="mt-7 grid gap-6 md:grid-cols-[1fr_0.85fr]">
+                  <div className="rounded-[10px] border border-stone-200 bg-white p-5">
+                    <h3 className="label-caps mb-4 text-sage">What you study</h3>
+                    <ul className="space-y-3">
+                      {selectedDeepDive.points.map((point) => (
+                        <li key={point} className="flex gap-3 text-sm leading-6 text-warm-mid">
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-[10px] bg-warm-dark p-5 text-white">
+                    <h3 className="label-caps mb-4 text-orange-200">Student impact</h3>
+                    <p className="text-sm leading-7 text-white/78">{selectedDeepDive.impact}</p>
+                  </div>
+                </div>
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                  <ApplyModal
+                    trigger={<Button className="bg-terra text-white hover:bg-terra-deep">Apply for this course</Button>}
+                    defaultCourse={course.slug}
+                  />
+                  <Link href="#curriculum" onClick={() => setSelectedDeepDive(null)}>
+                    <Button variant="outline" className="border-sage/30 text-sage hover:bg-sage hover:text-white">
+                      View curriculum
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
