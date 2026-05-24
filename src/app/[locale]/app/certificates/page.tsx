@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Award, Download } from "lucide-react";
+import { Award, Download, Loader2, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ export default function StudentCertificatesPage() {
   const [certificates, setCertificates] = useState<Array<{ id: string; certificateId: string; course: string; status: string; issuedAt: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [requestingReview, setRequestingReview] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [eligibility, setEligibility] = useState<{
     eligible: boolean;
     reasons: string[];
@@ -37,6 +39,34 @@ export default function StudentCertificatesPage() {
       .catch((error) => setError(error instanceof Error ? error.message : "Failed to load certificates"))
       .finally(() => setLoading(false));
   }, []);
+
+  const requestCertificateReview = async () => {
+    setRequestingReview(true);
+    setReviewMessage(null);
+    try {
+      const response = await fetch("/api/app/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: "Certificate review request",
+          message:
+            "I have completed the certificate requirements shown in my student portal. Please review my training record and issue my certificate when approved.",
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Could not request certificate review");
+      }
+      setReviewMessage({ type: "success", text: `Certificate review request sent. Ticket ID: ${result.ticketId}` });
+    } catch (error) {
+      setReviewMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Could not request certificate review.",
+      });
+    } finally {
+      setRequestingReview(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -71,6 +101,27 @@ export default function StudentCertificatesPage() {
                 {eligibility.reasons.map((reason) => (
                   <p key={reason}>{reason}</p>
                 ))}
+              </div>
+            ) : null}
+            {reviewMessage ? (
+              <div
+                className={`rounded-lg p-4 text-sm ${
+                  reviewMessage.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                }`}
+              >
+                {reviewMessage.text}
+              </div>
+            ) : null}
+            {eligibility.eligible && certificates.length === 0 ? (
+              <div className="flex flex-col gap-3 rounded-lg border border-green-100 bg-green-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-green-900">Ready for certificate review</p>
+                  <p className="text-sm text-green-700">Send a request to the school team so they can verify and issue your certificate.</p>
+                </div>
+                <Button className="bg-green-700 text-white hover:bg-green-800" disabled={requestingReview} onClick={requestCertificateReview}>
+                  {requestingReview ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  Request review
+                </Button>
               </div>
             ) : null}
           </CardContent>
