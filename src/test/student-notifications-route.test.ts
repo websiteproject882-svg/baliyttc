@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   notificationFindMany: vi.fn(),
   notificationFindFirst: vi.fn(),
   notificationReceiptUpsert: vi.fn(),
+  notificationReceiptUpdateMany: vi.fn(),
+  notificationReceiptCreateMany: vi.fn(),
   studentFindUnique: vi.fn(),
   studentUpdate: vi.fn(),
   logApiError: vi.fn(),
@@ -26,6 +28,8 @@ vi.mock("@/lib/prisma", () => ({
     },
     notificationReceipt: {
       upsert: mocks.notificationReceiptUpsert,
+      updateMany: mocks.notificationReceiptUpdateMany,
+      createMany: mocks.notificationReceiptCreateMany,
     },
     student: {
       findUnique: mocks.studentFindUnique,
@@ -132,6 +136,8 @@ beforeEach(() => {
     studentId: "student_1",
     readAt: new Date("2026-02-04T00:00:00.000Z"),
   });
+  mocks.notificationReceiptUpdateMany.mockResolvedValue({ count: 1 });
+  mocks.notificationReceiptCreateMany.mockResolvedValue({ count: 1 });
 });
 
 describe("student notifications route", () => {
@@ -217,6 +223,47 @@ describe("student notifications route", () => {
         readAt: expect.any(Date),
       },
     });
+  });
+
+  it("marks all visible notifications as read", async () => {
+    const response = await PATCH(request("PATCH", { markAllRead: true }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(200);
+    expect(body).toEqual({ success: true, updatedCount: 2 });
+    expect(mocks.notificationFindMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        publishedAt: { not: null },
+      }),
+      select: { id: true },
+      take: 100,
+    });
+    expect(mocks.notificationReceiptUpdateMany).toHaveBeenCalledWith({
+      where: {
+        studentId: "student_1",
+        notificationId: { in: ["notification_1", "notification_2"] },
+      },
+      data: { readAt: expect.any(Date) },
+    });
+    expect(mocks.notificationReceiptCreateMany).toHaveBeenCalledWith({
+      data: [
+        { notificationId: "notification_1", studentId: "student_1", readAt: expect.any(Date) },
+        { notificationId: "notification_2", studentId: "student_1", readAt: expect.any(Date) },
+      ],
+      skipDuplicates: true,
+    });
+  });
+
+  it("handles mark all read when no notifications are visible", async () => {
+    mocks.notificationFindMany.mockResolvedValue([]);
+
+    const response = await PATCH(request("PATCH", { markAllRead: true }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(200);
+    expect(body).toEqual({ success: true, updatedCount: 0 });
+    expect(mocks.notificationReceiptUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.notificationReceiptCreateMany).not.toHaveBeenCalled();
   });
 
   it("blocks unreadable notification ids", async () => {

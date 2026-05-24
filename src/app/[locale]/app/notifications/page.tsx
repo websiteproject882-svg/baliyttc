@@ -26,6 +26,7 @@ export default function NotificationsPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [preferenceSaving, setPreferenceSaving] = useState<string | null>(null);
+  const [markingAllRead, setMarkingAllRead] = useState(false);
 
   const loadNotifications = useCallback(async () => {
     setLoading(true);
@@ -94,6 +95,30 @@ export default function NotificationsPage() {
     }
   };
 
+  const markAllRead = async () => {
+    setMarkingAllRead(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/app/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to mark notifications as read");
+      }
+      const readAt = new Date().toISOString();
+      setItems((current) => current.map((item) => ({ ...item, readAt: item.readAt || readAt })));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to mark notifications as read");
+    } finally {
+      setMarkingAllRead(false);
+    }
+  };
+
+  const unreadCount = items.filter((item) => !item.readAt).length;
+
   return (
     <div className="min-h-screen space-y-6 bg-gray-50 p-4 md:p-8">
       <div>
@@ -154,6 +179,14 @@ export default function NotificationsPage() {
         </Card>
       ) : (
         <div className="grid gap-4">
+          {unreadCount > 0 ? (
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={markAllRead} disabled={markingAllRead}>
+                {markingAllRead ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                Mark all as read
+              </Button>
+            </div>
+          ) : null}
           {items.map((item) => (
             <Card key={item.id} className="border-0 shadow-sm">
               <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">

@@ -15,6 +15,10 @@ const preferencesSchema = z.object({
   browserPushEnabled: z.boolean().optional(),
 });
 
+const markAllReadSchema = z.object({
+  markAllRead: z.literal(true),
+});
+
 function getAllowedAudiences(accessLevel: "NONE" | "PRE_ARRIVAL" | "FULL" | "ALUMNI") {
   if (accessLevel === "ALUMNI") {
     return ["ALUMNI", "ALL_ACTIVE"];
@@ -145,6 +149,43 @@ export async function PATCH(request: NextRequest) {
       });
 
       return jsonWithRequestId({ success: true, preferences: updated }, undefined, request);
+    }
+
+    if (body && typeof body === "object" && !Array.isArray(body) && "markAllRead" in body) {
+      const result = markAllReadSchema.safeParse(body);
+      if (!result.success) {
+        return jsonWithRequestId({ error: "Validation failed", details: result.error.errors }, { status: 400 }, request);
+      }
+
+      const visibleNotifications = await prisma.notification.findMany({
+        where: notificationWhereForStudent(student),
+        select: { id: true },
+        take: 100,
+      });
+      const notificationIds = visibleNotifications.map((item) => item.id);
+
+      if (notificationIds.length === 0) {
+        return jsonWithRequestId({ success: true, updatedCount: 0 }, undefined, request);
+      }
+
+      const readAt = new Date();
+      await prisma.notificationReceipt.updateMany({
+        where: {
+          studentId: student.id,
+          notificationId: { in: notificationIds },
+        },
+        data: { readAt },
+      });
+      await prisma.notificationReceipt.createMany({
+        data: notificationIds.map((notificationId) => ({
+          notificationId,
+          studentId: student.id,
+          readAt,
+        })),
+        skipDuplicates: true,
+      });
+
+      return jsonWithRequestId({ success: true, updatedCount: notificationIds.length }, undefined, request);
     }
 
     const result = markReadSchema.safeParse(body);
