@@ -17,6 +17,19 @@ export async function GET(request: NextRequest) {
     const [teachers, staffTeachers] = await Promise.all([
       prisma.teacher.findMany({
         where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          role: true,
+          credentials: true,
+          bio: true,
+          image: true,
+          styles: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
         orderBy: { createdAt: "asc" },
       }),
       prisma.staff.findMany({
@@ -39,12 +52,17 @@ export async function GET(request: NextRequest) {
       const fallback = staticBySlug.get(teacher.slug) || staticBySlug.get(slugify(teacher.name));
 
       return {
-        ...teacher,
+        id: teacher.id,
+        name: teacher.name,
+        slug: teacher.slug,
         role: teacher.role || fallback?.role || "",
         credentials: teacher.credentials || fallback?.cred || "",
         bio: teacher.bio || fallback?.bio || "",
         image: teacher.image || fallback?.img || "/images/teachers/vivek-kalura.jpg",
         styles: teacher.styles?.length ? teacher.styles : fallback?.style || [],
+        isActive: teacher.isActive,
+        createdAt: teacher.createdAt,
+        updatedAt: teacher.updatedAt,
       };
     });
 

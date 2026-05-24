@@ -62,12 +62,13 @@ describe("public teachers route", () => {
         credentials: "E-RYT 500",
         bio: "Dedicated teacher bio",
         image: "/images/teachers/dedicated.jpg",
-        styles: ["Asana"],
-        isActive: true,
-        createdAt: new Date("2026-01-01T00:00:00.000Z"),
-        updatedAt: new Date("2026-01-02T00:00:00.000Z"),
-      },
-    ]);
+          styles: ["Asana"],
+          isActive: true,
+          createdAt: new Date("2026-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2026-01-02T00:00:00.000Z"),
+          internalNote: "do not expose",
+        },
+      ]);
     mocks.staffFindMany.mockResolvedValue([
       {
         id: "staff_1",
@@ -98,6 +99,23 @@ describe("public teachers route", () => {
       },
       orderBy: { createdAt: "asc" },
     });
+    expect(mocks.teacherFindMany).toHaveBeenCalledWith({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        role: true,
+        credentials: true,
+        bio: true,
+        image: true,
+        styles: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
     expect(body.teachers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -114,6 +132,7 @@ describe("public teachers route", () => {
         }),
       ]),
     );
+    expect(body.teachers[0].internalNote).toBeUndefined();
   });
 
   it("does not duplicate staff teachers that already have a dedicated profile", async () => {
