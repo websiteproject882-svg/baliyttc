@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, MessageCircle, ShieldCheck } from "lucide-react";
+import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
 const courses = [
   { value: "50hr", label: "50-Hour Hatha Vinyasa YTT" },
@@ -34,6 +35,7 @@ const countries = [
 
 export function ApplyPageClient() {
   const searchParams = useSearchParams();
+  const siteSettings = usePublicSiteSettings();
   const initialCourse = searchParams.get("course") || "200hr";
   const initialDate = searchParams.get("date") || dates[0];
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -53,8 +55,8 @@ export function ApplyPageClient() {
   const whatsappLink = useMemo(() => {
     const courseLabel = courses.find((course) => course.value === form.course)?.label || form.course;
     const message = `Hi! I want to apply for the ${courseLabel} starting ${form.date}.`;
-    return `https://wa.me/6281999333327?text=${encodeURIComponent(message)}`;
-  }, [form.course, form.date]);
+    return `https://wa.me/${siteSettings.whatsappNumber}?text=${encodeURIComponent(message)}`;
+  }, [form.course, form.date, siteSettings.whatsappNumber]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();

@@ -1,8 +1,10 @@
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { faqs } from "@/data/marketing-pages";
 import { defaultLocale } from "@/i18n/routing";
+import { SITE } from "@/data/site";
 import { normalizeLocale } from "@/lib/localized-content";
 import prisma from "@/lib/prisma";
+import { getSiteSettings } from "@/lib/site-settings";
 import { FAQPageClient, type PublicFAQItem } from "./FAQPageClient";
 
 export const dynamic = "force-dynamic";
@@ -55,8 +57,20 @@ async function getInitialFaqs(localeParam: string): Promise<PublicFAQItem[]> {
   return faqs;
 }
 
+async function getWhatsAppNumber() {
+  try {
+    const settings = await getSiteSettings();
+    const digits = settings.general.phone.replace(/\D/g, "");
+    if (!digits) return SITE.whatsapp;
+    if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+    return digits;
+  } catch {
+    return SITE.whatsapp;
+  }
+}
+
 export default async function FAQPage({ params }: FAQPageProps) {
-  const initialFaqs = await getInitialFaqs(params.locale);
+  const [initialFaqs, whatsappNumber] = await Promise.all([getInitialFaqs(params.locale), getWhatsAppNumber()]);
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -92,7 +106,7 @@ export default async function FAQPage({ params }: FAQPageProps) {
               <h2 className="text-2xl font-bold">Still have questions?</h2>
               <p className="mt-2 text-white/70">Admissions usually replies on WhatsApp within a few hours.</p>
             </div>
-            <a href="https://wa.me/6281999333327" className="mt-5 inline-flex rounded-full bg-terra px-6 py-3 font-semibold text-white md:mt-0">
+            <a href={`https://wa.me/${whatsappNumber}`} className="mt-5 inline-flex rounded-full bg-terra px-6 py-3 font-semibold text-white md:mt-0">
               WhatsApp us
             </a>
           </div>
