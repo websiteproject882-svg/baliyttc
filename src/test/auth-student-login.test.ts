@@ -187,4 +187,24 @@ describe("student auth login", () => {
     expect(mocks.logApiError).not.toHaveBeenCalled();
     expect(mocks.createSession).not.toHaveBeenCalled();
   });
+
+  it("drops unsafe Firebase profile photo URLs during profile sync", async () => {
+    mocks.verifyIdToken.mockResolvedValue({
+      uid: "firebase_uid",
+      email: "student@example.com",
+      name: "Student User",
+      picture: "javascript:alert(1)",
+    });
+
+    const response = await POST(request({ idToken: "token" }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.userUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          photoURL: null,
+        }),
+      }),
+    );
+  });
 });

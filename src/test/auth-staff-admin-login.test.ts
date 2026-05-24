@@ -169,6 +169,29 @@ describe("admin and staff Firebase login", () => {
     expect(mocks.createSession).toHaveBeenCalledWith("user_staff", "TEACHER", "teacher@example.com", "staff");
   });
 
+  it("drops unsafe Firebase profile photo URLs during admin profile sync", async () => {
+    mocks.verifyIdToken.mockResolvedValue({
+      uid: "new_uid",
+      email: "owner@example.com",
+      name: "Owner",
+      picture: "ftp://example.com/avatar.png",
+    });
+    mocks.userFindUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(adminUser);
+
+    const response = await adminLogin(request("https://example.com/api/auth/admin/login"));
+
+    expect(response.status).toBe(200);
+    expect(mocks.userUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          photoURL: null,
+        }),
+      }),
+    );
+  });
+
   it("allows student managers through staff login and sends them to admin overview", async () => {
     mocks.verifyIdToken.mockResolvedValue({
       uid: "new_uid",

@@ -18,6 +18,12 @@ const accessRank = {
   ALUMNI: 3,
 } as const;
 
+function normalizeAuthPhotoUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.startsWith("data:image/") || /^https?:\/\//.test(trimmed) ? trimmed : null;
+}
+
 function accessFromPaymentStatus(status: string) {
   if (status === "FULL_PAID") return "FULL";
   if (status === "DEPOSIT_PAID") return "PRE_ARRIVAL";
@@ -80,7 +86,7 @@ export async function POST(request: NextRequest) {
     const profileData = {
       email,
       displayName: decodedToken.name?.trim() || email.split("@")[0] || null,
-      photoURL: decodedToken.picture || null,
+      photoURL: normalizeAuthPhotoUrl(decodedToken.picture),
     };
 
     const user = userByEmail

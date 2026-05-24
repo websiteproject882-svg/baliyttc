@@ -11,6 +11,12 @@ const loginSchema = z.object({
   idToken: z.string().trim().min(1).max(20_000),
 });
 
+function normalizeAuthPhotoUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.startsWith("data:image/") || /^https?:\/\//.test(trimmed) ? trimmed : null;
+}
+
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
@@ -102,7 +108,7 @@ export async function POST(request: NextRequest) {
         uid: decodedToken.uid,
         email,
         displayName: decodedToken.name?.trim() || email.split("@")[0] || null,
-        photoURL: decodedToken.picture || null,
+        photoURL: normalizeAuthPhotoUrl(decodedToken.picture),
       },
     });
 
