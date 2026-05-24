@@ -38,6 +38,11 @@ describe("localized path helpers", () => {
 });
 
 describe("public URL helpers", () => {
+  it("falls back to the production domain when no base URL is configured", () => {
+    delete process.env.NEXT_PUBLIC_BASE_URL;
+    expect(getPublicBaseUrl()).toBe("https://baliyttc.com");
+  });
+
   it("normalizes the public base URL", () => {
     process.env.NEXT_PUBLIC_BASE_URL = "https://baliyttc.com/";
     expect(getPublicBaseUrl()).toBe("https://baliyttc.com");

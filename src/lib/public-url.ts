@@ -1,5 +1,5 @@
 export function getPublicBaseUrl() {
-  return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_BASE_URL || "https://baliyttc.com").replace(/\/$/, "");
 }
 
 export function buildPublicUrl(path = "/", locale = "en") {
