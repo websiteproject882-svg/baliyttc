@@ -176,7 +176,7 @@ describe("2FA verification route", () => {
       success: true,
       role: "SUPER_ADMIN",
       authType: "admin",
-      redirectTo: "/admin/overview",
+      redirectTo: "/en/admin/overview",
     });
     expect(mocks.staffUpdate).toHaveBeenCalledWith({
       where: { id: "staff_1" },
@@ -231,7 +231,7 @@ describe("2FA verification route", () => {
       success: true,
       role: "TEACHER",
       authType: "staff",
-      redirectTo: "/app/teacher/dashboard",
+      redirectTo: "/en/app/teacher/dashboard",
     });
     expect(mocks.createSession).toHaveBeenCalledWith("user_1", "TEACHER", "teacher@example.com", "staff");
   });
@@ -259,7 +259,7 @@ describe("2FA verification route", () => {
       success: true,
       role: "STUDENT_MANAGER",
       authType: "staff",
-      redirectTo: "/admin/overview",
+      redirectTo: "/en/admin/overview",
     });
     expect(mocks.createSession).toHaveBeenCalledWith("user_1", "STUDENT_MANAGER", "manager@example.com", "staff");
   });

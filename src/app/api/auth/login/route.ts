@@ -6,7 +6,7 @@ import { createSession, AuthType } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { getRoleHomePath, type AppRole } from '@/lib/rbac';
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
-import { localeFromUrl, withLocalePath } from '@/lib/localized-path';
+import { localeFromUrl, withLocalePath } from '../../../../lib/localized-path';
 
 const loginSchema = z.object({
   idToken: z.string().trim().min(1).max(20_000),

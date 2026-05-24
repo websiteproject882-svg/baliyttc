@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { getRoleHomePath, isAdminPanelRole, isStaffRole, type AppRole } from "@/lib/rbac";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
-import { localeFromUrl, withLocalePath } from "@/lib/localized-path";
+import { localeFromUrl, withLocalePath } from "../../../../lib/localized-path";
 
 export const dynamic = "force-dynamic";
 

@@ -6,6 +6,7 @@ import { createSession, createTwoFactorChallenge, AuthType } from '@/lib/session
 import prisma from '@/lib/prisma';
 import { getRoleHomePath, isStaffRole } from '@/lib/rbac';
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from '@/lib/security';
+import { localeFromUrl, withLocalePath } from '../../../../../lib/localized-path';
 
 const loginSchema = z.object({
   idToken: z.string().trim().min(1).max(20_000),
@@ -20,6 +21,7 @@ function normalizeAuthPhotoUrl(value: unknown) {
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
+  const requestLocale = localeFromUrl(request.headers.get("referer"));
 
   try {
     const limit = rateLimit({
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
         challengeToken,
         role,
         authType: 'staff' as AuthType,
-        redirectTo: getRoleHomePath(role),
+        redirectTo: withLocalePath(getRoleHomePath(role), requestLocale),
       }, undefined, request);
     }
 
@@ -160,7 +162,7 @@ export async function POST(request: NextRequest) {
       role,
       permissions: (user.staff.permissions as string[] | null) ?? [],
       authType: 'staff' as AuthType,
-      redirectTo: getRoleHomePath(role),
+      redirectTo: withLocalePath(getRoleHomePath(role), requestLocale),
       requiresTotpSetup: !user.staff.totpEnabled,
     }, undefined, request);
 

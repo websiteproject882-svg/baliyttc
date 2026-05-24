@@ -5,6 +5,7 @@ import { createSession, decrypt } from "@/lib/session";
 import { getRoleHomePath, isStaffRole } from "@/lib/rbac";
 import { verifyTotpToken } from "@/lib/totp";
 import { getClientIp, jsonWithRequestId, logApiError, rateLimit, requireSameOrigin } from "@/lib/security";
+import { localeFromUrl, withLocalePath } from "../../../../../lib/localized-path";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ const verifyTwoFactorSchema = z.object({
 export async function POST(request: NextRequest) {
   const sameOriginResponse = requireSameOrigin(request);
   if (sameOriginResponse) return sameOriginResponse;
+  const requestLocale = localeFromUrl(request.headers.get("referer"));
 
   try {
     const limit = rateLimit({
@@ -90,7 +92,7 @@ export async function POST(request: NextRequest) {
       success: true,
       role,
       authType,
-      redirectTo: getRoleHomePath(role),
+      redirectTo: withLocalePath(getRoleHomePath(role), requestLocale),
     }, undefined, request);
   } catch (error) {
     logApiError("auth.2fa.verify", error, request);
