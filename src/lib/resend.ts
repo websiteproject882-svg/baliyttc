@@ -31,6 +31,15 @@ function getPublicBaseUrl() {
   return (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
+function escapeHtml(value: string | number | undefined) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 interface EmailOptions {
   to: string | string[];
   subject: string;
@@ -88,6 +97,11 @@ export async function sendEnrollmentConfirmation(data: {
 }) {
   const paymentTypeLabel = data.paymentType === "deposit" ? "Deposit" : "Full Payment";
   const currency = data.currency || "EUR";
+  const safeName = escapeHtml(data.name);
+  const safeCourse = escapeHtml(data.course);
+  const safeBatch = escapeHtml(data.batch);
+  const safeCurrency = escapeHtml(currency);
+  const safeAmount = escapeHtml(data.amount);
 
   return sendEmail({
     to: data.email,
@@ -98,14 +112,14 @@ export async function sendEnrollmentConfirmation(data: {
           <h1 style="color: white; margin: 0;">Welcome to Bali YTTC!</h1>
         </div>
         <div style="padding: 30px;">
-          <h2>Hi ${data.name},</h2>
+          <h2>Hi ${safeName},</h2>
           <p>Your enrollment has been confirmed! We're thrilled to have you join us for your yoga teacher training journey.</p>
 
           <div style="background: #f8f8f8; padding: 20px; border-radius: 10px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Enrollment Details</h3>
-            <p><strong>Course:</strong> ${data.course}</p>
-            <p><strong>Batch:</strong> ${data.batch}</p>
-            <p><strong>Payment:</strong> ${paymentTypeLabel} - ${currency} ${data.amount}</p>
+            <p><strong>Course:</strong> ${safeCourse}</p>
+            <p><strong>Batch:</strong> ${safeBatch}</p>
+            <p><strong>Payment:</strong> ${paymentTypeLabel} - ${safeCurrency} ${safeAmount}</p>
           </div>
 
           ${data.paymentType === "deposit" ? `
@@ -145,6 +159,13 @@ export async function sendAdminEnrollmentNotification(data: {
   paymentType: "deposit" | "full";
 }) {
   const currency = data.currency || "EUR";
+  const safeName = escapeHtml(data.name);
+  const safeEmail = escapeHtml(data.email);
+  const safePhone = escapeHtml(data.phone);
+  const safeCourse = escapeHtml(data.course);
+  const safeBatch = escapeHtml(data.batch);
+  const safeCurrency = escapeHtml(currency);
+  const safeAmount = escapeHtml(data.amount);
 
   return sendEmail({
     to: getAdminEmail(),
@@ -157,16 +178,16 @@ export async function sendAdminEnrollmentNotification(data: {
         <div style="padding: 30px;">
           <div style="background: #e7f3ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Student Information</h3>
-            <p><strong>Name:</strong> ${data.name}</p>
-            <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
-            <p><strong>Phone:</strong> ${data.phone}</p>
+            <p><strong>Name:</strong> ${safeName}</p>
+            <p><strong>Email:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
+            <p><strong>Phone:</strong> ${safePhone}</p>
           </div>
 
           <div style="background: #f8f8f8; padding: 20px; border-radius: 10px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Enrollment Details</h3>
-            <p><strong>Course:</strong> ${data.course}</p>
-            <p><strong>Batch:</strong> ${data.batch}</p>
-            <p><strong>Payment:</strong> ${data.paymentType === "deposit" ? "Deposit" : "Full"} - ${currency} ${data.amount}</p>
+            <p><strong>Course:</strong> ${safeCourse}</p>
+            <p><strong>Batch:</strong> ${safeBatch}</p>
+            <p><strong>Payment:</strong> ${data.paymentType === "deposit" ? "Deposit" : "Full"} - ${safeCurrency} ${safeAmount}</p>
           </div>
 
           <p><a href="${getPublicBaseUrl()}/en/admin/enrollments" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View in Admin Dashboard</a></p>
@@ -187,6 +208,10 @@ export async function sendPaymentConfirmation(data: {
 }) {
   const paymentTypeLabel = data.paymentType === "deposit" ? "Deposit" : "Full Payment";
   const currency = data.currency || "EUR";
+  const safeName = escapeHtml(data.name);
+  const safeCourse = escapeHtml(data.course);
+  const safeCurrency = escapeHtml(currency);
+  const safeAmount = escapeHtml(data.amount);
 
   return sendEmail({
     to: data.email,
@@ -197,12 +222,12 @@ export async function sendPaymentConfirmation(data: {
           <h1 style="color: white; margin: 0;">Payment Confirmed!</h1>
         </div>
         <div style="padding: 30px;">
-          <h2>Hi ${data.name},</h2>
+          <h2>Hi ${safeName},</h2>
           <p>We've received your ${paymentTypeLabel.toLowerCase()} payment.</p>
 
           <div style="background: #f8f8f8; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
-            <p style="font-size: 24px; margin: 0;"><strong>${currency} ${data.amount}</strong></p>
-            <p style="margin: 10px 0 0;">${paymentTypeLabel} for ${data.course}</p>
+            <p style="font-size: 24px; margin: 0;"><strong>${safeCurrency} ${safeAmount}</strong></p>
+            <p style="margin: 10px 0 0;">${paymentTypeLabel} for ${safeCourse}</p>
           </div>
 
           ${data.paymentType === "full" ? `
@@ -226,18 +251,21 @@ export async function sendReminderEmail(data: {
   daysUntilStart: number;
   type: "payment" | "preparation" | "general";
 }) {
+  const safeName = escapeHtml(data.name);
+  const safeCourse = escapeHtml(data.course);
+  const safeDaysUntilStart = escapeHtml(data.daysUntilStart);
   const reminders = {
     payment: {
       subject: `Reminder: Complete Your Payment - ${data.course}`,
       content: `
-        <p>This is a friendly reminder to complete your payment for ${data.course}. The remaining balance is due 30 days before your start date.</p>
+        <p>This is a friendly reminder to complete your payment for ${safeCourse}. The remaining balance is due 30 days before your start date.</p>
           <p><a href="${getPublicBaseUrl()}/en/app/dashboard" style="background: #F04E23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Complete Payment</a></p>
       `,
     },
     preparation: {
       subject: `Pre-Training Checklist - ${data.course}`,
       content: `
-        <p>Your training starts in ${data.daysUntilStart} days! Complete these tasks to prepare:</p>
+        <p>Your training starts in ${safeDaysUntilStart} days! Complete these tasks to prepare:</p>
         <ul>
           <li>Read the course manual introduction</li>
           <li>Watch the welcome video</li>
@@ -251,7 +279,7 @@ export async function sendReminderEmail(data: {
     general: {
       subject: `Your Journey Begins Soon - ${data.course}`,
       content: `
-        <p>We're excited to see you soon in Bali for ${data.course}!</p>
+        <p>We're excited to see you soon in Bali for ${safeCourse}!</p>
         <p>Make sure you're prepared for an amazing transformation.</p>
       `,
     },
@@ -268,7 +296,7 @@ export async function sendReminderEmail(data: {
           <h1 style="color: white; margin: 0;">Bali YTTC</h1>
         </div>
         <div style="padding: 30px;">
-          <h2>Hi ${data.name},</h2>
+          <h2>Hi ${safeName},</h2>
           ${reminder.content}
           <p>If you have any questions, reach out at <a href="mailto:${getSupportEmail()}">${getSupportEmail()}</a>.</p>
           <p>See you in Bali!</p>

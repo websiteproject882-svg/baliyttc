@@ -49,6 +49,15 @@ function getAdminEmail() {
   return process.env.ADMIN_EMAIL || getSupportEmail();
 }
 
+function escapeHtml(value: string | number | undefined) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendGmailEmail(options: SendEmailOptions): Promise<{ success: boolean; error?: string; demo?: boolean }> {
   if (!isGmailConfigured()) {
     if (process.env.NODE_ENV === "production") {
@@ -108,6 +117,12 @@ export async function sendEnrollmentConfirmationEmail(data: {
   const remainingAmount = data.paymentType === "deposit"
     ? data.amount * 2 - data.amount
     : 0;
+  const safeName = escapeHtml(data.name);
+  const safeCourse = escapeHtml(data.course);
+  const safeBatch = escapeHtml(data.batch);
+  const safeCurrency = escapeHtml(data.currency);
+  const safeAmount = escapeHtml(data.amount);
+  const safeRemainingAmount = escapeHtml(remainingAmount);
 
   const html = `
 <!DOCTYPE html>
@@ -122,7 +137,7 @@ export async function sendEnrollmentConfirmationEmail(data: {
       <h1 style="color: white; margin: 0; font-size: 24px;">Welcome to Bali YTTC!</h1>
     </div>
     <div style="padding: 30px;">
-      <p style="font-size: 16px; color: #333;">Hi ${data.name},</p>
+      <p style="font-size: 16px; color: #333;">Hi ${safeName},</p>
       <p style="font-size: 16px; color: #333;">Congratulations! Your enrollment has been confirmed.</p>
 
       <div style="background: #f8f8f8; border-radius: 8px; padding: 20px; margin: 20px 0;">
@@ -130,11 +145,11 @@ export async function sendEnrollmentConfirmationEmail(data: {
         <table style="width: 100%; font-size: 14px;">
           <tr>
             <td style="padding: 8px 0; color: #666;">Course:</td>
-            <td style="padding: 8px 0; font-weight: bold;">${data.course}</td>
+            <td style="padding: 8px 0; font-weight: bold;">${safeCourse}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #666;">Batch:</td>
-            <td style="padding: 8px 0;">${data.batch}</td>
+            <td style="padding: 8px 0;">${safeBatch}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #666;">Payment Type:</td>
@@ -142,12 +157,12 @@ export async function sendEnrollmentConfirmationEmail(data: {
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #666;">Amount Paid:</td>
-            <td style="padding: 8px 0; font-weight: bold; color: #22c55e;">${data.currency} ${data.amount}</td>
+            <td style="padding: 8px 0; font-weight: bold; color: #22c55e;">${safeCurrency} ${safeAmount}</td>
           </tr>
           ${remainingAmount > 0 ? `
           <tr>
             <td style="padding: 8px 0; color: #666;">Remaining:</td>
-            <td style="padding: 8px 0; color: #f59e0b;">${data.currency} ${remainingAmount}</td>
+            <td style="padding: 8px 0; color: #f59e0b;">${safeCurrency} ${safeRemainingAmount}</td>
           </tr>
           ` : ""}
         </table>
@@ -185,16 +200,21 @@ export async function sendAdminNotificationEmail(data: {
   message?: string;
   phone?: string;
 }) {
+  const safeName = escapeHtml(data.name);
+  const safeEmail = escapeHtml(data.email);
+  const safeCourse = escapeHtml(data.course);
+  const safePhone = escapeHtml(data.phone);
+  const safeMessage = escapeHtml(data.message);
   let contentHtml = "";
 
   if (data.type === "enrollment") {
     contentHtml = `
-      <tr><td style="padding: 8px; color: #666;">Course:</td><td style="padding: 8px; font-weight: bold;">${data.course}</td></tr>
+      <tr><td style="padding: 8px; color: #666;">Course:</td><td style="padding: 8px; font-weight: bold;">${safeCourse}</td></tr>
     `;
   } else if (data.type === "contact") {
     contentHtml = `
-      <tr><td style="padding: 8px; color: #666;">Phone:</td><td style="padding: 8px;">${data.phone || "N/A"}</td></tr>
-      <tr><td style="padding: 8px; color: #666;">Message:</td><td style="padding: 8px;">${data.message}</td></tr>
+      <tr><td style="padding: 8px; color: #666;">Phone:</td><td style="padding: 8px;">${safePhone || "N/A"}</td></tr>
+      <tr><td style="padding: 8px; color: #666;">Message:</td><td style="padding: 8px;">${safeMessage}</td></tr>
     `;
   }
 
@@ -211,8 +231,8 @@ export async function sendAdminNotificationEmail(data: {
     </div>
     <div style="padding: 20px;">
       <table style="width: 100%; font-size: 14px;">
-        <tr><td style="padding: 8px; color: #666;">Name:</td><td style="padding: 8px; font-weight: bold;">${data.name}</td></tr>
-        <tr><td style="padding: 8px; color: #666;">Email:</td><td style="padding: 8px;"><a href="mailto:${data.email}">${data.email}</a></td></tr>
+        <tr><td style="padding: 8px; color: #666;">Name:</td><td style="padding: 8px; font-weight: bold;">${safeName}</td></tr>
+        <tr><td style="padding: 8px; color: #666;">Email:</td><td style="padding: 8px;"><a href="mailto:${safeEmail}">${safeEmail}</a></td></tr>
         ${contentHtml}
         <tr><td style="padding: 8px; color: #666;">Time:</td><td style="padding: 8px;">${new Date().toLocaleString()}</td></tr>
       </table>
