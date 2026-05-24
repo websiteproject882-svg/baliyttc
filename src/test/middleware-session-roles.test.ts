@@ -45,5 +45,7 @@ describe("middleware session role boundaries", () => {
     expect(getProtectedRouteRequirement("/staff/dashboard")).toBe("staff");
     expect(getProtectedRouteRequirement("/admin/overview")).toBe("admin-panel");
     expect(getProtectedRouteRequirement("/login")).toBeNull();
+    expect(getProtectedRouteRequirement("/apply")).toBeNull();
+    expect(getProtectedRouteRequirement("/application")).toBeNull();
   });
 });

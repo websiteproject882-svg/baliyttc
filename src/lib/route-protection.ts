@@ -7,11 +7,11 @@ export function getProtectedRouteRequirement(pathWithoutLocale: string) {
     return "admin-panel" as const;
   }
 
-  if (pathWithoutLocale.startsWith("/staff") || pathWithoutLocale.startsWith("/app/teacher")) {
+  if (pathWithoutLocale === "/staff" || pathWithoutLocale.startsWith("/staff/") || pathWithoutLocale.startsWith("/app/teacher")) {
     return "staff" as const;
   }
 
-  if (pathWithoutLocale.startsWith("/app")) {
+  if (pathWithoutLocale === "/app" || pathWithoutLocale.startsWith("/app/")) {
     return "student" as const;
   }
 
