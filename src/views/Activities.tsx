@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Clock, MapPin, Search, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/routing";
@@ -11,6 +11,13 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { IMG } from "@/data/site";
 
 const activityCategories = ["All", "Ceremony", "Workshop", "Nature", "Wellness", "Creative"];
+
+const toActivitySlug = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
 const activities = [
   {
@@ -177,6 +184,29 @@ const faqs = [
 const Activities = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeActivity, setActiveActivity] = useState("activity-0");
+
+  useEffect(() => {
+    const openActivityFromHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (!hash) return;
+
+      const index = activities.findIndex((activity) => toActivitySlug(activity.title) === hash);
+      if (index === -1) return;
+
+      setActiveCategory("All");
+      setSearchQuery("");
+      setActiveActivity(`activity-${index}`);
+
+      window.setTimeout(() => {
+        document.getElementById(`${hash}-details`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    };
+
+    openActivityFromHash();
+    window.addEventListener("hashchange", openActivityFromHash);
+    return () => window.removeEventListener("hashchange", openActivityFromHash);
+  }, []);
 
   const filteredActivities = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -246,8 +276,25 @@ const Activities = () => {
           {filteredActivities.map((activity, index) => (
             <Reveal key={activity.title} delay={index * 0.05}>
               <motion.article
+                id={toActivitySlug(activity.title)}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  const slug = toActivitySlug(activity.title);
+                  setActiveActivity(`activity-${activities.findIndex((item) => item.title === activity.title)}`);
+                  window.history.replaceState(null, "", `#${slug}`);
+                  document.getElementById(`${slug}-details`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  const slug = toActivitySlug(activity.title);
+                  setActiveActivity(`activity-${activities.findIndex((item) => item.title === activity.title)}`);
+                  window.history.replaceState(null, "", `#${slug}`);
+                  document.getElementById(`${slug}-details`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
                 whileHover={{ y: -5 }}
-                className="group h-full overflow-hidden rounded-[10px] bg-white shadow-[0_16px_40px_rgba(42,36,28,0.08)] ring-1 ring-stone-200 transition-all duration-300 hover:shadow-[0_24px_60px_rgba(42,36,28,0.12)]"
+                className="group h-full cursor-pointer overflow-hidden rounded-[10px] bg-white shadow-[0_16px_40px_rgba(42,36,28,0.08)] ring-1 ring-stone-200 transition-all duration-300 hover:shadow-[0_24px_60px_rgba(42,36,28,0.12)] focus:outline-none focus:ring-2 focus:ring-[#F04E23]"
               >
                 <div className="overflow-hidden bg-stone-100">
                   <img
@@ -272,6 +319,10 @@ const Activities = () => {
                   <div className="mt-5 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-gray-500">
                     <MapPin className="h-3.5 w-3.5 text-[#F04E23]" />
                     {activity.location}
+                  </div>
+                  <div className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#F04E23]">
+                    Read details
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </div>
               </motion.article>
@@ -301,9 +352,14 @@ const Activities = () => {
           </Reveal>
 
           <Reveal delay={0.1}>
-            <Accordion type="single" collapsible defaultValue="activity-0" className="space-y-3">
+            <Accordion type="single" collapsible value={activeActivity} onValueChange={setActiveActivity} className="space-y-3">
               {activities.map((activity, index) => (
-                <AccordionItem key={activity.title} value={`activity-${index}`} className="rounded-[10px] border border-stone-200 bg-white px-0 shadow-sm">
+                <AccordionItem
+                  key={activity.title}
+                  id={`${toActivitySlug(activity.title)}-details`}
+                  value={`activity-${index}`}
+                  className="rounded-[10px] border border-stone-200 bg-white px-0 shadow-sm scroll-mt-32"
+                >
                   <AccordionTrigger className="px-5 py-5 text-left hover:no-underline md:px-6">
                     <div className="flex items-center gap-4">
                       <span className="font-serif text-sm text-stone-400">{String(index + 1).padStart(2, "0")}</span>

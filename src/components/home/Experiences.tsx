@@ -5,8 +5,17 @@ import { Reveal } from "@/components/shared/Reveal";
 import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
 import { useHomeCopy } from "@/lib/use-home-copy";
+import { Link } from "@/i18n/routing";
 
 const icons = ["01", "02", "03", "04", "05", "06"];
+const activityLinks = [
+  "holy-temple-purification",
+  "arm-balancing-workshop",
+  "sound-healing",
+  "acro-yoga-workshop",
+  "beach-yoga",
+  "mandala-painting",
+];
 
 export const Experiences = () => {
   const copy = useHomeCopy();
@@ -35,6 +44,11 @@ export const Experiences = () => {
                 whileHover={{ y: -8 }}
                 className="w-[260px] shrink-0 md:w-[320px]"
               >
+                <Link
+                  href={`/activities#${activityLinks[index % experiences.length]}`}
+                  aria-label={`View details for ${experience.title}`}
+                  className="block"
+                >
                 <article className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-xl shadow-lg transition-shadow hover:shadow-2xl md:aspect-[5/4]">
                   <img src={experience.img} alt={experience.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/10 transition-all duration-500 group-hover:via-black/55" />
@@ -62,6 +76,7 @@ export const Experiences = () => {
                     </div>
                   </motion.div>
                 </article>
+                </Link>
               </motion.div>
           ))}
         </div>
