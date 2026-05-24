@@ -93,7 +93,7 @@ describe("admin provider smoke route", () => {
   });
 
   it("sends email smoke tests and writes masked audit data", async () => {
-    const response = await POST(request({ provider: "email", email: "student@example.com" }));
+    const response = await POST(request({ provider: "email", email: " Student@Example.COM " }));
     const body = await response?.json();
 
     expect(response?.status).toBe(200);
@@ -129,5 +129,41 @@ describe("admin provider smoke route", () => {
     expect(mocks.sendWhatsAppMessage).not.toHaveBeenCalled();
     expect(mocks.writeAuditLog).not.toHaveBeenCalled();
     expect(mocks.logApiError).not.toHaveBeenCalled();
+  });
+
+  it("normalizes WhatsApp smoke test inputs before sending", async () => {
+    const response = await POST(request({
+      provider: "whatsapp",
+      phone: " +91 98765 43210 ",
+      template: " provider_test ",
+      language: " en_US ",
+      components: [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: " hello " }],
+        },
+      ],
+    }));
+    const body = await response?.json();
+
+    expect(response?.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      provider: "whatsapp",
+      target: "***3210",
+      template: "provider_test",
+      messageId: "wa_1",
+    });
+    expect(mocks.sendWhatsAppMessage).toHaveBeenCalledWith({
+      to: "+91 98765 43210",
+      template: "provider_test",
+      language: "en_US",
+      components: [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "hello" }],
+        },
+      ],
+    });
   });
 });

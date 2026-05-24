@@ -16,11 +16,11 @@ const providerKeys = {
 } as const;
 
 const whatsappParameterSchema = z.object({
-  type: z.string().min(1),
-  text: z.string().min(1).max(500).optional(),
+  type: z.string().trim().min(1).max(50),
+  text: z.string().trim().min(1).max(500).optional(),
   image: z
     .object({
-      link: z.string().url().optional(),
+      link: z.string().trim().url().optional(),
     })
     .optional(),
 });
@@ -33,13 +33,13 @@ const whatsappComponentSchema = z.object({
 const smokeSchema = z.discriminatedUnion("provider", [
   z.object({
     provider: z.literal("email"),
-    email: z.string().email(),
+    email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
   }),
   z.object({
     provider: z.literal("whatsapp"),
-    phone: z.string().min(8).max(24),
-    template: z.string().min(1).max(100),
-    language: z.string().min(2).max(16).optional(),
+    phone: z.string().trim().min(8).max(24),
+    template: z.string().trim().min(1).max(100),
+    language: z.string().trim().min(2).max(16).optional(),
     components: z.array(whatsappComponentSchema).max(5).optional(),
   }),
 ]);
