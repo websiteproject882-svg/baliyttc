@@ -44,7 +44,7 @@ const nextConfig = {
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
         ],
       },
-      ...['admin', 'app', 'staff'].flatMap((privatePath) => [
+      ...['admin', 'app', 'staff', 'login', 'payment'].flatMap((privatePath) => [
         {
           source: `/${privatePath}/:path*`,
           headers: [
