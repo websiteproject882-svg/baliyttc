@@ -99,6 +99,40 @@ async function checkSameOriginApi() {
   return { path: "/api/auth/login", status: response.status };
 }
 
+async function checkPublicJsonApi(path, validate) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    headers: {
+      "x-request-id": `smoke-${path.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`,
+    },
+  });
+  assert(response.status === 200, `${path} returned ${response.status}`);
+  assert(response.headers.get("x-request-id"), `${path} is missing x-request-id`);
+  assert(
+    response.headers.get("cache-control")?.toLowerCase().includes("no-store"),
+    `${path} should use no-store cache-control`,
+  );
+
+  const body = await response.json();
+  validate(body);
+  return { path, status: response.status };
+}
+
+async function checkPublicApis() {
+  return Promise.all([
+    checkPublicJsonApi("/api/courses?locale=en&slug=200hr", (body) => {
+      assert(Array.isArray(body.courses), "/api/courses should return courses array");
+      assert(body.courses.length >= 1, "/api/courses should include at least one course");
+    }),
+    checkPublicJsonApi("/api/blog?locale=en&limit=1", (body) => {
+      assert(Array.isArray(body.posts), "/api/blog should return posts array");
+      assert(body.pagination?.limit === 1, "/api/blog should preserve requested limit");
+    }),
+    checkPublicJsonApi("/api/site-settings", (body) => {
+      assert(body.settings?.general?.schoolName, "/api/site-settings should include school name");
+    }),
+  ]);
+}
+
 async function checkSitemapAndRobots() {
   const sitemap = await fetchText("/sitemap.xml");
   assert(sitemap.response.status === 200, `/sitemap.xml returned ${sitemap.response.status}`);
@@ -125,6 +159,7 @@ async function main() {
   }
   results.push(await checkProtectedApi());
   results.push(await checkSameOriginApi());
+  results.push(...await checkPublicApis());
   results.push(...await checkSitemapAndRobots());
 
   console.table(results);
