@@ -42,4 +42,7 @@ firebase-adminsdk*.json
 WhatsApp Image*.jpg
 WhatsApp Image*.jpeg
 
+# Downloaded Google Drive source dumps. Curated web-ready copies live in public/media.
+media-library/raw-drive/
+
 /src/generated/prisma

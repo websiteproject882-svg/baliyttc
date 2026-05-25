@@ -1,0 +1,723 @@
+{
+  "generatedAt": "2026-05-25T19:38:37.101Z",
+  "totalFiles": 87,
+  "sections": {
+    "00-brand/certification-badges": 1,
+    "00-brand/logos": 4,
+    "01-home/hero": 2,
+    "01-home/video": 2,
+    "02-courses/100hr": 29,
+    "02-courses/200hr": 10,
+    "02-courses": 1,
+    "03-accommodation/campus": 4,
+    "03-accommodation/facilities": 2,
+    "03-accommodation/pool": 3,
+    "03-accommodation/rooms": 6,
+    "04-activities/asana-practice": 2,
+    "04-activities/ceremony": 5,
+    "04-activities/workshops": 1,
+    "05-instructors": 4,
+    "06-testimonials/videos": 4,
+    "07-gallery/campus": 4,
+    "07-gallery/ceremony": 1,
+    "07-gallery/teachers": 2
+  },
+  "files": [
+    {
+      "publicPath": "/media/00-brand/certification-badges/yoga-alliance-rys-badge.png",
+      "section": "00-brand/certification-badges",
+      "filename": "yoga-alliance-rys-badge.png",
+      "extension": "png",
+      "bytes": 1047321,
+      "updatedAt": "2026-05-22T12:06:18.763Z"
+    },
+    {
+      "publicPath": "/media/00-brand/logos/bali-yttc-logo-1024.png",
+      "section": "00-brand/logos",
+      "filename": "bali-yttc-logo-1024.png",
+      "extension": "png",
+      "bytes": 226292,
+      "updatedAt": "2026-05-22T12:06:18.666Z"
+    },
+    {
+      "publicPath": "/media/00-brand/logos/bali-yttc-logo-512.png",
+      "section": "00-brand/logos",
+      "filename": "bali-yttc-logo-512.png",
+      "extension": "png",
+      "bytes": 111645,
+      "updatedAt": "2026-05-22T12:06:18.668Z"
+    },
+    {
+      "publicPath": "/media/00-brand/logos/bali-yttc-logo-full.png",
+      "section": "00-brand/logos",
+      "filename": "bali-yttc-logo-full.png",
+      "extension": "png",
+      "bytes": 1841617,
+      "updatedAt": "2026-05-22T12:06:18.728Z"
+    },
+    {
+      "publicPath": "/media/00-brand/logos/bali-yttc-logo-white.png",
+      "section": "00-brand/logos",
+      "filename": "bali-yttc-logo-white.png",
+      "extension": "png",
+      "bytes": 191105,
+      "updatedAt": "2026-05-22T12:06:18.748Z"
+    },
+    {
+      "publicPath": "/media/01-home/hero/bali-yttc-home-hero-bg.png",
+      "section": "01-home/hero",
+      "filename": "bali-yttc-home-hero-bg.png",
+      "extension": "png",
+      "bytes": 1000821,
+      "updatedAt": "2026-05-22T12:06:18.820Z"
+    },
+    {
+      "publicPath": "/media/01-home/hero/mobile-home-hero-reference.jpeg",
+      "section": "01-home/hero",
+      "filename": "mobile-home-hero-reference.jpeg",
+      "extension": "jpeg",
+      "bytes": 128214,
+      "updatedAt": "2026-05-18T19:28:11.555Z"
+    },
+    {
+      "publicPath": "/media/01-home/video/home-hero-yoga-1080.mp4",
+      "section": "01-home/video",
+      "filename": "home-hero-yoga-1080.mp4",
+      "extension": "mp4",
+      "bytes": 34886239,
+      "updatedAt": "2026-05-22T12:06:19.092Z"
+    },
+    {
+      "publicPath": "/media/01-home/video/home-hero-yoga-720.mp4",
+      "section": "01-home/video",
+      "filename": "home-hero-yoga-720.mp4",
+      "extension": "mp4",
+      "bytes": 5777415,
+      "updatedAt": "2026-05-22T12:06:19.145Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-01.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-01.jpg",
+      "extension": "jpg",
+      "bytes": 316141,
+      "updatedAt": "2026-05-19T14:37:03.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-02.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-02.jpg",
+      "extension": "jpg",
+      "bytes": 68784,
+      "updatedAt": "2026-05-19T14:37:03.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-03.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-03.jpg",
+      "extension": "jpg",
+      "bytes": 90472,
+      "updatedAt": "2026-05-19T14:37:03.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-04.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-04.jpg",
+      "extension": "jpg",
+      "bytes": 84604,
+      "updatedAt": "2026-05-19T14:37:03.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-05.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-05.jpg",
+      "extension": "jpg",
+      "bytes": 122040,
+      "updatedAt": "2026-05-19T14:37:03.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-06.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-06.jpg",
+      "extension": "jpg",
+      "bytes": 111526,
+      "updatedAt": "2026-05-19T14:36:59.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-07.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-07.jpg",
+      "extension": "jpg",
+      "bytes": 138121,
+      "updatedAt": "2026-05-19T14:36:59.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-08.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-08.jpg",
+      "extension": "jpg",
+      "bytes": 156050,
+      "updatedAt": "2026-05-19T14:40:05.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-09.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-09.jpg",
+      "extension": "jpg",
+      "bytes": 163473,
+      "updatedAt": "2026-05-19T14:40:05.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-10.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-10.jpg",
+      "extension": "jpg",
+      "bytes": 226447,
+      "updatedAt": "2026-05-19T14:40:05.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-11.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-11.jpg",
+      "extension": "jpg",
+      "bytes": 155813,
+      "updatedAt": "2026-05-19T14:40:05.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-12.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-12.jpg",
+      "extension": "jpg",
+      "bytes": 191022,
+      "updatedAt": "2026-05-19T14:40:07.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-13.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-13.jpg",
+      "extension": "jpg",
+      "bytes": 156994,
+      "updatedAt": "2026-05-19T14:36:59.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-14.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-14.jpg",
+      "extension": "jpg",
+      "bytes": 162451,
+      "updatedAt": "2026-05-19T14:40:05.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-15.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-15.jpg",
+      "extension": "jpg",
+      "bytes": 247422,
+      "updatedAt": "2026-05-19T14:40:05.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-16.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-16.jpg",
+      "extension": "jpg",
+      "bytes": 203288,
+      "updatedAt": "2026-05-19T14:40:05.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-17.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-17.jpg",
+      "extension": "jpg",
+      "bytes": 206262,
+      "updatedAt": "2026-05-19T14:37:00.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-18.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-18.jpg",
+      "extension": "jpg",
+      "bytes": 190300,
+      "updatedAt": "2026-05-19T14:37:00.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-19.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-19.jpg",
+      "extension": "jpg",
+      "bytes": 107780,
+      "updatedAt": "2026-05-19T14:36:59.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-20.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-20.jpg",
+      "extension": "jpg",
+      "bytes": 108232,
+      "updatedAt": "2026-05-19T14:36:59.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-21.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-21.jpg",
+      "extension": "jpg",
+      "bytes": 78680,
+      "updatedAt": "2026-05-19T14:36:58.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-22.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-22.jpg",
+      "extension": "jpg",
+      "bytes": 111373,
+      "updatedAt": "2026-05-19T14:36:59.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-23.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-23.jpg",
+      "extension": "jpg",
+      "bytes": 92469,
+      "updatedAt": "2026-05-19T14:36:58.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-24.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-24.jpg",
+      "extension": "jpg",
+      "bytes": 76683,
+      "updatedAt": "2026-05-19T14:36:58.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-25.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-25.jpg",
+      "extension": "jpg",
+      "bytes": 57481,
+      "updatedAt": "2026-05-19T14:36:57.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-26.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-26.jpg",
+      "extension": "jpg",
+      "bytes": 80448,
+      "updatedAt": "2026-05-19T14:36:57.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-27.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-27.jpg",
+      "extension": "jpg",
+      "bytes": 80367,
+      "updatedAt": "2026-05-19T14:36:58.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-moment-29.jpg",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-moment-29.jpg",
+      "extension": "jpg",
+      "bytes": 89523,
+      "updatedAt": "2026-05-19T14:36:58.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/100hr/100hr-training-video-28.mp4",
+      "section": "02-courses/100hr",
+      "filename": "100hr-training-video-28.mp4",
+      "extension": "mp4",
+      "bytes": 1458269,
+      "updatedAt": "2026-05-19T14:37:01.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-200-hour-yoga-teacher-training-certification-1.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-200-hour-yoga-teacher-training-certification-1.jpg",
+      "extension": "jpg",
+      "bytes": 142642,
+      "updatedAt": "2026-05-11T16:03:26.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-200-hour-yoga-teacher-training-photo-1.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-200-hour-yoga-teacher-training-photo-1.jpg",
+      "extension": "jpg",
+      "bytes": 303542,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-200-hour-yoga-teacher-training-photo-2.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-200-hour-yoga-teacher-training-photo-2.jpg",
+      "extension": "jpg",
+      "bytes": 291589,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-200-hour-yoga-teacher-training-welcome-ceremony.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-200-hour-yoga-teacher-training-welcome-ceremony.jpg",
+      "extension": "jpg",
+      "bytes": 287466,
+      "updatedAt": "2026-05-11T16:03:27.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-200-hour-ytt-ceremony.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-200-hour-ytt-ceremony.jpg",
+      "extension": "jpg",
+      "bytes": 319644,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-after-graduation-ceremony-students.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-after-graduation-ceremony-students.jpg",
+      "extension": "jpg",
+      "bytes": 261516,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-arm-balancing-workshop-during-200-hour-ytt.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-arm-balancing-workshop-during-200-hour-ytt.jpg",
+      "extension": "jpg",
+      "bytes": 302755,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-ashhtanga-yoga-class-at-bali-yttc.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-ashhtanga-yoga-class-at-bali-yttc.jpg",
+      "extension": "jpg",
+      "bytes": 118903,
+      "updatedAt": "2026-05-11T15:41:10.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-ashtanga-yoga-class-during-yoga-teacher-training.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-ashtanga-yoga-class-during-yoga-teacher-training.jpg",
+      "extension": "jpg",
+      "bytes": 268976,
+      "updatedAt": "2026-05-11T16:03:27.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/200hr/200hr-balinese-offering-making-by-students.jpg",
+      "section": "02-courses/200hr",
+      "filename": "200hr-balinese-offering-making-by-students.jpg",
+      "extension": "jpg",
+      "bytes": 245005,
+      "updatedAt": "2026-05-11T16:03:21.000Z"
+    },
+    {
+      "publicPath": "/media/02-courses/course-comparison-trio.png",
+      "section": "02-courses",
+      "filename": "course-comparison-trio.png",
+      "extension": "png",
+      "bytes": 710309,
+      "updatedAt": "2026-05-22T12:06:18.807Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/campus/drone-view-bali-yttc.jpg",
+      "section": "03-accommodation/campus",
+      "filename": "drone-view-bali-yttc.jpg",
+      "extension": "jpg",
+      "bytes": 285866,
+      "updatedAt": "2026-05-19T08:13:47.709Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/campus/firefly-sanctuary-graduation.jpg",
+      "section": "03-accommodation/campus",
+      "filename": "firefly-sanctuary-graduation.jpg",
+      "extension": "jpg",
+      "bytes": 2591361,
+      "updatedAt": "2026-05-22T12:06:18.794Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/campus/open-air-yoga-shala.jpg",
+      "section": "03-accommodation/campus",
+      "filename": "open-air-yoga-shala.jpg",
+      "extension": "jpg",
+      "bytes": 485358,
+      "updatedAt": "2026-05-19T08:13:26.355Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/campus/yoga-studio-pool-drone.jpg",
+      "section": "03-accommodation/campus",
+      "filename": "yoga-studio-pool-drone.jpg",
+      "extension": "jpg",
+      "bytes": 288749,
+      "updatedAt": "2026-05-19T08:13:31.942Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/facilities/en-suite-washroom.jpg",
+      "section": "03-accommodation/facilities",
+      "filename": "en-suite-washroom.jpg",
+      "extension": "jpg",
+      "bytes": 122095,
+      "updatedAt": "2026-05-19T08:13:21.037Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/facilities/reception-bali-yttc.jpg",
+      "section": "03-accommodation/facilities",
+      "filename": "reception-bali-yttc.jpg",
+      "extension": "jpg",
+      "bytes": 254505,
+      "updatedAt": "2026-05-19T08:12:52.175Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/pool/private-villa-pool.jpg",
+      "section": "03-accommodation/pool",
+      "filename": "private-villa-pool.jpg",
+      "extension": "jpg",
+      "bytes": 310073,
+      "updatedAt": "2026-05-19T08:12:43.586Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/pool/swimming-pool-01.jpg",
+      "section": "03-accommodation/pool",
+      "filename": "swimming-pool-01.jpg",
+      "extension": "jpg",
+      "bytes": 476127,
+      "updatedAt": "2026-05-19T08:13:10.001Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/pool/swimming-pool-02.jpg",
+      "section": "03-accommodation/pool",
+      "filename": "swimming-pool-02.jpg",
+      "extension": "jpg",
+      "bytes": 532368,
+      "updatedAt": "2026-05-19T08:13:15.301Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/rooms/private-villa-outside.jpg",
+      "section": "03-accommodation/rooms",
+      "filename": "private-villa-outside.jpg",
+      "extension": "jpg",
+      "bytes": 229333,
+      "updatedAt": "2026-05-19T08:12:38.003Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/rooms/private-villa-room-01.jpg",
+      "section": "03-accommodation/rooms",
+      "filename": "private-villa-room-01.jpg",
+      "extension": "jpg",
+      "bytes": 173932,
+      "updatedAt": "2026-05-19T08:12:29.944Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/rooms/private-villa-room-02.jpg",
+      "section": "03-accommodation/rooms",
+      "filename": "private-villa-room-02.jpg",
+      "extension": "jpg",
+      "bytes": 173932,
+      "updatedAt": "2026-05-19T04:44:53.303Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/rooms/room-view-garden.jpg",
+      "section": "03-accommodation/rooms",
+      "filename": "room-view-garden.jpg",
+      "extension": "jpg",
+      "bytes": 269677,
+      "updatedAt": "2026-05-19T08:12:54.354Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/rooms/shared-villa-room-01.jpg",
+      "section": "03-accommodation/rooms",
+      "filename": "shared-villa-room-01.jpg",
+      "extension": "jpg",
+      "bytes": 172004,
+      "updatedAt": "2026-05-19T08:12:59.990Z"
+    },
+    {
+      "publicPath": "/media/03-accommodation/rooms/shared-villa-room-02.jpg",
+      "section": "03-accommodation/rooms",
+      "filename": "shared-villa-room-02.jpg",
+      "extension": "jpg",
+      "bytes": 219372,
+      "updatedAt": "2026-05-19T08:13:04.252Z"
+    },
+    {
+      "publicPath": "/media/04-activities/asana-practice/ashtanga-yoga-class-bali-yttc.jpg",
+      "section": "04-activities/asana-practice",
+      "filename": "ashtanga-yoga-class-bali-yttc.jpg",
+      "extension": "jpg",
+      "bytes": 118903,
+      "updatedAt": "2026-05-11T15:41:10.000Z"
+    },
+    {
+      "publicPath": "/media/04-activities/asana-practice/ashtanga-yoga-teacher-training.jpg",
+      "section": "04-activities/asana-practice",
+      "filename": "ashtanga-yoga-teacher-training.jpg",
+      "extension": "jpg",
+      "bytes": 268976,
+      "updatedAt": "2026-05-11T16:03:27.000Z"
+    },
+    {
+      "publicPath": "/media/04-activities/ceremony/balinese-offering-workshop.jpg",
+      "section": "04-activities/ceremony",
+      "filename": "balinese-offering-workshop.jpg",
+      "extension": "jpg",
+      "bytes": 245005,
+      "updatedAt": "2026-05-11T16:03:21.000Z"
+    },
+    {
+      "publicPath": "/media/04-activities/ceremony/balinese-temple-gateway.jpg",
+      "section": "04-activities/ceremony",
+      "filename": "balinese-temple-gateway.jpg",
+      "extension": "jpg",
+      "bytes": 7815,
+      "updatedAt": "2026-05-22T12:06:20.417Z"
+    },
+    {
+      "publicPath": "/media/04-activities/ceremony/graduation-students-200hr.jpg",
+      "section": "04-activities/ceremony",
+      "filename": "graduation-students-200hr.jpg",
+      "extension": "jpg",
+      "bytes": 261516,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/04-activities/ceremony/welcome-ceremony-200hr.jpg",
+      "section": "04-activities/ceremony",
+      "filename": "welcome-ceremony-200hr.jpg",
+      "extension": "jpg",
+      "bytes": 287466,
+      "updatedAt": "2026-05-11T16:03:27.000Z"
+    },
+    {
+      "publicPath": "/media/04-activities/ceremony/ytt-ceremony-200hr.jpg",
+      "section": "04-activities/ceremony",
+      "filename": "ytt-ceremony-200hr.jpg",
+      "extension": "jpg",
+      "bytes": 319644,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/04-activities/workshops/arm-balancing-workshop-200hr.jpg",
+      "section": "04-activities/workshops",
+      "filename": "arm-balancing-workshop-200hr.jpg",
+      "extension": "jpg",
+      "bytes": 302755,
+      "updatedAt": "2026-05-11T16:03:22.000Z"
+    },
+    {
+      "publicPath": "/media/05-instructors/sachin-rautela-senior-teacher.jpg",
+      "section": "05-instructors",
+      "filename": "sachin-rautela-senior-teacher.jpg",
+      "extension": "jpg",
+      "bytes": 83211,
+      "updatedAt": "2026-05-18T03:20:08.767Z"
+    },
+    {
+      "publicPath": "/media/05-instructors/sandeep-yoga-philosophy-teacher.webp",
+      "section": "05-instructors",
+      "filename": "sandeep-yoga-philosophy-teacher.webp",
+      "extension": "webp",
+      "bytes": 20947,
+      "updatedAt": "2026-05-18T03:20:08.671Z"
+    },
+    {
+      "publicPath": "/media/05-instructors/vivek-kalura-lead-teacher.jpg",
+      "section": "05-instructors",
+      "filename": "vivek-kalura-lead-teacher.jpg",
+      "extension": "jpg",
+      "bytes": 83826,
+      "updatedAt": "2026-05-18T03:20:08.829Z"
+    },
+    {
+      "publicPath": "/media/05-instructors/yuli-hanurawati-sound-vinyasa.jpg",
+      "section": "05-instructors",
+      "filename": "yuli-hanurawati-sound-vinyasa.jpg",
+      "extension": "jpg",
+      "bytes": 218818,
+      "updatedAt": "2026-05-17T23:03:58.547Z"
+    },
+    {
+      "publicPath": "/media/06-testimonials/videos/bastian-germany-ytt-review.mp4",
+      "section": "06-testimonials/videos",
+      "filename": "bastian-germany-ytt-review.mp4",
+      "extension": "mp4",
+      "bytes": 2894663,
+      "updatedAt": "2026-05-17T19:42:13.623Z"
+    },
+    {
+      "publicPath": "/media/06-testimonials/videos/stephanie-belgium-ytt-review.mp4",
+      "section": "06-testimonials/videos",
+      "filename": "stephanie-belgium-ytt-review.mp4",
+      "extension": "mp4",
+      "bytes": 6061927,
+      "updatedAt": "2026-05-17T19:44:43.111Z"
+    },
+    {
+      "publicPath": "/media/06-testimonials/videos/student-review-200-hour-bali.mp4",
+      "section": "06-testimonials/videos",
+      "filename": "student-review-200-hour-bali.mp4",
+      "extension": "mp4",
+      "bytes": 1033429,
+      "updatedAt": "2026-05-17T19:41:28.767Z"
+    },
+    {
+      "publicPath": "/media/06-testimonials/videos/testimonial-200-hour-ytt.mp4",
+      "section": "06-testimonials/videos",
+      "filename": "testimonial-200-hour-ytt.mp4",
+      "extension": "mp4",
+      "bytes": 4397676,
+      "updatedAt": "2026-05-17T19:43:11.898Z"
+    },
+    {
+      "publicPath": "/media/07-gallery/campus/gallery-campus-drone-view.jpg",
+      "section": "07-gallery/campus",
+      "filename": "gallery-campus-drone-view.jpg",
+      "extension": "jpg",
+      "bytes": 285866,
+      "updatedAt": "2026-05-19T08:13:47.709Z"
+    },
+    {
+      "publicPath": "/media/07-gallery/campus/gallery-private-villa-pool.jpg",
+      "section": "07-gallery/campus",
+      "filename": "gallery-private-villa-pool.jpg",
+      "extension": "jpg",
+      "bytes": 310073,
+      "updatedAt": "2026-05-19T08:12:43.586Z"
+    },
+    {
+      "publicPath": "/media/07-gallery/campus/gallery-shared-villa-room.jpg",
+      "section": "07-gallery/campus",
+      "filename": "gallery-shared-villa-room.jpg",
+      "extension": "jpg",
+      "bytes": 172004,
+      "updatedAt": "2026-05-19T08:12:59.990Z"
+    },
+    {
+      "publicPath": "/media/07-gallery/campus/gallery-yoga-shala.jpg",
+      "section": "07-gallery/campus",
+      "filename": "gallery-yoga-shala.jpg",
+      "extension": "jpg",
+      "bytes": 485358,
+      "updatedAt": "2026-05-19T08:13:26.355Z"
+    },
+    {
+      "publicPath": "/media/07-gallery/ceremony/gallery-firefly-graduation.jpg",
+      "section": "07-gallery/ceremony",
+      "filename": "gallery-firefly-graduation.jpg",
+      "extension": "jpg",
+      "bytes": 2591361,
+      "updatedAt": "2026-05-22T12:06:18.794Z"
+    },
+    {
+      "publicPath": "/media/07-gallery/teachers/gallery-sachin-rautela.jpg",
+      "section": "07-gallery/teachers",
+      "filename": "gallery-sachin-rautela.jpg",
+      "extension": "jpg",
+      "bytes": 83211,
+      "updatedAt": "2026-05-18T03:20:08.767Z"
+    },
+    {
+      "publicPath": "/media/07-gallery/teachers/gallery-vivek-kalura.jpg",
+      "section": "07-gallery/teachers",
+      "filename": "gallery-vivek-kalura.jpg",
+      "extension": "jpg",
+      "bytes": 83826,
+      "updatedAt": "2026-05-18T03:20:08.829Z"
+    }
+  ]
+}
