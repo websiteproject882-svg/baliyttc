@@ -31,11 +31,11 @@ const galleryImageSchema = z.object({
   category: z.enum(["Practice", "Ceremony", "Campus", "Nature", "Teachers", "Courses"]).default("Practice"),
   type: z.enum(["PROFESSIONAL", "STUDENT"]).default("PROFESSIONAL"),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "ACTIVE"]).default("ACTIVE"),
+  order: z.coerce.number().int().min(0).optional(),
 });
 
 const galleryImageUpdateSchema = galleryImageSchema.partial().extend({
   id: z.string().trim().min(1).max(120),
-  order: z.coerce.number().int().min(0).optional(),
 });
 
 const deleteQuerySchema = z.object({
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       return jsonWithRequestId({ error: "Validation failed", details: parsed.error.errors }, { status: 400 }, request);
     }
 
-    const { url, alt, caption, category, type, status } = parsed.data;
+    const { url, alt, caption, category, type, status, order } = parsed.data;
 
     const image = await prisma.galleryImage.create({
       data: {
@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
         category,
         type,
         status,
+        order: order ?? 0,
       },
     });
 
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
       action: "gallery.added",
       entity: "galleryImage",
       entityId: image.id,
-      newValue: { url, alt },
+      newValue: { url, alt, caption, category, type, status, order: order ?? 0 },
       request,
     });
 

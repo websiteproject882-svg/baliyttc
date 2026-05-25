@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type SyntheticEvent, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,26 @@ interface GalleryImage {
 }
 
 const galleryCategories: GalleryImage["category"][] = ["Practice", "Ceremony", "Campus", "Nature", "Teachers", "Courses"];
+const galleryStatuses: GalleryImage["status"][] = ["ACTIVE", "APPROVED", "PENDING", "REJECTED"];
+
+async function readGalleryResponse(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    return response.json().catch(() => ({ error: "Gallery returned invalid JSON. Please refresh and try again." }));
+  }
+
+  const text = await response.text().catch(() => "");
+  return {
+    error: text.includes("<!DOCTYPE")
+      ? "Gallery API returned an HTML page instead of JSON. Please refresh your admin session and try again."
+      : text || "Gallery API returned an unexpected response.",
+  };
+}
+
+function resetImageElement(event: SyntheticEvent<HTMLImageElement>) {
+  event.currentTarget.onerror = null;
+  event.currentTarget.src = "/images/brand/logo-512.png";
+}
 
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -29,6 +49,8 @@ export default function GalleryPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "PROFESSIONAL" | "STUDENT">("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | GalleryImage["category"]>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | GalleryImage["status"]>("all");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
@@ -49,7 +71,7 @@ export default function GalleryPage() {
     setError(null);
     try {
       const response = await fetch("/api/admin/gallery", { cache: "no-store" });
-      const data = await response.json();
+      const data = await readGalleryResponse(response);
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch gallery");
       }
@@ -75,9 +97,9 @@ export default function GalleryPage() {
       const response = await fetch("/api/admin/gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, order: Number(form.order || 0) }),
       });
-      const data = await response.json();
+      const data = await readGalleryResponse(response);
       if (!response.ok) {
         throw new Error(data.error || "Failed to create gallery image");
       }
@@ -98,7 +120,7 @@ export default function GalleryPage() {
     setError(null);
     try {
       const response = await fetch(`/api/admin/gallery?id=${id}`, { method: "DELETE" });
-      const data = await response.json();
+      const data = await readGalleryResponse(response);
       if (!response.ok) {
         throw new Error(data.error || "Failed to delete image");
       }
@@ -120,7 +142,7 @@ export default function GalleryPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: image.id, status }),
       });
-      const data = await response.json();
+      const data = await readGalleryResponse(response);
       if (!response.ok) {
         throw new Error(data.error || "Failed to update image");
       }
@@ -168,10 +190,10 @@ export default function GalleryPage() {
           category: form.category,
           type: form.type,
           status: form.status,
-          order: form.order,
+          order: Number(form.order || 0),
         }),
       });
-      const data = await response.json();
+      const data = await readGalleryResponse(response);
       if (!response.ok) {
         throw new Error(data.error || "Failed to update gallery image");
       }
@@ -193,11 +215,20 @@ export default function GalleryPage() {
       (image.caption || "").toLowerCase().includes(search.toLowerCase()) ||
       (image.category || "").toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter === "all" || image.type === typeFilter;
-    return matchSearch && matchType;
+    const matchCategory = categoryFilter === "all" || image.category === categoryFilter;
+    const matchStatus = statusFilter === "all" || image.status === statusFilter;
+    return matchSearch && matchType && matchCategory && matchStatus;
   });
 
   const activeImages = images.filter((image) => image.status === "ACTIVE" || image.status === "APPROVED");
   const pendingImages = images.filter((image) => image.status === "PENDING");
+  const hasActiveFilters = Boolean(search) || typeFilter !== "all" || categoryFilter !== "all" || statusFilter !== "all";
+  const resetFilters = () => {
+    setSearch("");
+    setTypeFilter("all");
+    setCategoryFilter("all");
+    setStatusFilter("all");
+  };
 
   if (loading && images.length === 0) {
     return (
@@ -273,6 +304,23 @@ export default function GalleryPage() {
                 <option value="PROFESSIONAL">Professional</option>
                 <option value="STUDENT">Student</option>
               </select>
+              <select className="rounded-lg border px-3 py-2 text-sm" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as typeof categoryFilter)}>
+                <option value="all">All Categories</option>
+                {galleryCategories.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+              <select className="rounded-lg border px-3 py-2 text-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}>
+                <option value="all">All Statuses</option>
+                {galleryStatuses.map((status) => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+              {hasActiveFilters && (
+                <Button type="button" variant="outline" onClick={resetFilters}>
+                  Reset
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -287,7 +335,7 @@ export default function GalleryPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {pendingImages.map((image) => (
                   <div key={image.id} className="relative group rounded-xl overflow-hidden border border-amber-300">
-                    <img src={image.url} alt={image.alt || "Gallery image"} className="w-full h-32 object-cover" />
+                    <img src={image.url} alt={image.alt || "Gallery image"} className="w-full h-32 object-cover" loading="lazy" onError={resetImageElement} />
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button size="sm" variant="secondary" onClick={() => void handleUpdateStatus(image, "APPROVED")}>
                         Approve
@@ -308,13 +356,31 @@ export default function GalleryPage() {
             {filteredImages.length === 0 ? (
               <div className="text-center py-12">
                 <ImageIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500">No images found</p>
+                <p className="text-base font-medium text-gray-700">{images.length === 0 ? "No admin gallery images yet" : "No images match these filters"}</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+                  {images.length === 0
+                    ? "Add images here to control the public gallery from the admin panel. Until then, the public site can still show its built-in fallback gallery."
+                    : "Try clearing search, category, type, or status filters to see more images."}
+                </p>
+                <div className="mt-5 flex justify-center gap-3">
+                  {images.length === 0 && (
+                    <Button onClick={openAddDialog}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add first image
+                    </Button>
+                  )}
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={resetFilters}>
+                      Reset filters
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filteredImages.map((image) => (
                   <div key={image.id} className="relative group rounded-xl overflow-hidden border border-gray-200">
-                    <img src={image.url} alt={image.alt || "Gallery image"} className="w-full h-40 object-cover" />
+                    <img src={image.url} alt={image.alt || "Gallery image"} className="w-full h-40 object-cover" loading="lazy" onError={resetImageElement} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="absolute bottom-0 left-0 right-0 p-3">
                         <p className="text-white text-sm font-medium truncate">{image.alt || "Untitled image"}</p>
@@ -402,12 +468,16 @@ export default function GalleryPage() {
                   <option value="REJECTED">Rejected</option>
                 </select>
               </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Order</label>
+                <Input type="number" min="0" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} />
+              </div>
             </div>
             {form.url && (
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
                 <div className="rounded-lg overflow-hidden border">
-                  <img src={form.url} alt="Preview" className="w-full h-40 object-cover" />
+                  <img src={form.url} alt="Preview" className="w-full h-40 object-cover" onError={resetImageElement} />
                 </div>
               </div>
             )}
@@ -428,7 +498,7 @@ export default function GalleryPage() {
           </DialogHeader>
           {selectedImage && (
             <div className="space-y-4">
-              <img src={selectedImage.url} alt={selectedImage.alt || "Gallery image"} className="w-full max-h-[500px] object-contain rounded-lg" />
+              <img src={selectedImage.url} alt={selectedImage.alt || "Gallery image"} className="w-full max-h-[500px] object-contain rounded-lg" onError={resetImageElement} />
               <div className="flex items-center gap-4">
                 <Badge variant="secondary">{selectedImage.type}</Badge>
                 <Badge variant="outline">{selectedImage.category || "Practice"}</Badge>
@@ -506,7 +576,7 @@ export default function GalleryPage() {
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">Preview</p>
                 <div className="rounded-lg overflow-hidden border">
-                  <img src={form.url} alt="Preview" className="w-full h-40 object-cover" />
+                  <img src={form.url} alt="Preview" className="w-full h-40 object-cover" onError={resetImageElement} />
                 </div>
               </div>
             )}

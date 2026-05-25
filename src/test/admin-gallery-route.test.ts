@@ -138,6 +138,7 @@ describe("admin gallery route", () => {
         category: "Practice",
         type: "PROFESSIONAL",
         status: "ACTIVE",
+        order: 0,
       },
     });
     expect(mocks.writeAuditLog).toHaveBeenCalledWith(
