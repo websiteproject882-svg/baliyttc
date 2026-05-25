@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
@@ -7,6 +8,7 @@ import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
 import { IMG } from "@/data/site";
 import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
+import { getPageCopy } from "@/lib/page-i18n";
 import { Check, Calendar, MapPin, Clock, Users, Sun, Moon, Waves, Star, Heart } from "lucide-react";
 
 const retreats = [
@@ -147,6 +149,8 @@ const fallbackTestimonials = [
 ];
 
 const Retreats = () => {
+  const locale = useLocale();
+  const copy = getPageCopy(locale, "pageHero");
   const siteSettings = usePublicSiteSettings();
   const [testimonials, setTestimonials] = useState(fallbackTestimonials);
 
@@ -178,28 +182,28 @@ const Retreats = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-warm-dark via-warm-dark/80 to-warm-dark/30" />
         <div className="relative container-edit">
           <Reveal>
-            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">← Back to Home</Link>
+            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">← {copy.backHome}</Link>
           </Reveal>
           <Reveal delay={0.05}>
-            <p className="eyebrow text-gold-light mb-5">Yoga Retreats in Bali</p>
+            <p className="eyebrow text-gold-light mb-5">{copy.retreatsEyebrow}</p>
           </Reveal>
           <Reveal delay={0.1}>
             <h1 className="display-xl text-cream">
-              Retreat. Restore. <em className="text-terra-light">Revitalise.</em>
+              {copy.retreatsTitle} <em className="text-terra-light">{copy.retreatsAccent}</em>
             </h1>
           </Reveal>
           <Reveal delay={0.15}>
             <p className="mt-6 text-cream/75 max-w-2xl text-lg leading-relaxed">
-              Escape to Bali for a transformative retreat. Whether you have 3 days or 7, Ubud's temples or Canggu's beaches — we have the perfect immersive experience for you.
+              {copy.retreatsIntro}
             </p>
           </Reveal>
           <Reveal delay={0.2}>
             <div className="mt-8 flex flex-wrap gap-4">
               <Button className="bg-terra hover:bg-terra-deep text-cream h-12 px-8">
-                Book Your Retreat
+                {copy.bookRetreat}
               </Button>
               <Button variant="outline" className="h-12 border-cream/30 bg-transparent px-8 text-cream hover:bg-cream/10 hover:text-cream">
-                View All Retreats
+                {copy.viewRetreats}
               </Button>
             </div>
           </Reveal>
@@ -478,7 +482,7 @@ const Retreats = () => {
                 defaultCourse="retreat"
                 trigger={
                   <Button size="lg" className="bg-terra hover:bg-terra-deep text-cream h-14 px-10">
-                    Book Your Retreat Now
+                    {copy.bookRetreat} Now
                   </Button>
                 }
               />
@@ -496,3 +500,4 @@ const Retreats = () => {
 };
 
 export default Retreats;
+

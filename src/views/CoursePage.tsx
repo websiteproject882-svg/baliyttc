@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/shared/Reveal";
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { StaticCoursePageData } from "@/lib/course-static";
+import { getPageCopy } from "@/lib/page-i18n";
 
 const includedList = [
   "Yoga Alliance certification on graduation",
@@ -1013,6 +1015,8 @@ const courseDeepDives: Record<string, CourseDeepDiveItem[]> = {
 };
 
 const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | null }) => {
+  const locale = useLocale();
+  const commonCopy = getPageCopy(locale, "pageHero");
   const params = useParams();
   const router = useRouter();
   const slug = initialCourse?.slug || (params?.slug as string);
@@ -1092,6 +1096,25 @@ const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | 
         image: course.image || detail?.image || IMG.classMain,
       };
   const displayPriceFrom = course.priceFrom;
+  const esCourseCopy: Record<string, string> = {
+    "View Dates": "Ver fechas",
+    "Explore the course": "Explora el curso",
+    "Included Experiences": "Experiencias incluidas",
+    "Bali Culture &": "Cultura balinesa e",
+    "Integration": "integraci?n",
+    "Ceremony": "Ceremonia",
+    "Workshop": "Taller",
+    "Experience": "Experiencia",
+    "View activity details": "Ver detalles de la actividad",
+    "Temple Purification": "Purificaci?n en templo",
+    "Holy Temple Purification": "Purificaci?n en templo sagrado",
+    "Acro Yoga Workshop": "Taller de Acro Yoga",
+    "Sound Healing": "Sanaci?n sonora",
+    "A Balinese cleansing ceremony during the first week to connect with local culture and intention.": "Una ceremonia de limpieza balinesa durante la primera semana para conectar con la cultura local y la intenci?n.",
+    "A beginner workshop focused on trust, balance, play and partner awareness.": "Un taller para principiantes enfocado en confianza, equilibrio, juego y conciencia en pareja.",
+    "A restorative sound session for nervous system reset and post-training integration.": "Una sesi?n restaurativa de sonido para calmar el sistema nervioso e integrar la formaci?n.",
+  };
+  const courseText = (value: string) => (locale === "es" ? esCourseCopy[value] || value : value);
 
   return (
     <>
@@ -1117,12 +1140,12 @@ const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | 
             <p className="body-lg mb-8 text-white/80">{pageCourse.summary}</p>
             <div className="flex flex-wrap gap-4">
               <ApplyModal
-                trigger={<Button size="lg" className="bg-terra hover:bg-terra-deep text-white">{displayPriceFrom < 1500 ? `Apply from EUR ${displayPriceFrom}` : "Apply Now"}</Button>}
+                trigger={<Button size="lg" className="bg-terra hover:bg-terra-deep text-white">{displayPriceFrom < 1500 ? commonCopy.applyFrom.replace("{price}", String(displayPriceFrom)) : commonCopy.applyNow}</Button>}
                 defaultCourse={course.slug}
               />
               <Link href="#batches">
                 <Button size="lg" variant="secondary" className="bg-white text-warm-dark hover:bg-white/90">
-                  View Dates
+                  {courseText("View Dates")}
                 </Button>
               </Link>
             </div>
@@ -1151,7 +1174,7 @@ const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | 
         <section className="border-b border-stone-200 bg-white">
           <div className="container-wide">
             <div className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
-              <p className="label-caps text-sage">Explore the course</p>
+              <p className="label-caps text-sage">{courseText("Explore the course")}</p>
               <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0">
                 {twoHundredAnchors.map((anchor) => (
                   <a
@@ -1532,8 +1555,8 @@ const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | 
             <div className="container-wide">
               <Reveal>
                 <SectionHeading
-                  eyebrow="Included Experiences"
-                  title={<>Bali Culture & <em className="text-terra">Integration</em></>}
+                  eyebrow={courseText("Included Experiences")}
+                  title={<>{courseText("Bali Culture &")} <em className="text-terra">{courseText("Integration")}</em></>}
                 />
               </Reveal>
               <div className="mt-7 grid gap-8 md:grid-cols-3">
@@ -1543,7 +1566,7 @@ const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | 
                       <div className="overflow-hidden rounded-[6px] bg-stone-200 shadow-[0_14px_35px_rgba(31,28,23,0.08)]">
                         <img
                           src={item.image}
-                          alt={item.title}
+                          alt={courseText(item.title)}
                           className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                           onError={(event) => {
                             event.currentTarget.src = IMG.classMain;
@@ -1552,12 +1575,12 @@ const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | 
                       </div>
                       <div className="pt-4">
                         <p className="label-caps mb-2 text-stone-400">
-                          {["Ceremony", "Ceremony", "Workshop"][i] || "Experience"}
+                          {courseText(["Ceremony", "Ceremony", "Workshop"][i] || "Experience")}
                         </p>
-                        <h3 className="display-sm text-warm-dark">{item.title}</h3>
-                        <p className="mt-2 max-w-sm text-[0.92rem] leading-6 text-warm-mid">{item.desc}</p>
+                        <h3 className="display-sm text-warm-dark">{courseText(item.title)}</h3>
+                        <p className="mt-2 max-w-sm text-[0.92rem] leading-6 text-warm-mid">{courseText(item.desc)}</p>
                         <span className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-terra">
-                          View activity details
+                          {courseText("View activity details")}
                           <ArrowUpRight className="h-3.5 w-3.5" />
                         </span>
                       </div>
@@ -1756,7 +1779,7 @@ const CoursePage = ({ initialCourse }: { initialCourse?: StaticCoursePageData | 
               Join thousands of students who have completed their yoga teacher training in Bali.
             </p>
             <ApplyModal
-              trigger={<Button size="lg" className="bg-white text-terra hover:bg-white/90">Apply Now</Button>}
+              trigger={<Button size="lg" className="bg-white text-terra hover:bg-white/90">{commonCopy.applyNow}</Button>}
               defaultCourse={course.slug}
             />
           </Reveal>

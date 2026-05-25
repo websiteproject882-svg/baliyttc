@@ -206,7 +206,24 @@
     "from": "Mulai",
     "startsFrom": "Mulai dari",
     "details": "Detail",
-    "certificationTrack": "sertifikasi"
+    "certificationTrack": "sertifikasi",
+    "title": "Temukan Pelatihan Guru Yoga yang Tepat",
+    "subtitle": "Pilih jalur yang sesuai dengan waktu, pengalaman, dan tujuan Anda.",
+    "viewDetails": "Lihat Detail",
+    "applyNow": "Daftar Sekarang",
+    "enrollmentOpen": "Pendaftaran Dibuka",
+    "popular": "Populer",
+    "ctaText": "Program 100, 200, dan 300 jam tersertifikasi Yoga Alliance",
+    "previousCourses": "Kursus sebelumnya",
+    "nextCourses": "Kursus berikutnya",
+    "trustCertificationTitle": "Tersertifikasi Yoga Alliance",
+    "trustCertificationText": "Sertifikasi yang diakui global",
+    "trustTeachersTitle": "Guru Berpengalaman",
+    "trustTeachersText": "Belajar dari mentor berdedikasi",
+    "trustExperienceTitle": "Pengalaman Autentik",
+    "trustExperienceText": "Di jantung Ubud, Bali",
+    "trustCommunityTitle": "Komunitas Mendukung",
+    "trustCommunityText": "Bertumbuh bersama orang-orang sevisi"
   },
   "HomeCopy": {
     "common": {

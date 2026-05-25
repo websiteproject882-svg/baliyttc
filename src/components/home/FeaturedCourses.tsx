@@ -339,6 +339,12 @@ export const FeaturedCourses = () => {
     details: t("details"),
     certificationTrack: t("certificationTrack"),
   };
+  const trustItems = [
+    { icon: BadgeCheck, title: t("trustCertificationTitle"), text: t("trustCertificationText") },
+    { icon: Users, title: t("trustTeachersTitle"), text: t("trustTeachersText") },
+    { icon: Leaf, title: t("trustExperienceTitle"), text: t("trustExperienceText") },
+    { icon: Heart, title: t("trustCommunityTitle"), text: t("trustCommunityText") },
+  ];
 
   const scrollMobileSlider = (direction: "prev" | "next") => {
     const node = mobileSliderRef.current;
@@ -368,7 +374,7 @@ export const FeaturedCourses = () => {
             type="button"
             onClick={() => scrollMobileSlider("prev")}
             className="absolute left-1 top-[112px] z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-charcoal shadow-[0_10px_26px_rgba(35,35,30,0.16)] transition hover:border-sage hover:text-sage"
-            aria-label="Previous courses"
+            aria-label={t("previousCourses")}
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -384,7 +390,7 @@ export const FeaturedCourses = () => {
             type="button"
             onClick={() => scrollMobileSlider("next")}
             className="absolute right-1 top-[112px] z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-charcoal shadow-[0_10px_26px_rgba(35,35,30,0.16)] transition hover:border-sage hover:text-sage"
-            aria-label="Next courses"
+            aria-label={t("nextCourses")}
           >
             <ArrowRight className="h-4 w-4" />
           </button>
@@ -403,12 +409,7 @@ export const FeaturedCourses = () => {
         </div>
 
         <div className="mt-9 hidden grid-cols-4 divide-x divide-stone-200 border-t border-stone-100 pt-7 md:grid">
-          {[
-            { icon: BadgeCheck, title: "Yoga Alliance Certified", text: "Globally recognized certification" },
-            { icon: Users, title: "Experienced Teachers", text: "Learn from dedicated mentors" },
-            { icon: Leaf, title: "Authentic Experience", text: "In the heart of Ubud, Bali" },
-            { icon: Heart, title: "Supportive Community", text: "Grow with like-minded souls" },
-          ].map((item) => (
+          {trustItems.map((item) => (
             <div key={item.title} className="flex items-center gap-4 px-6 first:pl-0 last:pr-0">
               <item.icon className="h-9 w-9 shrink-0 text-sage" />
               <div>

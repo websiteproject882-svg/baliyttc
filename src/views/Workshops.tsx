@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
@@ -7,6 +8,7 @@ import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
 import { IMG } from "@/data/site";
 import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
+import { getPageCopy } from "@/lib/page-i18n";
 import { Check, Calendar, Clock, Users, Sparkles, Volume2, Accessibility, Palette, Star, ArrowRight } from "lucide-react";
 
 const workshops = [
@@ -168,6 +170,8 @@ const fallbackTestimonials = [
 ];
 
 const Workshops = () => {
+  const locale = useLocale();
+  const copy = getPageCopy(locale, "pageHero");
   const siteSettings = usePublicSiteSettings();
   const [testimonials, setTestimonials] = useState(fallbackTestimonials);
 
@@ -199,19 +203,19 @@ const Workshops = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-warm-dark via-warm-dark/80 to-warm-dark/30" />
         <div className="relative container-edit">
           <Reveal>
-            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">← Back to Home</Link>
+            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">← {copy.backHome}</Link>
           </Reveal>
           <Reveal delay={0.05}>
-            <p className="eyebrow text-gold-light mb-5">Workshops & Experiences</p>
+            <p className="eyebrow text-gold-light mb-5">{copy.workshopsEyebrow}</p>
           </Reveal>
           <Reveal delay={0.1}>
             <h1 className="display-xl text-cream">
-              Go Deeper. <em className="text-terra-light">Play Wider.</em>
+              {copy.workshopsTitle} <em className="text-terra-light">{copy.workshopsAccent}</em>
             </h1>
           </Reveal>
           <Reveal delay={0.15}>
             <p className="mt-6 text-cream/75 max-w-2xl text-lg leading-relaxed">
-              Standalone workshops for those not doing a full training. Each is a complete experience — led by our senior teachers, in the heart of Ubud's sacred spaces. Choose one or combine them all.
+              {copy.workshopsIntro}
             </p>
           </Reveal>
           <Reveal delay={0.2}>
@@ -220,12 +224,12 @@ const Workshops = () => {
                 defaultCourse="workshop"
                 trigger={
                   <Button className="bg-terra hover:bg-terra-deep text-cream h-12 px-8">
-                    Book a Workshop
+                    {copy.bookWorkshop}
                   </Button>
                 }
               />
               <Button variant="outline" className="h-12 border-cream/30 bg-transparent px-8 text-cream hover:bg-cream/10 hover:text-cream">
-                View All Workshops
+                {copy.viewWorkshops}
               </Button>
             </div>
           </Reveal>
@@ -493,7 +497,7 @@ const Workshops = () => {
                 defaultCourse="workshop"
                 trigger={
                   <Button size="lg" className="bg-terra hover:bg-terra-deep text-cream h-14 px-10">
-                    Book a Workshop Now
+                    {copy.bookWorkshop} Now
                   </Button>
                 }
               />
@@ -511,3 +515,5 @@ const Workshops = () => {
 };
 
 export default Workshops;
+
+

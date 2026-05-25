@@ -134,7 +134,17 @@
     "applyNow": "Apply Now",
     "enrollmentOpen": "Enrollment Open",
     "popular": "Popular",
-    "ctaText": "Yoga Alliance certified 100, 200 and 300 hour programs"
+    "ctaText": "Yoga Alliance certified 100, 200 and 300 hour programs",
+    "previousCourses": "Previous courses",
+    "nextCourses": "Next courses",
+    "trustCertificationTitle": "Yoga Alliance Certified",
+    "trustCertificationText": "Globally recognized certification",
+    "trustTeachersTitle": "Experienced Teachers",
+    "trustTeachersText": "Learn from dedicated mentors",
+    "trustExperienceTitle": "Authentic Experience",
+    "trustExperienceText": "In the heart of Ubud, Bali",
+    "trustCommunityTitle": "Supportive Community",
+    "trustCommunityText": "Grow with like-minded souls"
   },
   "Manifesto": {
     "title": "Our Philosophy",

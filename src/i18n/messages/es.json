@@ -263,7 +263,24 @@
     "from": "Desde",
     "startsFrom": "Desde",
     "details": "Detalles",
-    "certificationTrack": "certificaci?n"
+    "certificationTrack": "certificaci?n",
+    "title": "Encuentra tu formaci?n de yoga ideal",
+    "subtitle": "Elige un camino que encaje con tu tiempo, experiencia y objetivos.",
+    "viewDetails": "Ver detalles",
+    "applyNow": "Aplicar ahora",
+    "enrollmentOpen": "Inscripci?n abierta",
+    "popular": "Popular",
+    "ctaText": "Programas de 100, 200 y 300 horas certificados por Yoga Alliance",
+    "previousCourses": "Cursos anteriores",
+    "nextCourses": "Cursos siguientes",
+    "trustCertificationTitle": "Certificado por Yoga Alliance",
+    "trustCertificationText": "Certificaci?n reconocida internacionalmente",
+    "trustTeachersTitle": "Profesores con experiencia",
+    "trustTeachersText": "Aprende con mentores dedicados",
+    "trustExperienceTitle": "Experiencia aut?ntica",
+    "trustExperienceText": "En el coraz?n de Ubud, Bali",
+    "trustCommunityTitle": "Comunidad de apoyo",
+    "trustCommunityText": "Crece con personas afines"
   },
   "HomeCopy": {
     "common": {
@@ -313,99 +330,99 @@
       "next": "Ver tarjetas siguientes",
       "cards": [
         {
-          "eyebrow": "Graduation Day",
-          "title": "Yoga Alliance Certified",
-          "desc": "Fully accredited RYS 200 and 300 registry recognized worldwide for international teaching."
+          "eyebrow": "D?a de graduaci?n",
+          "title": "Certificaci?n Yoga Alliance",
+          "desc": "Escuela acreditada RYS 200 y 300, reconocida internacionalmente para ense?ar yoga."
         },
         {
-          "eyebrow": "Sanctuary Life",
-          "title": "All-Inclusive Ubud Sanctuary",
-          "desc": "Immersive stay, plant-based meals, daily practice space, and complete course materials."
+          "eyebrow": "Vida en el santuario",
+          "title": "Santuario todo incluido en Ubud",
+          "desc": "Estancia inmersiva, comidas vegetales, espacio diario de pr?ctica y materiales completos."
         },
         {
-          "eyebrow": "Lifetime Connection",
-          "title": "Global Alumni Community",
-          "desc": "Join an expansive network of graduates from 70+ countries practicing and teaching worldwide."
+          "eyebrow": "Conexi?n de por vida",
+          "title": "Comunidad global de graduados",
+          "desc": "?nete a graduados de m?s de 70 pa?ses que practican y ense?an en todo el mundo."
         },
         {
-          "eyebrow": "Practical Mastery",
-          "title": "Hands-on Teaching Practice",
-          "desc": "Graduate with real teaching experience, direct alignment feedback, and classroom confidence."
+          "eyebrow": "Maestr?a pr?ctica",
+          "title": "Pr?ctica real de ense?anza",
+          "desc": "Grad?ate con experiencia docente real, feedback de alineaci?n y confianza para guiar clases."
         },
         {
-          "eyebrow": "Sacred Culture",
-          "title": "Traditional Balinese Blessings",
-          "desc": "Take part in purification ceremonies, flower blessings, and temple-based cultural learning."
+          "eyebrow": "Cultura sagrada",
+          "title": "Bendiciones balinesas tradicionales",
+          "desc": "Participa en ceremonias de purificaci?n, bendiciones con flores y aprendizaje cultural."
         },
         {
-          "eyebrow": "Ongoing Mentorship",
-          "title": "Lifetime Support & Mentorship",
-          "desc": "Access continuing guidance, teacher check-ins, school updates, and career direction after graduation."
+          "eyebrow": "Mentor?a continua",
+          "title": "Apoyo y mentor?a de por vida",
+          "desc": "Accede a gu?a continua, seguimiento docente, novedades de la escuela y orientaci?n profesional."
         }
       ]
     },
     "pillars": [
       {
-        "title": "Asana Mastery",
-        "desc": "Alignment-based practice across Hatha, Ashtanga and Vinyasa.",
+        "title": "Dominio de asanas",
+        "desc": "Pr?ctica basada en alineaci?n en Hatha, Ashtanga y Vinyasa.",
         "points": [
-          "Multi-style lineage teaching",
-          "Advanced sequencing templates",
-          "Therapeutic modifications and prop guides"
+          "Ense?anza de linaje multiestilo",
+          "Plantillas avanzadas de secuenciaci?n",
+          "Modificaciones terap?uticas y uso de soportes"
         ]
       },
       {
-        "title": "Pranayama & Breath",
-        "desc": "Breath techniques to refine energy and awareness.",
+        "title": "Pranayama y respiraci?n",
+        "desc": "T?cnicas respiratorias para refinar energ?a y consciencia.",
         "points": [
-          "Classical daily breath techniques",
-          "Nervous-system regulation",
-          "Safe pranayama for mixed levels"
+          "T?cnicas cl?sicas diarias",
+          "Regulaci?n del sistema nervioso",
+          "Pranayama seguro para niveles mixtos"
         ]
       },
       {
-        "title": "Applied Anatomy",
-        "desc": "Functional anatomy applied to safe, intelligent teaching.",
+        "title": "Anatom?a aplicada",
+        "desc": "Anatom?a funcional aplicada a una ense?anza segura e inteligente.",
         "points": [
-          "Functional movement principles",
-          "Injury-aware teaching choices",
-          "Body mechanics for safe practice"
+          "Principios de movimiento funcional",
+          "Decisiones docentes conscientes de lesiones",
+          "Mec?nica corporal para pr?ctica segura"
         ]
       },
       {
-        "title": "Vedic Philosophy",
-        "desc": "Yoga Sutras, Bhagavad Gita and the eight limbs.",
+        "title": "Filosof?a v?dica",
+        "desc": "Yoga Sutras, Bhagavad Gita y los ocho miembros del yoga.",
         "points": [
-          "Yoga Sutras and Bhagavad Gita",
-          "Living philosophy beyond the mat",
-          "Ethics and yogic lifestyle foundations"
+          "Yoga Sutras y Bhagavad Gita",
+          "Filosof?a viva m?s all? del mat",
+          "Bases de ?tica y estilo de vida y?guico"
         ]
       },
       {
-        "title": "Teaching Methodology",
-        "desc": "Cueing, sequencing and the art of holding space.",
+        "title": "Metodolog?a de ense?anza",
+        "desc": "Indicaciones, secuenciaci?n y el arte de sostener un espacio.",
         "points": [
-          "Cueing and class architecture",
-          "Holding space with confidence",
-          "Practice teaching with feedback"
+          "Indicaciones y estructura de clase",
+          "Sostener el espacio con confianza",
+          "Pr?ctica docente con feedback"
         ]
       },
       {
-        "title": "Hands-on Adjustments",
-        "desc": "Hands-on assists with consent and clarity.",
+        "title": "Ajustes pr?cticos",
+        "desc": "Asistencias manuales con consentimiento y claridad.",
         "points": [
-          "Consent-led assisting principles",
-          "Clear and safe adjustment technique",
-          "Alignment feedback for confidence"
+          "Principios de asistencia con consentimiento",
+          "T?cnica de ajuste clara y segura",
+          "Feedback de alineaci?n para ganar confianza"
         ]
       },
       {
-        "title": "Meditation & Balinese Wisdom",
-        "desc": "Guided meditation, inner stillness, Balinese ceremony and cultural wisdom.",
+        "title": "Meditaci?n y sabidur?a balinesa",
+        "desc": "Meditaci?n guiada, silencio interior, ceremonia balinesa y sabidur?a cultural.",
         "points": [
-          "Guided meditation practices",
-          "Balinese ceremony and cultural context",
-          "Integrating wisdom and teaching voice"
+          "Pr?cticas de meditaci?n guiada",
+          "Ceremonia balinesa y contexto cultural",
+          "Integrar sabidur?a y voz docente"
         ]
       }
     ],
@@ -417,28 +434,28 @@
       "mobileHint": "Toca cualquier experiencia para conocer m?s.",
       "cards": [
         {
-          "title": "Temple Purification",
-          "desc": "A sacred Balinese cleansing ceremony in the first week."
+          "title": "Purificaci?n en templo",
+          "desc": "Una ceremonia sagrada de limpieza balinesa durante la primera semana."
         },
         {
-          "title": "Arm Balancing Workshop",
-          "desc": "Guided technique for strength, trust and balance."
+          "title": "Taller de equilibrio sobre brazos",
+          "desc": "T?cnica guiada para fuerza, confianza y equilibrio."
         },
         {
-          "title": "Sound Healing",
-          "desc": "Tibetan bowls and sound therapy for deep integration."
+          "title": "Sanaci?n sonora",
+          "desc": "Cuencos tibetanos y terapia de sonido para una integraci?n profunda."
         },
         {
-          "title": "Acro Yoga",
-          "desc": "Partner practice with trust, play and presence."
+          "title": "Acro yoga",
+          "desc": "Pr?ctica en pareja con confianza, juego y presencia."
         },
         {
-          "title": "Beach Yoga",
-          "desc": "Sunrise practice on Bali's quiet eastern coast."
+          "title": "Yoga en la playa",
+          "desc": "Pr?ctica al amanecer en la tranquila costa este de Bali."
         },
         {
-          "title": "Mandala Painting",
-          "desc": "A meditative art practice to realign the mind."
+          "title": "Pintura de mandalas",
+          "desc": "Una pr?ctica art?stica meditativa para realinear la mente."
         }
       ]
     },
@@ -451,37 +468,37 @@
       "cta": "Aprende directamente con instructores certificados por Yoga Alliance",
       "items": [
         {
-          "role": "Lead Teacher / Founder",
-          "bio": "Vivek blends classical Hatha discipline with fluid Vinyasa and authentic lineage.",
-          "experience": "15+ years of teaching experience"
+          "role": "Profesor principal / fundador",
+          "bio": "Vivek une la disciplina cl?sica de Hatha con Vinyasa fluido y linaje aut?ntico.",
+          "experience": "15+ a?os de experiencia docente"
         },
         {
-          "role": "Senior Teacher",
-          "bio": "Sachin teaches precise alignment, intelligent sequencing and safe adjustments.",
-          "experience": "15+ years of teaching experience"
+          "role": "Profesor senior",
+          "bio": "Sachin ense?a alineaci?n precisa, secuencias inteligentes y ajustes seguros.",
+          "experience": "15+ a?os de experiencia docente"
         },
         {
-          "role": "Vinyasa & Sound Specialist",
-          "bio": "Yuli brings Balinese warmth through Vinyasa, Yin Yoga and sound healing.",
-          "experience": "15+ years of teaching experience"
+          "role": "Especialista en Vinyasa y sonido",
+          "bio": "Yuli aporta calidez balinesa a trav?s de Vinyasa, Yin Yoga y sanaci?n sonora.",
+          "experience": "15+ a?os de experiencia docente"
         },
         {
-          "role": "Philosophy Master",
-          "bio": "Sandeep bridges ancient texts and modern application for spiritual depth.",
-          "experience": "15+ years of teaching experience"
+          "role": "Maestro de filosof?a",
+          "bio": "Sandeep conecta textos antiguos con aplicaci?n moderna para profundidad espiritual.",
+          "experience": "15+ a?os de experiencia docente"
         }
       ]
     },
     "schedule": {
-      "eyebrow": "Upcoming batches",
-      "title": "Secure Your Place for",
-      "subtitle": "Small cohorts for personalized attention. Limited spots available per batch.",
+      "eyebrow": "Pr?ximas fechas",
+      "title": "Reserva tu plaza para",
+      "subtitle": "Grupos peque?os para atenci?n personalizada. Plazas limitadas por grupo.",
       "batchStatuses": [
-        "6 seats left",
-        "Only 4 seats left",
-        "Enrolment open",
-        "Open",
-        "Open"
+        "Quedan 6 plazas",
+        "Solo quedan 4 plazas",
+        "Inscripci?n abierta",
+        "Abierto",
+        "Abierto"
       ],
       "batchCourses": [
         "100-Hour YTT",
@@ -491,21 +508,21 @@
         "100-Hour YTT"
       ],
       "batch": {
-        "tuition": "Tuition Fee",
-        "person": "/ person",
-        "cta": "Secure Your Spot",
+        "tuition": "Precio del curso",
+        "person": "/ persona",
+        "cta": "Reserva tu plaza",
         "guarantees": [
           {
-            "title": "Money-back Guarantee",
-            "desc": "If you're not satisfied"
+            "title": "Garant?a de devoluci?n",
+            "desc": "Si no est?s satisfecho"
           },
           {
-            "title": "Flexible Dates",
-            "desc": "Switch batches anytime"
+            "title": "Fechas flexibles",
+            "desc": "Cambia de grupo cuando lo necesites"
           },
           {
-            "title": "Early Bird Perks",
-            "desc": "Discounts available"
+            "title": "Beneficios anticipados",
+            "desc": "Descuentos disponibles"
           }
         ]
       }
@@ -522,16 +539,16 @@
       "viewAll": "Ver rese?as",
       "items": [
         {
-          "course": "200-Hour Graduate",
-          "quote": "I felt supported throughout the entire training and learned far more than I expected."
+          "course": "Graduada 200 horas",
+          "quote": "Me sent? apoyada durante toda la formaci?n y aprend? mucho m?s de lo que esperaba."
         },
         {
-          "course": "200-Hour YTT Graduate",
-          "quote": "This training was life-changing and gave me clarity, strength and peace."
+          "course": "Graduada YTT 200 horas",
+          "quote": "Esta formaci?n cambi? mi vida y me dio claridad, fuerza y paz."
         },
         {
-          "course": "200-Hour YTT Graduate",
-          "quote": "The teachers, nature and structure made this a magical place to learn."
+          "course": "Graduada YTT 200 horas",
+          "quote": "Los profesores, la naturaleza y la estructura hicieron de este lugar un espacio m?gico para aprender."
         }
       ]
     },
@@ -546,63 +563,63 @@
       "previousReview": "Video anterior",
       "nextReview": "Video siguiente",
       "playReview": "Reproducir video",
-      "facilitiesTitle": "World-Class Facilities",
-      "facilitiesSubtitle": "Everything you need for distraction-free practice",
-      "whyTitle": "Why Students Choose Bali YTTC",
+      "facilitiesTitle": "Instalaciones de primer nivel",
+      "facilitiesSubtitle": "Todo lo necesario para practicar sin distracciones",
+      "whyTitle": "Por qu? los estudiantes eligen Bali YTTC",
       "facilities": [
         {
-          "title": "Professional Studio",
-          "desc": "Yoga studios with equipment and serene ambiance."
+          "title": "Estudio profesional",
+          "desc": "Shalas de yoga con equipamiento y ambiente sereno."
         },
         {
-          "title": "Sacred Gardens",
-          "desc": "Peaceful gardens for meditation and pranayama."
+          "title": "Jardines sagrados",
+          "desc": "Jardines tranquilos para meditaci?n y pranayama."
         },
         {
-          "title": "Comfortable Lodging",
-          "desc": "Clean rooms with amenities for focused practice."
+          "title": "Alojamiento c?modo",
+          "desc": "Habitaciones limpias con comodidades para una pr?ctica enfocada."
         },
         {
-          "title": "Organic Meals",
-          "desc": "Plant-based meals prepared fresh daily."
+          "title": "Comidas org?nicas",
+          "desc": "Comidas vegetales preparadas frescas cada d?a."
         },
         {
-          "title": "Welcoming Community",
-          "desc": "Connect with practitioners from around the world."
+          "title": "Comunidad acogedora",
+          "desc": "Conecta con practicantes de todo el mundo."
         },
         {
-          "title": "Spiritual Location",
-          "desc": "Located in Ubud, Bali's spiritual heart."
+          "title": "Ubicaci?n espiritual",
+          "desc": "Ubicada en Ubud, el coraz?n espiritual de Bali."
         }
       ],
       "points": [
-        "Internationally certified Yoga Alliance programs",
-        "Expert instructors with deep teaching experience",
-        "All-inclusive pricing with accommodation and meals",
-        "Thousands of students transformed since 2018",
-        "Lifetime access to alumni community",
-        "Supportive and structured learning environment"
+        "Programas Yoga Alliance certificados internacionalmente",
+        "Instructores expertos con amplia experiencia docente",
+        "Precio todo incluido con alojamiento y comidas",
+        "Miles de estudiantes transformados desde 2018",
+        "Acceso de por vida a la comunidad alumni",
+        "Entorno de aprendizaje estructurado y de apoyo"
       ],
       "reviews": [
         {
-          "name": "Bastian from Germany",
-          "course": "Yoga Teacher Training Review",
-          "quote": "A real student review from Bali YTTC's 200-hour yoga teacher training experience."
+          "name": "Bastian de Alemania",
+          "course": "Rese?a de formaci?n de yoga",
+          "quote": "Una rese?a real de estudiante sobre la formaci?n de 200 horas de Bali YTTC."
         },
         {
-          "name": "200-Hour YTT Testimonial",
-          "course": "Student Testimonial",
-          "quote": "Honest feedback from a graduate after completing the 200-hour Yoga Teacher Training at Bali YTTC."
+          "name": "Testimonio YTT 200 horas",
+          "course": "Testimonio de estudiante",
+          "quote": "Feedback honesto de una graduada tras completar la formaci?n de 200 horas en Bali YTTC."
         },
         {
-          "name": "Student Review in Bali",
-          "course": "200-Hour Course Review",
-          "quote": "A short student review sharing the training atmosphere, learning journey, and Bali experience."
+          "name": "Rese?a de estudiante en Bali",
+          "course": "Rese?a curso 200 horas",
+          "quote": "Una rese?a breve sobre el ambiente, el aprendizaje y la experiencia en Bali."
         },
         {
-          "name": "Stephanie from Belgium",
-          "course": "Wonderful Journey Review",
-          "quote": "A graduate story from Belgium about the 200-hour Yoga Teacher Training journey in Bali."
+          "name": "Stephanie de B?lgica",
+          "course": "Rese?a de una gran experiencia",
+          "quote": "Historia de una graduada belga sobre su viaje en la formaci?n de 200 horas en Bali."
         }
       ]
     },

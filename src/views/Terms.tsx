@@ -1,20 +1,24 @@
 "use client";
+import { useLocale } from "next-intl";
 import { Reveal } from "@/components/shared/Reveal";
 import { Link } from "@/i18n/routing";
+import { getPageCopy } from "@/lib/page-i18n";
 
 const Terms = () => {
+  const locale = useLocale();
+  const copy = getPageCopy(locale, "pageHero");
   return (
     <div className="pt-32 pb-24 bg-[#FAFAFA] min-h-screen">
       <div className="container-edit max-w-4xl mx-auto">
         <Reveal>
           <Link href="/" className="text-gray-500 hover:text-[#F04E23] text-xs font-bold tracking-widest uppercase mb-8 inline-block transition-colors">
-            ← Back to Home
+            ← {copy.backHome}
           </Link>
         </Reveal>
 
         <Reveal delay={0.1}>
           <h1 className="display-lg mb-8 text-gray-900">
-            Terms & <span className="text-[#F04E23]">Policy</span>
+            {copy.termsTitle} <span className="text-[#F04E23]">{copy.termsAccent}</span>
           </h1>
           <p className="text-gray-500 text-sm mb-12">Last updated: May 5, 2026</p>
 
@@ -56,3 +60,4 @@ const Terms = () => {
 };
 
 export default Terms;
+

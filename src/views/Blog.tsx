@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Calendar, ChevronLeft, ChevronRight, Clock, Loader2, Search, User } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { IMG } from "@/data/site";
 import { STATIC_BLOG_POSTS } from "@/data/blog";
+import { getPageCopy } from "@/lib/page-i18n";
 
 interface BlogPost {
   id: string;
@@ -30,6 +32,8 @@ type BlogProps = {
 };
 
 const Blog = ({ initialPosts = [] }: BlogProps) => {
+  const locale = useLocale();
+  const copy = getPageCopy(locale, "pageHero");
   const params = useParams<{ locale: string }>();
   const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
   const [loading, setLoading] = useState(initialPosts.length === 0);
@@ -173,15 +177,15 @@ const Blog = ({ initialPosts = [] }: BlogProps) => {
       <div className="container-wide">
         <Reveal>
           <Link href="/" className="label-caps mb-8 inline-block text-gray-500 transition-colors hover:text-[#F04E23]">
-            Back to Home
+            {copy.backHome}
           </Link>
         </Reveal>
 
         <Reveal delay={0.1}>
           <SectionHeading
-            eyebrow="Our Journal"
-            title={<>Yoga <em className="text-[#F04E23]">Guides & Insights</em></>}
-            sub="Training notes, certification explainers, and practice guidance inspired by the Bali YTTC journal."
+            eyebrow={copy.blogEyebrow}
+            title={<>{copy.blogTitle} <em className="text-[#F04E23]">{copy.blogAccent}</em></>}
+            sub={copy.blogIntro}
           />
         </Reveal>
 

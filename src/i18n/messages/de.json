@@ -263,7 +263,24 @@
     "from": "Ab",
     "startsFrom": "Ab",
     "details": "Details",
-    "certificationTrack": "Zertifizierung"
+    "certificationTrack": "Zertifizierung",
+    "title": "Finde die passende Yogalehrer-Ausbildung",
+    "subtitle": "W?hle einen Weg, der zu deiner Zeit, Erfahrung und deinen Zielen passt.",
+    "viewDetails": "Details ansehen",
+    "applyNow": "Jetzt bewerben",
+    "enrollmentOpen": "Anmeldung offen",
+    "popular": "Beliebt",
+    "ctaText": "Yoga Alliance zertifizierte 100-, 200- und 300-Stunden-Programme",
+    "previousCourses": "Vorherige Kurse",
+    "nextCourses": "N?chste Kurse",
+    "trustCertificationTitle": "Yoga Alliance zertifiziert",
+    "trustCertificationText": "International anerkannte Zertifizierung",
+    "trustTeachersTitle": "Erfahrene Lehrer",
+    "trustTeachersText": "Lerne von engagierten Mentoren",
+    "trustExperienceTitle": "Authentische Erfahrung",
+    "trustExperienceText": "Im Herzen von Ubud, Bali",
+    "trustCommunityTitle": "Unterst?tzende Gemeinschaft",
+    "trustCommunityText": "Wachse mit Gleichgesinnten"
   },
   "HomeCopy": {
     "common": {

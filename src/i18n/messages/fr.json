@@ -263,7 +263,24 @@
     "from": "? partir de",
     "startsFrom": "? partir de",
     "details": "D?tails",
-    "certificationTrack": "certification"
+    "certificationTrack": "certification",
+    "title": "Trouvez la formation de yoga qui vous correspond",
+    "subtitle": "Choisissez un parcours adapt? ? votre temps, votre exp?rience et vos objectifs.",
+    "viewDetails": "Voir les d?tails",
+    "applyNow": "Postuler",
+    "enrollmentOpen": "Inscriptions ouvertes",
+    "popular": "Populaire",
+    "ctaText": "Programmes 100, 200 et 300 heures certifi?s Yoga Alliance",
+    "previousCourses": "Cours pr?c?dents",
+    "nextCourses": "Cours suivants",
+    "trustCertificationTitle": "Certifi? Yoga Alliance",
+    "trustCertificationText": "Certification reconnue mondialement",
+    "trustTeachersTitle": "Professeurs exp?riment?s",
+    "trustTeachersText": "Apprenez avec des mentors d?di?s",
+    "trustExperienceTitle": "Exp?rience authentique",
+    "trustExperienceText": "Au coeur d'Ubud, Bali",
+    "trustCommunityTitle": "Communaut? bienveillante",
+    "trustCommunityText": "Progressez avec des personnes partageant vos valeurs"
   },
   "HomeCopy": {
     "common": {
