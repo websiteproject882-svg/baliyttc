@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         role: teacher.role || fallback?.role || "",
         credentials: teacher.credentials || fallback?.cred || "",
         bio: teacher.bio || fallback?.bio || "",
-        image: teacher.image || fallback?.img || "/images/teachers/vivek-kalura.jpg",
+        image: fallback?.img || teacher.image || "/images/teachers/vivek-kalura.jpg",
         styles: teacher.styles?.length ? teacher.styles : fallback?.style || [],
         isActive: teacher.isActive,
         createdAt: teacher.createdAt,
