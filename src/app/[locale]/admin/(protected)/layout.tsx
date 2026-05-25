@@ -17,7 +17,7 @@ export default async function ProtectedAdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-gray-50 lg:flex">
       <AdminSidebar
         locale={params.locale}
         user={{
@@ -27,7 +27,7 @@ export default async function ProtectedAdminLayout({
           permissions: user.permissions,
         }}
       />
-      <main className="min-w-0 flex-1 bg-gray-50">{children}</main>
+      <main className="min-w-0 flex-1 bg-gray-50 pt-[65px] lg:pt-0">{children}</main>
     </div>
   );
 }
