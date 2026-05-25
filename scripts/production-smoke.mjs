@@ -2,7 +2,9 @@ const baseUrl = (process.env.SMOKE_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL 
 
 const publicPages = [
   { path: "/en", marker: "Bali YTTC" },
+  { path: "/es", marker: "Bali YTTC" },
   { path: "/en/courses/200hr", marker: "200 Hour Yoga Teacher Training Bali" },
+  { path: "/es/courses/200hr", marker: "Bali YTTC" },
   { path: "/en/courses/100hr", marker: "100 Hour Yoga Teacher Training Bali" },
   { path: "/en/courses/300hr", marker: "300 Hour Advanced Yoga Teacher Training Bali" },
   { path: "/en/courses/50hr", marker: "50 Hour Hatha Vinyasa Yoga Training Bali" },
@@ -25,7 +27,24 @@ const publicPages = [
 const privatePages = [
   { path: "/en/login", robots: "noindex, nofollow" },
   { path: "/en/admin/login", robots: "noindex, nofollow" },
+  { path: "/en/staff/login", robots: "noindex, nofollow" },
   { path: "/en/payment/return", robots: "noindex, nofollow" },
+];
+
+const protectedPages = [
+  { path: "/en/app/dashboard", expectedLocation: "/en/login" },
+  { path: "/en/admin", expectedLocation: "/en/admin/login" },
+  { path: "/en/admin/overview", expectedLocation: "/en/admin/login" },
+  { path: "/en/staff/dashboard", expectedLocation: "/en/staff/login" },
+];
+
+const protectedApis = [
+  "/api/admin/leads",
+  "/api/admin/blog",
+  "/api/admin/gallery",
+  "/api/app/portal",
+  "/api/app/notifications",
+  "/api/teacher/dashboard",
 ];
 
 function assert(condition, message) {
@@ -55,9 +74,20 @@ function hasRobotDirective(robots, directive) {
     .includes(directive);
 }
 
+function assertSecurityHeaders(response, path) {
+  assert(response.headers.get("x-request-id"), `${path} is missing x-request-id`);
+  assert(response.headers.get("x-frame-options") === "DENY", `${path} is missing X-Frame-Options DENY`);
+  assert(response.headers.get("x-content-type-options") === "nosniff", `${path} is missing nosniff`);
+  assert(
+    response.headers.get("referrer-policy") === "strict-origin-when-cross-origin",
+    `${path} has unexpected Referrer-Policy`,
+  );
+}
+
 async function checkPublicPage(page) {
   const { response, text } = await fetchText(page.path);
   assert(response.status === 200, `${page.path} returned ${response.status}`);
+  assertSecurityHeaders(response, page.path);
   assert(text.includes(page.marker), `${page.path} is missing marker: ${page.marker}`);
   assert(text.includes('rel="canonical"'), `${page.path} is missing canonical link`);
   assert(text.includes('property="og:title"'), `${page.path} is missing og:title`);
@@ -70,6 +100,7 @@ async function checkPublicPage(page) {
 async function checkPrivatePage(page) {
   const { response, text } = await fetchText(page.path);
   assert(response.status === 200, `${page.path} returned ${response.status}`);
+  assertSecurityHeaders(response, page.path);
   const robots = response.headers.get("x-robots-tag") || robotsFromHtml(text);
   assert(
     hasRobotDirective(robots, "noindex") && hasRobotDirective(robots, "nofollow"),
@@ -78,12 +109,22 @@ async function checkPrivatePage(page) {
   return { path: page.path, status: response.status };
 }
 
-async function checkProtectedApi() {
-  const response = await fetch(`${baseUrl}/api/admin/leads`, { redirect: "manual" });
-  assert(response.status === 401, `/api/admin/leads should require auth, got ${response.status}`);
+async function checkProtectedPage(page) {
+  const response = await fetch(`${baseUrl}${page.path}`, { redirect: "manual" });
+  assert([302, 307, 308].includes(response.status), `${page.path} should redirect, got ${response.status}`);
+  assertSecurityHeaders(response, page.path);
+  const location = response.headers.get("location") || "";
+  assert(location.includes(page.expectedLocation), `${page.path} should redirect to ${page.expectedLocation}, got ${location}`);
+  return { path: page.path, status: response.status, location };
+}
+
+async function checkProtectedApi(path) {
+  const response = await fetch(`${baseUrl}${path}`, { redirect: "manual" });
+  assert(response.status === 401, `${path} should require auth, got ${response.status}`);
+  assertSecurityHeaders(response, path);
   const body = await response.json();
-  assert(body.error === "Unauthorized", `/api/admin/leads returned unexpected body`);
-  return { path: "/api/admin/leads", status: response.status };
+  assert(body.error === "Unauthorized", `${path} returned unexpected body`);
+  return { path, status: response.status };
 }
 
 async function checkSameOriginApi() {
@@ -96,6 +137,7 @@ async function checkSameOriginApi() {
     body: "{}",
   });
   assert(response.status === 400, `/api/auth/login invalid request should return 400, got ${response.status}`);
+  assertSecurityHeaders(response, "/api/auth/login");
   return { path: "/api/auth/login", status: response.status };
 }
 
@@ -106,7 +148,7 @@ async function checkPublicJsonApi(path, validate) {
     },
   });
   assert(response.status === 200, `${path} returned ${response.status}`);
-  assert(response.headers.get("x-request-id"), `${path} is missing x-request-id`);
+  assertSecurityHeaders(response, path);
   assert(
     response.headers.get("cache-control")?.toLowerCase().includes("no-store"),
     `${path} should use no-store cache-control`,
@@ -119,6 +161,10 @@ async function checkPublicJsonApi(path, validate) {
 
 async function checkPublicApis() {
   return Promise.all([
+    checkPublicJsonApi("/api/health", (body) => {
+      assert(["ok", "degraded"].includes(body.status), "/api/health should return a health status");
+      assert(typeof body.timestamp === "string", "/api/health should include timestamp");
+    }),
     checkPublicJsonApi("/api/courses?locale=en&slug=200hr", (body) => {
       assert(Array.isArray(body.courses), "/api/courses should return courses array");
       assert(body.courses.length >= 1, "/api/courses should include at least one course");
@@ -157,7 +203,12 @@ async function main() {
   for (const page of privatePages) {
     results.push(await checkPrivatePage(page));
   }
-  results.push(await checkProtectedApi());
+  for (const page of protectedPages) {
+    results.push(await checkProtectedPage(page));
+  }
+  for (const path of protectedApis) {
+    results.push(await checkProtectedApi(path));
+  }
   results.push(await checkSameOriginApi());
   results.push(...await checkPublicApis());
   results.push(...await checkSitemapAndRobots());
