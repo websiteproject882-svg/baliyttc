@@ -17,9 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/firebase-admin", () => ({
-  getFirebaseAuth: () => ({
-    verifyIdToken: mocks.verifyIdToken,
-  }),
+  verifyFirebaseIdToken: mocks.verifyIdToken,
 }));
 
 vi.mock("@/lib/prisma", () => ({

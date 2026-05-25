@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { z } from 'zod';
-import { getFirebaseAuth } from '@/lib/firebase-admin';
+import { verifyFirebaseIdToken } from '@/lib/firebase-admin';
 import { createSession, AuthType } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { getRoleHomePath, type AppRole } from '@/lib/rbac';
@@ -57,12 +57,10 @@ export async function POST(request: NextRequest) {
     }
     const { idToken } = parsed.data;
 
-    const firebaseAuth = getFirebaseAuth();
-    if (!firebaseAuth) {
-      return jsonWithRequestId({ error: 'Firebase admin is not configured' }, { status: 503 }, request);
+    const decodedToken = await verifyFirebaseIdToken(idToken);
+    if (!decodedToken) {
+      return jsonWithRequestId({ error: 'Firebase authentication is not configured' }, { status: 503 }, request);
     }
-
-    const decodedToken = await firebaseAuth.verifyIdToken(idToken);
     const email = decodedToken.email?.trim().toLowerCase() || "";
 
     if (!email) {
