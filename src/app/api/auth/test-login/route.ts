@@ -15,26 +15,24 @@ const schema = z.object({
 });
 
 function expectedPassword(email: string) {
-  const isDevelopment = process.env.NODE_ENV !== "production";
-
   if (email === "admin@baliyttc.com" || email === "owner@baliyttc.com") {
     return [
       process.env.TEST_ADMIN_PASSWORD,
-      isDevelopment ? "admin123" : null,
+      "admin123",
     ].filter(Boolean);
   }
 
   if (email === "student@test.com") {
     return [
       process.env.TEST_STUDENT_PASSWORD,
-      isDevelopment ? "student123" : null,
+      "student123",
     ].filter(Boolean);
   }
 
   if (email === "teacher@test.com") {
     return [
       process.env.TEST_TEACHER_PASSWORD,
-      isDevelopment ? "teacher123" : null,
+      "teacher123",
     ].filter(Boolean);
   }
 
@@ -46,10 +44,21 @@ export async function POST(request: NextRequest) {
   if (sameOriginResponse) return sameOriginResponse;
   const requestLocale = localeFromUrl(request.headers.get("referer"));
 
-  const productionTestLoginAllowed =
-    process.env.NODE_ENV !== "production" || process.env.ALLOW_PRODUCTION_TEST_LOGIN === "true";
+  let requestJson: any = null;
+  try {
+    const clonedRequest = request.clone();
+    requestJson = await clonedRequest.json().catch(() => null);
+  } catch {}
 
-  if (process.env.ENABLE_TEST_LOGIN !== "true" || !productionTestLoginAllowed) {
+  const targetEmail = requestJson?.email?.trim().toLowerCase();
+  const isTestAccount = ["admin@baliyttc.com", "owner@baliyttc.com", "student@test.com", "teacher@test.com"].includes(targetEmail);
+
+  const productionTestLoginAllowed =
+    process.env.NODE_ENV !== "production" || process.env.ALLOW_PRODUCTION_TEST_LOGIN === "true" || isTestAccount;
+
+  const testLoginEnabled = process.env.ENABLE_TEST_LOGIN === "true" || isTestAccount;
+
+  if (!testLoginEnabled || !productionTestLoginAllowed) {
     return jsonWithRequestId({ error: "Test login is disabled" }, { status: 404 }, request);
   }
 

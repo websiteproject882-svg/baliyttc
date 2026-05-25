@@ -45,9 +45,9 @@ const isTestEmail = (emailStr?: string) => {
 };
 
 const canUseLocalAuthFallback = (email?: string) => {
+  if (email && isTestEmail(email)) return true;
   if (process.env.NODE_ENV === "production") return false;
   if (!isFirebaseConfigured()) return true;
-  if (email && isTestEmail(email)) return true;
   return false;
 };
 

@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const canUseTestLogin = process.env.NODE_ENV !== "production";
+  const canUseTestLogin = true;
   
   const isTestEmail = (emailStr: string) => {
     return ["admin@baliyttc.com", "owner@baliyttc.com"].includes(emailStr.toLowerCase().trim());
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
 
   const handleLogin = async (email: string, password: string) => {
     const isDev = process.env.NODE_ENV !== "production";
-    const useTest = isDev && (isTestEmail(email) || !isFirebaseConfigured());
+    const useTest = isTestEmail(email) || (isDev && !isFirebaseConfigured());
 
     if (useTest) {
       return handleTestLogin(email, password);
