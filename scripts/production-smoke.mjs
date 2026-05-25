@@ -141,7 +141,7 @@ async function checkSameOriginApi() {
   return { path: "/api/auth/login", status: response.status };
 }
 
-async function checkPublicJsonApi(path, validate) {
+async function checkPublicJsonApi(path, validate, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
     headers: {
       "x-request-id": `smoke-${path.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`,
@@ -149,10 +149,12 @@ async function checkPublicJsonApi(path, validate) {
   });
   assert(response.status === 200, `${path} returned ${response.status}`);
   assertSecurityHeaders(response, path);
-  assert(
-    response.headers.get("cache-control")?.toLowerCase().includes("no-store"),
-    `${path} should use no-store cache-control`,
-  );
+  const cacheControl = response.headers.get("cache-control")?.toLowerCase() || "";
+  if (options.cache === "public") {
+    assert(cacheControl.includes("public"), `${path} should use public cache-control, got ${cacheControl || "none"}`);
+  } else {
+    assert(cacheControl.includes("no-store"), `${path} should use no-store cache-control, got ${cacheControl || "none"}`);
+  }
 
   const body = await response.json();
   validate(body);
@@ -168,14 +170,14 @@ async function checkPublicApis() {
     checkPublicJsonApi("/api/courses?locale=en&slug=200hr", (body) => {
       assert(Array.isArray(body.courses), "/api/courses should return courses array");
       assert(body.courses.length >= 1, "/api/courses should include at least one course");
-    }),
+    }, { cache: "public" }),
     checkPublicJsonApi("/api/blog?locale=en&limit=1", (body) => {
       assert(Array.isArray(body.posts), "/api/blog should return posts array");
       assert(body.pagination?.limit === 1, "/api/blog should preserve requested limit");
-    }),
+    }, { cache: "public" }),
     checkPublicJsonApi("/api/site-settings", (body) => {
       assert(body.settings?.general?.schoolName, "/api/site-settings should include school name");
-    }),
+    }, { cache: "public" }),
   ]);
 }
 
