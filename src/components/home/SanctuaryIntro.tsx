@@ -25,8 +25,8 @@ export const SanctuaryIntro = () => {
             <div className="absolute bottom-5 left-5 right-5 grid grid-cols-3 gap-2 rounded-[8px] bg-white/92 p-3 shadow-lg backdrop-blur">
               {copy.intro.stats.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <p className="number-value text-base leading-none text-charcoal md:text-lg">{stat.value}</p>
-                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.08em] text-ink-muted">{stat.label}</p>
+                  <p className="font-serif text-lg font-semibold leading-none text-charcoal md:text-xl">{stat.value}</p>
+                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-ink-muted">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -36,7 +36,7 @@ export const SanctuaryIntro = () => {
         <Reveal delay={0.08}>
           <div className="max-w-2xl lg:pl-6">
             <p className="label-caps text-sage">{copy.intro.eyebrow}</p>
-            <h2 className="mt-4 font-sans text-[2.1rem] font-bold leading-[1.14] text-charcoal md:text-[3rem] md:leading-[1.1]">
+            <h2 className="mt-4 font-serif text-[2.2rem] font-light leading-[1.08] text-charcoal md:text-[3.4rem] md:leading-[1.02]">
               {copy.intro.title}
             </h2>
             <p className="body-lg mt-5 text-charcoal">{copy.intro.subtitle}</p>

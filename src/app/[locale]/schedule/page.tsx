@@ -28,7 +28,7 @@ export default function SchedulePage({ params }: { params: { locale: string } })
             <article key={course.slug} className="rounded-lg border border-sand bg-cream/70 p-5 md:p-7">
               <div className="flex flex-col gap-4 border-b border-sand pb-5 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h2 className="font-sans text-2xl font-bold text-warm-dark">{course.name}</h2>
+                  <h2 className="font-serif text-2xl font-semibold text-warm-dark">{course.name}</h2>
                   <div className="mt-3 flex flex-wrap gap-3 text-sm text-ink-soft">
                     <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-terra" />{course.duration}</span>
                     <span className="inline-flex items-center gap-2"><Euro className="h-4 w-4 text-terra" />{course.price}</span>

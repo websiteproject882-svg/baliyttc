@@ -62,8 +62,8 @@ const Instructors = () => {
                 <div className="aspect-[4/5] rounded-md overflow-hidden bg-sand/20">
                   <img src={t.image || "/placeholder-teacher.jpg"} alt={t.name} className="w-full h-full object-cover" />
                 </div>
-                <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.08em] text-terra">{t.role} · {t.credentials}</p>
-                <h2 className="mt-2 font-sans text-2xl font-bold text-warm-dark">{t.name}</h2>
+                <p className="mt-6 text-[10px] uppercase tracking-[0.28em] text-terra">{t.role} · {t.credentials}</p>
+                <h2 className="font-serif text-3xl text-warm-dark mt-2">{t.name}</h2>
                 <p className="mt-4 text-ink-soft leading-relaxed">{t.bio}</p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {t.styles.map((s) => (

@@ -36,7 +36,7 @@ export const FinalCTA = () => {
                     return (
                       <div key={item.label} className="rounded-[8px] border border-white/20 bg-white/88 p-3 text-warm-dark shadow-sm backdrop-blur">
                         <Icon className="h-4 w-4 text-terra" />
-                        <p className="mt-2 text-[0.62rem] font-bold uppercase tracking-[0.08em] text-warm-mid">{item.label}</p>
+                        <p className="mt-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-warm-mid">{item.label}</p>
                         <p className="mt-1 text-sm font-semibold leading-tight">{item.value}</p>
                       </div>
                     );
@@ -46,7 +46,7 @@ export const FinalCTA = () => {
 
               <div className="flex min-h-[420px] flex-col justify-center px-6 py-8 sm:px-9 md:px-12 lg:min-h-[520px] lg:py-12">
                 <p className="label-caps text-sage">{copy.finalCta.eyebrow}</p>
-                <h2 className="mt-4 max-w-xl font-sans text-[2.15rem] font-bold leading-[1.12] text-warm-dark sm:text-[2.65rem] lg:text-[3.45rem]">
+                <h2 className="mt-4 max-w-xl font-serif text-[2.35rem] font-light leading-[1.08] text-warm-dark sm:text-[3rem] lg:text-[4.25rem]">
                   {copy.finalCta.title} <em className="text-terra-light">{copy.finalCta.accent}</em>
                 </h2>
                 <p className="mt-5 max-w-xl text-[1rem] leading-8 text-warm-mid md:text-[1.08rem]">

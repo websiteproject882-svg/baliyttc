@@ -13,9 +13,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["'DM Sans'", "system-ui", "sans-serif"],
-        display: ["'DM Sans'", "system-ui", "sans-serif"],
-        sans: ["'DM Sans'", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        display: ["var(--font-serif)", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

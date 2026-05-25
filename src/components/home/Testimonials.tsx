@@ -71,7 +71,7 @@ export const Testimonials = () => {
               <p className="label-caps mb-4 text-brand">{copy.testimonials.eyebrow}</p>
             </Reveal>
             <Reveal delay={0.05}>
-              <h2 className="max-w-2xl font-sans text-[2rem] font-bold leading-tight tracking-normal text-charcoal md:text-[2.8rem]">
+              <h2 className="display-lg text-charcoal">
                 {copy.testimonials.title}{" "}
                 <span className="text-brand">{copy.testimonials.accent}</span>
               </h2>
@@ -125,7 +125,7 @@ export const Testimonials = () => {
                 </div>
 
                 {/* Quote */}
-                <p className="flex-1 text-[0.98rem] font-medium leading-7 text-charcoal">
+                <p className="flex-1 font-serif text-[1.08rem] font-normal italic leading-8 text-charcoal md:text-[1.18rem]">
                   &ldquo;{testimonial.quote}&rdquo;
                 </p>
 

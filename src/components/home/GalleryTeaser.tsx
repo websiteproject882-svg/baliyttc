@@ -127,10 +127,10 @@ export const GalleryTeaser = () => {
                   <div className="absolute inset-x-4 bottom-4 text-white md:inset-x-5 md:bottom-5">
                     <div className="flex items-end justify-between gap-4">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-white/70">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">
                           {String((i % total) + 1).padStart(2, "0")}
                         </p>
-                        <h3 className="mt-1 font-sans text-base font-bold leading-tight text-white md:text-lg">
+                        <h3 className="mt-1 font-serif text-lg font-semibold leading-tight text-white md:text-xl">
                           {label}
                         </h3>
                       </div>

@@ -165,7 +165,7 @@ const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: C
         <CalendarDays className="h-4 w-4" />
         <span>{course.days}</span>
       </div>
-      <h3 className="mt-4 font-sans text-[1.28rem] font-bold leading-[1.22] tracking-normal text-charcoal">
+      <h3 className="mt-4 font-serif text-[1.35rem] font-semibold leading-[1.18] tracking-tight text-charcoal">
         {getCompactTitle(course.title)}
       </h3>
       <p className="mt-2 text-sm leading-6 text-charcoal">{course.duration} {labels.certificationTrack}</p>
@@ -174,8 +174,8 @@ const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: C
 
       <div className="mt-auto border-t border-stone-200 pt-5">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-soft">{labels.startsFrom}</p>
-          <p className="mt-1 font-sans text-[1.52rem] font-bold tracking-normal text-charcoal">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-soft">{labels.startsFrom}</p>
+          <p className="mt-1 font-sans text-[1.6rem] font-semibold tracking-tight text-charcoal">
             EUR {course.priceFrom.toLocaleString("en-US")}
           </p>
         </div>
@@ -236,7 +236,7 @@ const CourseCard = ({
           </div>
 
           <div className="mt-4 min-h-[78px]">
-            <h3 className="font-sans text-[1.3rem] font-bold leading-[1.22] tracking-normal text-charcoal">
+            <h3 className="font-serif text-[1.38rem] font-semibold leading-[1.18] tracking-tight text-charcoal">
               {getCompactTitle(course.title)}
             </h3>
             <p className="mt-2 text-sm leading-6 text-charcoal">
@@ -252,8 +252,8 @@ const CourseCard = ({
 
           <div className="mt-auto border-t border-stone-200 pt-4">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-soft">{labels.startsFrom}</p>
-              <p className="mt-1 font-sans text-[1.52rem] font-bold tracking-normal text-charcoal">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-soft">{labels.startsFrom}</p>
+              <p className="mt-1 font-sans text-[1.58rem] font-semibold tracking-tight text-charcoal">
                 EUR {course.priceFrom.toLocaleString("en-US")}
               </p>
             </div>
@@ -361,7 +361,7 @@ export const FeaturedCourses = () => {
 
       <div className="container-edit relative z-10">
         <div className="mx-auto mb-8 max-w-4xl text-center md:mb-10">
-          <h2 className="font-sans text-[2.15rem] font-bold leading-tight tracking-normal text-charcoal md:text-[3rem]">
+          <h2 className="font-serif text-[2.45rem] font-semibold leading-tight tracking-tight text-charcoal md:text-[3.35rem]">
             {t("title")}
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-ink-soft md:text-lg">
