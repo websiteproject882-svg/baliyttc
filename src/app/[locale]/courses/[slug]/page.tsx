@@ -7,6 +7,7 @@ import { CourseSchema } from "@/components/shared/SchemaMarkup";
 import { applyCourseTranslation, normalizeLocale } from "@/lib/localized-content";
 import { getPublicBaseUrl } from "@/lib/public-url";
 import prisma from "@/lib/prisma";
+import { locales } from "@/i18n/routing";
 
 const baseUrl = getPublicBaseUrl();
 
@@ -96,12 +97,18 @@ export async function generateMetadata({ params }: { params: { locale: string; s
   };
   const url = `${baseUrl}/${params.locale}/courses/${course.slug}`;
 
+  const languages = locales.reduce((acc, loc) => {
+    acc[loc] = `${baseUrl}/${loc}/courses/${course.slug}`;
+    return acc;
+  }, {} as Record<string, string>);
+
   return {
     title: course.name === getStaticCourse(course.slug)?.name ? seo.title : `${course.name} | Bali YTTC`,
     description: course.summary || seo.description,
     keywords: [seo.keyword, course.name, "Ubud Bali yoga school", "Yoga Alliance Bali"],
     alternates: {
       canonical: url,
+      languages,
     },
     openGraph: {
       title: seo.title,

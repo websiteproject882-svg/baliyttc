@@ -30,15 +30,25 @@ export function generateMetadata({ params }: { params: { locale: string; slug: s
   if (!instructor) return {};
 
   const description = `${instructor.name} is ${instructor.title} at Bali YTTC in Ubud, Bali, teaching ${instructor.specializations.slice(0, 3).join(", ")} with ${instructor.experience} experience.`;
+  const url = `${baseUrl}/${params.locale}/instructors/${instructor.slug}`;
+
+  const languages = locales.reduce((acc, loc) => {
+    acc[loc] = `${baseUrl}/${loc}/instructors/${instructor.slug}`;
+    return acc;
+  }, {} as Record<string, string>);
 
   return {
     metadataBase: new URL(baseUrl),
     title: `${instructor.name} Yoga Teacher | Bali YTTC`,
     description,
+    alternates: {
+      canonical: url,
+      languages,
+    },
     openGraph: {
       title: `${instructor.name} Yoga Teacher | Bali YTTC`,
       description,
-      url: `${baseUrl}/${params.locale}/instructors/${instructor.slug}`,
+      url,
       images: [{ url: instructor.photo.startsWith("http") ? instructor.photo : `${baseUrl}${instructor.photo}`, alt: `${instructor.name} at Bali YTTC` }],
     },
   };
@@ -48,8 +58,25 @@ export default function InstructorDetailPage({ params }: { params: { locale: str
   const instructor = getInstructor(params.slug);
   if (!instructor) notFound();
 
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": instructor.name,
+    "jobTitle": instructor.title,
+    "description": instructor.bio,
+    "image": instructor.photo.startsWith("http") ? instructor.photo : `${baseUrl}${instructor.photo}`,
+    "url": `${baseUrl}/${params.locale}/instructors/${instructor.slug}`,
+    "knowsAbout": instructor.specializations,
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Bali YTTC",
+      "url": baseUrl,
+    },
+  };
+
   return (
     <NextLayoutWrapper>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
       <section className="bg-cream pt-32 pb-20 md:pt-40">
         <div className="container-edit">
           <Link href={`/${params.locale}/instructors`} className="inline-flex items-center gap-2 rounded-full border border-sand bg-white px-4 py-2 text-sm font-semibold text-warm-dark transition hover:border-terra hover:text-terra">

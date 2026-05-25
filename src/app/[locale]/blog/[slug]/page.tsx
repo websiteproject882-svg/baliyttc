@@ -6,7 +6,7 @@ import { Link } from "@/i18n/routing";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/shared/SchemaMarkup";
 import { IMG } from "@/data/site";
-import { defaultLocale } from "@/i18n/routing";
+import { defaultLocale, locales } from "@/i18n/routing";
 import { findStaticBlogPost } from "@/data/blog";
 import { normalizeLocale } from "@/lib/localized-content";
 import { getPublicBaseUrl } from "@/lib/public-url";
@@ -90,10 +90,18 @@ export async function generateMetadata({ params }: BlogPostPageParams): Promise<
   const description = post.metaDescription || post.excerpt;
   const url = `${baseUrl}/${params.locale}/blog/${post.slug}`;
 
+  const languages = locales.reduce((acc, loc) => {
+    acc[loc] = `${baseUrl}/${loc}/blog/${post.slug}`;
+    return acc;
+  }, {} as Record<string, string>);
+
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      languages,
+    },
     openGraph: {
       title,
       description,

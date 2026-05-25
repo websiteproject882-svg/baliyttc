@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getPublicBaseUrl } from "@/lib/public-url";
+import { locales } from "@/i18n/routing";
 
 const baseUrl = getPublicBaseUrl();
 const defaultImage = `${baseUrl}/images/brand/logo-512.png`;
@@ -154,12 +155,18 @@ export function createPublicMetadata(key: PublicMetadataKey, locale: string, pat
   const normalizedPath = path === "/" ? "" : path;
   const url = `${baseUrl}/${locale}${normalizedPath}`;
 
+  const languages = locales.reduce((acc, loc) => {
+    acc[loc] = `${baseUrl}/${loc}${normalizedPath}`;
+    return acc;
+  }, {} as Record<string, string>);
+
   return {
     title: item.title,
     description: item.description,
     keywords: item.keywords,
     alternates: {
       canonical: url,
+      languages,
     },
     openGraph: {
       title: item.title,
