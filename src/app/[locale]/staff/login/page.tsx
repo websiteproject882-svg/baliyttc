@@ -52,6 +52,22 @@ export default function StaffLoginPage() {
     return data;
   };
 
+  const readAuthResponse = async (response: Response) => {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      return response.json().catch(() => null);
+    }
+
+    const text = await response.text().catch(() => "");
+    return {
+      error: response.ok
+        ? "Login response was not valid JSON. Please refresh and try again."
+        : text.includes("<!DOCTYPE")
+          ? "Login service returned a page instead of JSON. Please refresh and try again."
+          : text || "Login service returned an unexpected response.",
+    };
+  };
+
   const handleLogin = async (email: string, password: string) => {
     const isDev = process.env.NODE_ENV !== "production";
     const useTest = isTestEmail(email) || (isDev && !isFirebaseConfigured());
@@ -73,10 +89,10 @@ export default function StaffLoginPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken }),
     });
-    const data = await response.json();
+    const data = await readAuthResponse(response);
 
     if (!response.ok) {
-      throw new Error(data.error || "Login failed");
+      throw new Error(data?.error || "Login failed");
     }
 
     return data;
@@ -146,10 +162,10 @@ export default function StaffLoginPage() {
         body: JSON.stringify({ challengeToken: pendingChallenge, code: twoFactorCode }),
       });
 
-      const data = await response.json();
+      const data = await readAuthResponse(response);
 
       if (!response.ok) {
-        throw new Error(data.error || "Verification failed");
+        throw new Error(data?.error || "Verification failed");
       }
 
       toast({
