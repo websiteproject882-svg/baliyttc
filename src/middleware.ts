@@ -100,6 +100,10 @@ export default async function middleware(request: NextRequest) {
     if (response) return applySecurityHeaders(response);
   }
 
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return applySecurityHeaders(NextResponse.next());
+  }
+
   const response = intlMiddleware(request);
   return applySecurityHeaders(response);
 }

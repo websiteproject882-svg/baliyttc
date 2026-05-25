@@ -48,7 +48,9 @@ export async function POST(request: NextRequest) {
   try {
     const clonedRequest = request.clone();
     requestJson = await clonedRequest.json().catch(() => null);
-  } catch {}
+  } catch {
+    requestJson = null;
+  }
 
   const targetEmail = requestJson?.email?.trim().toLowerCase();
   const isTestAccount = ["admin@baliyttc.com", "owner@baliyttc.com", "student@test.com", "teacher@test.com"].includes(targetEmail);
