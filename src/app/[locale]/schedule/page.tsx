@@ -2,20 +2,22 @@ import Link from "next/link";
 import { CalendarDays, CheckCircle2, Clock, Euro, Users } from "lucide-react";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { scheduleCourses } from "@/data/marketing-pages";
+import { getPageCopy } from "@/lib/page-i18n";
 
 export default function SchedulePage({ params }: { params: { locale: string } }) {
   const locale = params.locale || "en";
+  const copy = getPageCopy(locale, "schedule");
 
   return (
     <NextLayoutWrapper>
       <section className="bg-cream pt-36 pb-16">
         <div className="container-edit">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-leaf">2026 training calendar</p>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-leaf">{copy.eyebrow}</p>
           <h1 className="mt-5 max-w-4xl font-serif text-5xl leading-tight text-warm-dark md:text-7xl">
-            Upcoming yoga teacher training dates in Ubud
+            {copy.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-soft">
-            Compare every upcoming batch by course, price and availability. Choose a date, apply online, and our admissions team will confirm your seat before deposit.
+            {copy.intro}
           </p>
         </div>
       </section>
@@ -33,7 +35,7 @@ export default function SchedulePage({ params }: { params: { locale: string } })
                   </div>
                 </div>
                 <Link href={`/${locale}/courses/${course.slug}`} className="text-sm font-bold uppercase tracking-wide text-terra">
-                  View course details
+                  {copy.viewDetails}
                 </Link>
               </div>
 
@@ -44,7 +46,7 @@ export default function SchedulePage({ params }: { params: { locale: string } })
                     <div key={`${course.slug}-${date.start}`} className="grid gap-4 py-5 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
                       <div>
                         <p className="font-medium text-warm-dark">
-                          {date.start} <span className="text-ink-soft">to</span> {date.end}
+                          {date.start} <span className="text-ink-soft">{copy.to}</span> {date.end}
                         </p>
                         <p className="mt-1 text-sm text-ink-soft">{date.note}</p>
                       </div>
@@ -52,13 +54,13 @@ export default function SchedulePage({ params }: { params: { locale: string } })
                         fewSeats ? "bg-orange-100 text-orange-700" : "bg-leaf/10 text-leaf"
                       }`}>
                         {fewSeats ? <Users className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                        {date.status}
+                        {fewSeats ? copy.fewSeats : copy.available}
                       </span>
                       <Link
                         href={`/${locale}/apply?course=${course.slug}&date=${encodeURIComponent(date.start)}`}
                         className="inline-flex h-11 items-center justify-center rounded-full bg-terra px-5 text-sm font-semibold text-white hover:bg-terra-deep"
                       >
-                        Apply for this date
+                        {copy.apply}
                       </Link>
                     </div>
                   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Clock, MapPin, Search, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/routing";
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { IMG } from "@/data/site";
+import { getPageCopy } from "@/lib/page-i18n";
 
 const activityCategories = ["All", "Ceremony", "Workshop", "Nature", "Wellness", "Creative"];
 
@@ -182,6 +184,8 @@ const faqs = [
 ];
 
 const Activities = () => {
+  const locale = useLocale();
+  const copy = getPageCopy(locale, "activities");
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeActivity, setActiveActivity] = useState("activity-0");
@@ -228,15 +232,15 @@ const Activities = () => {
       <div className="container-wide">
         <Reveal>
           <Link href="/" className="label-caps mb-8 inline-block text-gray-500 transition-colors hover:text-[#F04E23]">
-            Back to Home
+            {copy.backHome}
           </Link>
         </Reveal>
 
         <Reveal delay={0.1}>
           <SectionHeading
-            eyebrow="Yoga Experiences"
-            title={<>Activities & <em className="text-[#F04E23]">Workshops</em></>}
-            sub="Cultural ceremonies, nature visits and practical workshops that help students integrate yoga beyond classroom hours."
+            eyebrow={copy.eyebrow}
+            title={<>{copy.title} <em className="text-[#F04E23]">{copy.accent}</em></>}
+            sub={copy.subtitle}
           />
         </Reveal>
 
@@ -248,7 +252,7 @@ const Activities = () => {
                 <input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Search ceremonies, workshops, nature trips..."
+                  placeholder={copy.search}
                   className="h-12 w-full border border-stone-300 bg-white pl-11 pr-4 text-sm outline-none transition-colors focus:border-[#F04E23]"
                 />
               </label>
@@ -264,7 +268,7 @@ const Activities = () => {
                         : "border-stone-200 bg-white text-gray-600 hover:border-[#F04E23] hover:text-[#F04E23]"
                     }`}
                   >
-                    {category}
+                    {copy.categories[category as keyof typeof copy.categories] || category}
                   </button>
                 ))}
               </div>
@@ -299,7 +303,7 @@ const Activities = () => {
                 <div className="overflow-hidden bg-stone-100">
                   <img
                     src={activity.image}
-                    alt={activity.title}
+                    alt={copy.titles[activity.title as keyof typeof copy.titles] || activity.title}
                     className="aspect-[4/3] h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                     onError={(event) => {
                       event.currentTarget.src = IMG.classMain;
@@ -314,14 +318,14 @@ const Activities = () => {
                       {activity.duration}
                     </span>
                   </div>
-                  <h2 className="display-sm text-gray-950">{activity.title}</h2>
+                  <h2 className="display-sm text-gray-950">{copy.titles[activity.title as keyof typeof copy.titles] || activity.title}</h2>
                   <p className="mt-3 text-sm leading-7 text-gray-600">{activity.excerpt}</p>
                   <div className="mt-5 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-gray-500">
                     <MapPin className="h-3.5 w-3.5 text-[#F04E23]" />
                     {activity.location}
                   </div>
                   <div className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#F04E23]">
-                    Read details
+                    {copy.readDetails}
                     <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </div>
@@ -333,11 +337,10 @@ const Activities = () => {
         <section className="mt-16 grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
           <Reveal>
             <div className="rounded-[10px] bg-warm-dark p-8 text-white md:p-10">
-              <p className="label-caps mb-5 text-orange-300">Learn More</p>
-              <h2 className="display-md">Detailed activity notes</h2>
+              <p className="label-caps mb-5 text-orange-300">{copy.learnMore}</p>
+              <h2 className="display-md">{copy.notesTitle}</h2>
               <p className="mt-4 leading-8 text-white/75">
-                Each experience is part of the training rhythm. The aim is not to fill free time, but to help students understand yoga through
-                culture, trust, creativity, recovery and real-world practice.
+                {copy.notesText}
               </p>
               <div className="mt-8 space-y-5">
                 {schedule.map((item) => (
@@ -363,7 +366,7 @@ const Activities = () => {
                   <AccordionTrigger className="px-5 py-5 text-left hover:no-underline md:px-6">
                     <div className="flex items-center gap-4">
                       <span className="number-value text-sm text-stone-400">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="text-[1.05rem] font-semibold text-gray-950 md:text-[1.18rem]">{activity.title}</span>
+                      <span className="text-[1.05rem] font-semibold text-gray-950 md:text-[1.18rem]">{copy.titles[activity.title as keyof typeof copy.titles] || activity.title}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-5 pb-6 md:px-6">
@@ -371,7 +374,7 @@ const Activities = () => {
                       <p className="leading-8 text-gray-600">{activity.details}</p>
                       <div className="mt-6 grid gap-6 md:grid-cols-2">
                         <div>
-                          <h4 className="label-caps mb-3 text-[#F04E23]">Included</h4>
+                          <h4 className="label-caps mb-3 text-[#F04E23]">{copy.included}</h4>
                           <ul className="space-y-2.5">
                             {activity.includes.map((item) => (
                               <li key={item} className="flex gap-3 text-sm leading-6 text-gray-600">
@@ -382,7 +385,7 @@ const Activities = () => {
                           </ul>
                         </div>
                         <div>
-                          <h4 className="label-caps mb-3 text-[#F04E23]">Best For</h4>
+                          <h4 className="label-caps mb-3 text-[#F04E23]">{copy.bestFor}</h4>
                           <p className="text-sm leading-7 text-gray-600">{activity.goodFor}</p>
                         </div>
                       </div>
@@ -398,10 +401,10 @@ const Activities = () => {
           <Reveal>
             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
               <div>
-                <p className="label-caps text-[#F04E23]">Activity FAQ</p>
-                <h2 className="display-md mt-3 text-gray-950">Before you join</h2>
+                <p className="label-caps text-[#F04E23]">{copy.faqEyebrow}</p>
+                <h2 className="display-md mt-3 text-gray-950">{copy.faqTitle}</h2>
                 <p className="mt-4 leading-8 text-gray-600">
-                  Schedules can change around weather, local ceremonies and course duration. The experience stays guided and student-friendly.
+                  {copy.faqText}
                 </p>
               </div>
               <Accordion type="single" collapsible className="space-y-3">
@@ -422,18 +425,18 @@ const Activities = () => {
               <div>
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em]">
                   <Sparkles className="h-4 w-4" />
-                  Included in the training rhythm
+                  {copy.ctaEyebrow}
                 </div>
-                <h2 className="display-md">Train, explore and integrate in Bali</h2>
+                <h2 className="display-md">{copy.ctaTitle}</h2>
                 <p className="mt-3 max-w-2xl leading-8 text-white/80">
-                  Activities support the course rather than distract from it: culture, nature, recovery and practical embodiment.
+                  {copy.ctaText}
                 </p>
               </div>
               <Link
                 href="/courses"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#F04E23] transition-colors hover:bg-orange-50"
               >
-                View Training Programs
+                {copy.ctaButton}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
