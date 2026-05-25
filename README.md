@@ -121,6 +121,7 @@ npm run qa:full
 npm run typecheck
 npm run lint
 npm test
+npm run test:admin
 npm run build
 npm run smoke:prod
 npm run db:migrate:deploy
@@ -133,7 +134,7 @@ npm run db:seed
 SMOKE_BASE_URL=https://your-deployment.vercel.app npm run smoke:prod
 ```
 
-CI runs lint, typecheck, tests, and build on `main`/`develop` pushes and pull requests. Manual Vercel deployments also smoke-test the deployed URL before the workflow finishes. A scheduled production smoke workflow checks the live site daily. The CI build uses non-secret demo env values only; real runtime secrets must be set in Vercel, Railway, or the VPS `.env.production`.
+CI runs lint, typecheck, tests, and build on `main`/`develop` pushes and pull requests. Admin/auth changes also trigger a focused admin regression workflow covering admin APIs, auth, RBAC, and protected-route boundaries. Manual Vercel deployments smoke-test the deployed URL before the workflow finishes. A scheduled production smoke workflow checks the live site daily. The CI build uses non-secret demo env values only; real runtime secrets must be set in Vercel, Railway, or the VPS `.env.production`.
 
 ## Admin And Operations
 

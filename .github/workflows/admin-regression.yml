@@ -1,0 +1,66 @@
+name: Admin Regression
+
+env:
+  CI: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NEXT_TELEMETRY_DISABLED: 1
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/app/[locale]/admin/**"
+      - "src/app/api/admin/**"
+      - "src/app/api/auth/**"
+      - "src/lib/authz.ts"
+      - "src/lib/session*.ts"
+      - "src/lib/route-protection.ts"
+      - "src/test/admin-*.test.ts"
+      - "src/test/auth-*.test.ts"
+      - "src/test/rbac.test.ts"
+      - "src/test/middleware-session-roles.test.ts"
+      - "package.json"
+      - "package-lock.json"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "src/app/[locale]/admin/**"
+      - "src/app/api/admin/**"
+      - "src/app/api/auth/**"
+      - "src/lib/authz.ts"
+      - "src/lib/session*.ts"
+      - "src/lib/route-protection.ts"
+      - "src/test/admin-*.test.ts"
+      - "src/test/auth-*.test.ts"
+      - "src/test/rbac.test.ts"
+      - "src/test/middleware-session-roles.test.ts"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-regression-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admin-regression:
+    name: Admin auth and API regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run admin regression tests
+        run: npm run test:admin

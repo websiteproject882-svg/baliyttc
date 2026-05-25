@@ -13,6 +13,7 @@
     "smoke:prod": "node scripts/production-smoke.mjs",
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit --pretty false",
     "test": "vitest run",
+    "test:admin": "node scripts/run-admin-tests.mjs",
     "test:watch": "vitest",
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",
