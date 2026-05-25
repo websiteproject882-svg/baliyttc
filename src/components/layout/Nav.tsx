@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Menu, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname as useLocation } from "@/i18n/routing";
-import { ApplyModal } from "@/components/shared/ApplyModal";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
 
@@ -21,49 +18,6 @@ type MenuColumn = {
   links: MenuLink[];
 };
 
-const menuColumns: MenuColumn[] = [
-  {
-    title: "Trainings",
-    links: [
-      { label: "All Trainings", to: "/#courses", strong: true },
-      { label: "100hr Foundation", to: "/courses/100hr" },
-      { label: "200hr Yoga Teacher Training", to: "/courses/200hr" },
-      { label: "300hr Advanced", to: "/courses/300hr" },
-      { label: "Retreats", to: "/retreats", strong: true },
-      { label: "50hr Short Course", to: "/courses/50hr" },
-    ],
-  },
-  {
-    title: "Experience",
-    links: [
-      { label: "Activities", to: "/activities", strong: true },
-      { label: "Gallery", to: "/gallery" },
-      { label: "Testimonials", to: "/testimonials" },
-      { label: "Youtube Videos", to: "/videos" },
-      { label: "Blog", to: "/blog" },
-    ],
-  },
-  {
-    title: "Plan Your Trip",
-    links: [
-      { label: "Pricing & Fees", to: "/pricing", strong: true },
-      { label: "Visa Information", to: "/visa" },
-      { label: "FAQ", to: "/#faq" },
-      { label: "Contact Us", to: "/contact" },
-    ],
-  },
-  {
-    title: "School",
-    links: [
-      { label: "About Bali YTTC", to: "/about", strong: true },
-      { label: "Teachers", to: "/instructors" },
-      { label: "Yoga Alliance", to: "/yoga-alliance" },
-      { label: "Student Reviews", to: "/testimonials" },
-      { label: "Terms & Policy", to: "/terms" },
-    ],
-  },
-];
-
 export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
   const t = useTranslations("Navigation");
   const siteSettings = usePublicSiteSettings();
@@ -72,7 +26,7 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = useLocation();
   const onHome = pathname === "/";
-  const NAV_H = 64;
+  const NAV_H = 76; // Match reference site navigation bar height exactly
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -93,244 +47,631 @@ export const Nav = ({ bannerHeight = 0 }: { bannerHeight?: number }) => {
   }, [pathname]);
 
   const isLightMode = scrolled || !onHome || menuOpen;
-  const logoClass = isLightMode
-    ? "border-gray-200 bg-white/90 text-gray-950 shadow-sm"
-    : "border-white/20 bg-black/20 text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)]";
-  const iconClass = isLightMode ? "text-gray-900 hover:bg-gray-100" : "text-white hover:bg-white/10";
-  const desktopLinkClass = isLightMode ? "text-gray-800 hover:text-brand" : "text-white hover:text-white";
-  const desktopPanelClass = isLightMode
-    ? "border-gray-100 bg-white text-gray-900 shadow-premium-lg"
-    : "border-white/20 bg-neutral-950/95 text-white shadow-[0_24px_70px_rgba(0,0,0,0.55)] ring-1 ring-white/10";
-  const desktopPanelSubClass = isLightMode ? "text-gray-500" : "text-white/75";
-  const desktopPanelItemClass = isLightMode
-    ? "hover:bg-sage-mist/50 hover:text-sage"
-    : "hover:bg-white/10 hover:text-white";
-
-  const programLinks = [
-    { label: t("course100"), description: "Foundation training", to: "/courses/100hr" },
-    { label: t("course200"), description: "Flagship certification", to: "/courses/200hr" },
-    { label: t("course300"), description: "Advanced teacher path", to: "/courses/300hr" },
-    { label: "50-Hour Hatha-Vinyasa YTT", description: "Short course", to: "/courses/50hr" },
-  ];
-
-  const experienceLinks = [
-    { label: t("activities"), description: "Workshops, ceremonies and Bali culture", to: "/activities" },
-    { label: t("gallery"), description: "Student moments and campus life", to: "/gallery" },
-    { label: t("testimonials"), description: "Real student reviews", to: "/testimonials" },
-    { label: t("videos"), description: "Campus and alumni video journals", to: "/videos" },
-  ];
-
-  const mobileMenuColumns = menuColumns.map((column) =>
-    column.title === "Plan Your Trip"
-      ? {
-          ...column,
-          links: [
-            ...column.links,
-            { label: siteSettings.general.email, href: `mailto:${siteSettings.general.email}` },
-          ],
-        }
-      : column,
-  );
 
   const localizedMenuHref = (to = "/") => (to.startsWith("/") ? `/${locale}${to}` : to);
 
+  // Layout Link definitions aligned with the 4 columns in the reference site
+  const menuColumns: MenuColumn[] = [
+    {
+      title: t("trainings"),
+      links: [
+        { label: t("allTrainings"), to: "/#courses", strong: true },
+        { label: t("course100"), to: "/courses/100hr" },
+        { label: t("course200"), to: "/courses/200hr" },
+        { label: t("course300"), to: "/courses/300hr" },
+        { label: t("retreats"), to: "/retreats", strong: true },
+        { label: "Short Courses", to: "/courses/50hr" },
+      ],
+    },
+    {
+      title: t("experience"),
+      links: [
+        { label: t("activities"), to: "/activities", strong: true },
+        { label: "Accommodation", to: "/accommodation" },
+        { label: t("gallery"), to: "/gallery" },
+        { label: "Asana Guide", to: "/gallery" }, // Safe fallback to gallery
+        { label: t("testimonials"), to: "/testimonials" },
+        { label: t("blog"), to: "/blog" },
+      ],
+    },
+    {
+      title: t("planYourTrip"),
+      links: [
+        { label: t("pricing"), to: "/pricing", strong: true },
+        { label: t("videos"), to: "/videos" },
+        { label: t("visa"), to: "/visa" },
+        { label: t("faq"), to: "/#faq" },
+        { label: t("contact"), to: "/contact" },
+        { label: siteSettings.general.email, href: `mailto:${siteSettings.general.email}` },
+      ],
+    },
+    {
+      title: t("school"),
+      links: [
+        { label: t("aboutUs"), to: "/about", strong: true },
+        { label: t("teachers"), to: "/instructors" },
+        { label: t("yogaAlliance"), to: "/yoga-alliance" },
+        { label: t("reviews"), to: "/testimonials" },
+        { label: t("terms"), to: "/terms" },
+      ],
+    },
+  ];
+
+  // Scrolled vs Transparent styles mapping
+  const navStyle = isLightMode
+    ? {
+        background: "rgba(249, 247, 244, 0.98)",
+        boxShadow: "0 4px 24px rgba(44, 74, 46, 0.08)",
+        backdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(44, 74, 46, 0.08)",
+      }
+    : {
+        background: "transparent",
+        boxShadow: "none",
+        backdropFilter: "none",
+        borderBottom: "none",
+      };
+
+  const textStyleColor = isLightMode ? "#1C1D1F" : "#ffffff";
+  const subtitleColor = isLightMode ? "rgba(28, 29, 31, 0.65)" : "rgba(255, 255, 255, 0.65)";
+  const hamburgerBgColor = isLightMode ? "#1C1D1F" : "#ffffff";
+
   return (
     <>
-      <header
-        style={{ top: `${bannerHeight}px` }}
-        className={`fixed inset-x-0 z-50 transition-all duration-300 ${
-          isLightMode
-            ? "border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-md"
-            : "border-b border-white/10 bg-black/55 shadow-[0_10px_40px_rgba(0,0,0,0.28)] backdrop-blur-md"
-        }`}
+      <nav
+        style={{
+          position: "fixed",
+          top: `${bannerHeight}px`,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          height: `${NAV_H}px`,
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          padding: "0 40px",
+          transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+          ...navStyle,
+        }}
+        className="nav-bar-container"
       >
-        {scrolled && (
-          <div className="bg-gradient-to-r from-brand-dark to-brand py-1.5 text-center text-xs font-medium text-white">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
-              {t("scarcity")}
-              <Link href="/courses/200hr" className="ml-1 font-bold underline hover:text-amber-200">
-                {t("applyNow")}
-              </Link>
-            </span>
-          </div>
-        )}
-
-        <div className="container-wide" style={{ height: `${NAV_H}px` }}>
-          <div className="relative flex h-full items-center justify-between gap-4">
-            <Link
-              href="/"
-              className={`group absolute left-1/2 top-1/2 z-10 flex h-12 -translate-x-1/2 -translate-y-1/2 shrink-0 items-center gap-2 rounded-full border px-3 pr-4 transition-all duration-300 hover:-translate-y-[52%] ${logoClass}`}
-              aria-label={`${siteSettings.general.schoolName} home`}
-            >
-              <img
-                src={siteSettings.logoUrl}
-                alt={siteSettings.general.schoolName}
-                className="h-9 w-9 flex-shrink-0 rounded-full object-contain"
-                loading="eager"
-                decoding="async"
-              />
-              <span className="hidden whitespace-nowrap font-serif text-[1.25rem] font-semibold leading-none tracking-normal sm:block">
-                {siteSettings.general.schoolName}
-              </span>
-            </Link>
-
-            <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
-              <div className="group relative">
-                <button
-                  type="button"
-                  className={`inline-flex h-9 items-center gap-1 rounded-lg px-3 text-xs font-extrabold uppercase tracking-[0.12em] transition-colors ${desktopLinkClass}`}
-                >
-                  {t("trainings")}
-                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-                </button>
-                <div className="invisible absolute left-0 top-full z-50 w-[320px] translate-y-2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className={`rounded-xl border p-2 ${desktopPanelClass}`}>
-                    <div className={`px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] ${desktopPanelSubClass}`}>
-                      {t("trainings")}
-                    </div>
-                    {programLinks.map((item) => (
-                      <Link
-                        key={item.to}
-                        href={item.to}
-                        className={`block rounded-lg px-3 py-2.5 transition-colors ${desktopPanelItemClass}`}
-                      >
-                        <span className="block text-sm font-bold">{item.label}</span>
-                        <span className={`mt-0.5 block text-xs ${desktopPanelSubClass}`}>{item.description}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="group relative">
-                <button
-                  type="button"
-                  className={`inline-flex h-9 items-center gap-1 rounded-lg px-3 text-xs font-extrabold uppercase tracking-[0.12em] transition-colors ${desktopLinkClass}`}
-                >
-                  {t("experience")}
-                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-                </button>
-                <div className="invisible absolute left-0 top-full z-50 w-[320px] translate-y-2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className={`rounded-xl border p-2 ${desktopPanelClass}`}>
-                    <div className={`px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] ${desktopPanelSubClass}`}>
-                      {t("experience")}
-                    </div>
-                    {experienceLinks.map((item) => (
-                      <Link
-                        key={item.to}
-                        href={item.to}
-                        className={`block rounded-lg px-3 py-2.5 transition-colors ${desktopPanelItemClass}`}
-                      >
-                        <span className="block text-sm font-bold">{item.label}</span>
-                        <span className={`mt-0.5 block text-xs ${desktopPanelSubClass}`}>{item.description}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </nav>
-
-            <div className="ml-auto flex shrink-0 items-center gap-2">
-              <LanguageSwitcher isLightMode={isLightMode} />
-              <Link
-                href="/login"
-                className={`hidden h-9 items-center gap-1.5 rounded-full border-2 px-5 text-sm font-semibold transition-all duration-300 sm:inline-flex ${
-                  isLightMode
-                    ? "border-brand text-brand hover:bg-brand hover:text-white"
-                    : "border-white text-white hover:bg-white hover:text-brand"
-                }`}
-              >
-                {t("login")}
-              </Link>
-              <ApplyModal
-                trigger={
-                  <button className="hidden h-9 items-center gap-1.5 rounded-full bg-brand px-5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:bg-brand-dark hover:shadow-md sm:inline-flex">
-                    {t("applyNow")} <span aria-hidden>→</span>
-                  </button>
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setMenuOpen((open) => !open)}
-                className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${iconClass}`}
-                aria-label="Menu"
-              >
-                {menuOpen ? <X size={18} /> : <Menu size={18} />}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
+        {/* LEFT COLUMN: HAMBURGER MENU TOGGLE */}
+        <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
             style={{
-              top: `${bannerHeight + NAV_H}px`,
-              maxHeight: `calc(100vh - ${bannerHeight + NAV_H}px)`,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "10px 0",
+              zIndex: 101,
             }}
-            className="fixed inset-x-0 z-40 overflow-y-auto border-t border-gray-100 bg-white shadow-2xl"
+            aria-label="Toggle menu"
           >
-            <div className="container-wide grid gap-8 py-10 md:grid-cols-4 md:gap-12 md:py-14">
-              {mobileMenuColumns.map((column) => (
-                <div key={column.title}>
-                  <p className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-400">
-                    {column.title}
-                  </p>
-                  <div className="space-y-3.5">
-                    {column.links.map((link) => {
-                      const cls = link.strong
-                        ? "block text-sm font-bold text-gray-900 transition-colors hover:text-[#F04E23]"
-                        : "block text-sm leading-6 text-gray-600 transition-all hover:pl-1 hover:text-gray-900";
-                      if (link.href) {
-                        return (
-                          <a
-                            key={link.label}
-                            href={link.href}
-                            target={link.href.startsWith("http") ? "_blank" : undefined}
-                            rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                            onClick={() => setMenuOpen(false)}
-                            className={cls}
-                          >
-                            {link.label}
-                          </a>
-                        );
-                      }
-                      return (
-                        <a key={link.label} href={localizedMenuHref(link.to || "/")} onClick={() => setMenuOpen(false)} className={cls}>
-                          {link.label}
-                        </a>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <span
+                style={{
+                  display: "block",
+                  width: "22px",
+                  height: "1.5px",
+                  background: hamburgerBgColor,
+                  borderRadius: "2px",
+                  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                  transformOrigin: "center",
+                  transform: menuOpen ? "translateY(7.5px) rotate(45deg)" : "none",
+                }}
+              ></span>
+              <span
+                style={{
+                  display: "block",
+                  width: "22px",
+                  height: "1.5px",
+                  background: hamburgerBgColor,
+                  borderRadius: "2px",
+                  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                  transformOrigin: "center",
+                  opacity: menuOpen ? 0 : 1,
+                  transform: menuOpen ? "scale(0)" : "none",
+                }}
+              ></span>
+              <span
+                style={{
+                  display: "block",
+                  width: "22px",
+                  height: "1.5px",
+                  background: hamburgerBgColor,
+                  borderRadius: "2px",
+                  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                  transformOrigin: "center",
+                  transform: menuOpen ? "translateY(-7.5px) rotate(-45deg)" : "none",
+                }}
+              ></span>
             </div>
+            <span
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: "0.6875rem",
+                fontWeight: 600,
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                color: textStyleColor,
+                transition: "color 0.3s ease",
+              }}
+              className="menu-label-text"
+            >
+              {menuOpen ? "Close" : "Menu"}
+            </span>
+          </button>
+        </div>
 
-            <div className="border-t border-gray-100 bg-gray-50 py-4">
-              <div className="container-wide flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs font-medium text-gray-500">
-                  {t("needHelp")}{" "}
-                  <a href={`tel:${siteSettings.general.phone}`} className="font-bold text-[#F04E23] transition-colors hover:text-[#D03D12]">
-                    {siteSettings.general.phone}
-                  </a>
-                </p>
-                <ApplyModal
-                  trigger={
-                    <button className="inline-flex h-10 items-center gap-1.5 rounded-full bg-brand px-6 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:bg-brand-dark hover:shadow-md">
-                      {t("applyBatch")} →
-                    </button>
-                  }
+        {/* CENTER COLUMN: CIRCULAR LOGO BRAND */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <Link style={{ textDecoration: "none" }} className="navbar-brand-logo" href="/">
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "10px", userSelect: "none" }}
+              className="brand-logo-container"
+            >
+              <div className="brand-logo-wrap">
+                <img
+                  alt={siteSettings.general.schoolName}
+                  src={siteSettings.logoUrl}
+                  className="brand-logo-img"
+                  style={{ color: "transparent" }}
                 />
               </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1 }}>
+                <span className="logo-title" style={{ color: textStyleColor }}>
+                  {siteSettings.general.schoolName}
+                </span>
+                <span className="logo-subtitle" style={{ color: subtitleColor }}>
+                  Yoga Teacher Training
+                </span>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </Link>
+        </div>
+
+        {/* RIGHT COLUMN: DROPDOWNS, LANGBAR, APPLY BUTTON */}
+        <div
+          style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "20px" }}
+          className="navbar-right-section"
+        >
+          <div className="desktop-links" style={{ display: "flex", gap: "28px", alignItems: "center" }}>
+            <div className="nav-dropdown-trigger">
+              <span
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: isLightMode ? "rgba(28, 29, 31, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                  transition: "color 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+                className="nav-hover-accent"
+              >
+                Programs<span style={{ fontSize: "0.55rem", opacity: 0.7 }}>▼</span>
+              </span>
+              <div className="nav-dropdown-menu">
+                <Link className="nav-dropdown-item" href="/courses/200hr">
+                  {t("course200")}
+                </Link>
+                <Link className="nav-dropdown-item" href="/courses/100hr">
+                  {t("course100")}
+                </Link>
+                <Link className="nav-dropdown-item" href="/courses/300hr">
+                  {t("course300")}
+                </Link>
+                <Link className="nav-dropdown-item" href="/courses/50hr">
+                  Short Courses
+                </Link>
+                <Link className="nav-dropdown-item" href="/retreats">
+                  {t("retreats")}
+                </Link>
+              </div>
+            </div>
+
+            <div className="nav-dropdown-trigger">
+              <span
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: isLightMode ? "rgba(28, 29, 31, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                  transition: "color 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+                className="nav-hover-accent"
+              >
+                Activities<span style={{ fontSize: "0.55rem", opacity: 0.7 }}>▼</span>
+              </span>
+              <div className="nav-dropdown-menu">
+                <Link className="nav-dropdown-item" href="/activities">
+                  {t("activities")}
+                </Link>
+                <Link className="nav-dropdown-item" href="/accommodation">
+                  Accommodation
+                </Link>
+                <Link className="nav-dropdown-item" href="/instructors">
+                  Trainers
+                </Link>
+                <Link className="nav-dropdown-item" href="/gallery">
+                  {t("gallery")}
+                </Link>
+                <Link className="nav-dropdown-item" href="/testimonials">
+                  {t("testimonials")}
+                </Link>
+                <Link className="nav-dropdown-item" href="/blog">
+                  {t("blog")}
+                </Link>
+                <Link className="nav-dropdown-item" href="/#faq">
+                  {t("faq")}
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ position: "relative" }} className="language-selector-dropdown">
+            <LanguageSwitcher isLightMode={isLightMode} />
+          </div>
+
+          <Link
+            className="btn-primary"
+            style={{
+              padding: "10px 24px",
+              fontSize: "0.72rem",
+              whiteSpace: "nowrap",
+              borderRadius: "4px",
+              border: "none",
+            }}
+            href="/apply"
+          >
+            {t("applyNow")}
+          </Link>
+        </div>
+      </nav>
+
+      {/* DRAWER MENU OVERLAY (FULL SCREEN) */}
+      <div
+        className="drawer-overlay"
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 99,
+          background: "#FAF8F5", // Warm premium cream matches reference `--color-bg`
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? "auto" : "none",
+          transform: menuOpen ? "translateY(0)" : "translateY(-10px)",
+          transition: "opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "120px 80px 48px 80px",
+          overflowY: "auto",
+        }}
+      >
+        <div
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "48px", maxWidth: "1100px", width: "100%", margin: "0 auto" }}
+          className="drawer-grid"
+        >
+          {menuColumns.map((column) => (
+            <div key={column.title}>
+              <span
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "0.6875rem",
+                  fontWeight: 600,
+                  color: "#FAF8F5", // will be covered by CSS styles block below using colors from globals.css
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  display: "block",
+                  borderBottom: "1.5px solid rgba(44, 74, 46, 0.1)",
+                  paddingBottom: "10px",
+                  marginBottom: "24px",
+                }}
+                className="drawer-col-title"
+              >
+                {column.title}
+              </span>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "16px", padding: 0, margin: 0 }}>
+                {column.links.map((link) => {
+                  const toUrl = link.href || localizedMenuHref(link.to || "/");
+                  const isExternal = !!link.href;
+                  return (
+                    <li key={link.label}>
+                      {isExternal ? (
+                        <a
+                          style={{
+                            fontFamily: "var(--font-serif)",
+                            fontSize: "1.25rem",
+                            fontWeight: 400,
+                            color: "#1C1D1F",
+                            textDecoration: "none",
+                            transition: "color 0.25s ease",
+                          }}
+                          className="drawer-link-item"
+                          href={toUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          style={{
+                            fontFamily: "var(--font-serif)",
+                            fontSize: "1.25rem",
+                            fontWeight: 400,
+                            color: "#1C1D1F",
+                            textDecoration: "none",
+                            transition: "color 0.25s ease",
+                          }}
+                          className="drawer-link-item"
+                          href={toUrl}
+                        >
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            borderTop: "1px solid rgba(44, 74, 46, 0.1)",
+            paddingTop: "24px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            maxWidth: "1100px",
+            width: "100%",
+            margin: "0 auto",
+          }}
+          className="drawer-footer"
+        >
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: "0.72rem", color: "#6C6E75" }}>
+            © 2026 Bali Yoga Teacher Training Center. All rights reserved.
+          </span>
+          <div style={{ display: "flex", gap: "24px" }}>
+            <Link
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: "0.72rem",
+                color: "#6C6E75",
+                textDecoration: "none",
+                transition: "color 0.2s ease",
+              }}
+              className="drawer-footer-link"
+              href="/terms"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: "0.72rem",
+                color: "#6C6E75",
+                textDecoration: "none",
+                transition: "color 0.2s ease",
+              }}
+              className="drawer-footer-link"
+              href="/terms"
+            >
+              Refund Policy
+            </Link>
+            <Link
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: "0.72rem",
+                color: "#6C6E75",
+                textDecoration: "none",
+                transition: "color 0.2s ease",
+              }}
+              className="drawer-footer-link"
+              href="/terms"
+            >
+              Terms & Conditions
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* EMBEDDED CSS FOR PREMIUM ANIMATIONS AND STYLING */}
+      <style>{`
+        /* Circle wrap logo styling matches reference exactly */
+        .brand-logo-wrap {
+          width: 44px;
+          height: 44px;
+          flex-shrink: 0;
+          border-radius: 50%;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+        }
+        .brand-logo-img {
+          width: 44px !important;
+          height: 44px !important;
+          object-fit: cover !important;
+          display: block;
+          image-rendering: -webkit-optimize-contrast;
+          image-rendering: crisp-edges;
+        }
+        .logo-title {
+          font-family: var(--font-serif);
+          font-size: 1.2rem;
+          font-weight: 400;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          transition: color 0.3s ease;
+        }
+        .logo-subtitle {
+          font-family: var(--font-sans);
+          font-size: 0.52rem;
+          font-weight: 600;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          margin-top: 3px;
+          transition: color 0.3s ease;
+        }
+        
+        .nav-dropdown-trigger {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+          padding: 10px 0;
+        }
+        .nav-dropdown-menu {
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%) translateY(10px);
+          background: rgba(249, 247, 244, 0.98);
+          border: 1px solid rgba(44, 74, 46, 0.1);
+          box-shadow: 0 12px 30px rgba(44, 74, 46, 0.12);
+          border-radius: 8px;
+          min-width: 260px;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+          padding: 10px 0;
+          z-index: 120;
+          display: flex;
+          flex-direction: column;
+          backdrop-filter: blur(20px);
+        }
+        .nav-dropdown-trigger:hover .nav-dropdown-menu {
+          opacity: 1;
+          visibility: visible;
+          transform: translateX(-50%) translateY(0);
+        }
+        .nav-dropdown-item {
+          padding: 10px 20px;
+          font-family: var(--font-sans);
+          font-size: 0.72rem;
+          font-weight: 550;
+          color: #1C1D1F;
+          text-decoration: none;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          text-align: left;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+        }
+        .nav-dropdown-item:hover {
+          background: rgba(44, 74, 46, 0.04);
+          color: hsl(var(--brand, 18 82% 55%)) !important;
+          padding-left: 24px;
+        }
+
+        .drawer-col-title {
+          color: hsl(var(--brand, 18 82% 55%)) !important;
+        }
+        .drawer-link-item:hover {
+          color: hsl(var(--brand, 18 82% 55%)) !important;
+        }
+        .drawer-footer-link:hover {
+          color: #1C1D1F !important;
+        }
+
+        .navbar-brand-logo:hover .brand-logo-img {
+          transform: rotate(15deg) scale(1.05);
+        }
+        .brand-logo-img {
+          transition: transform 0.3s ease;
+        }
+        .nav-hover-accent:hover {
+          color: hsl(var(--brand, 18 82% 55%)) !important;
+        }
+
+        @media (max-width: 1150px) {
+          .desktop-links { display: none !important; }
+          .nav-bar-container { 
+            display: flex !important; 
+            justify-content: space-between !important; 
+            padding: 0 20px !important; 
+            height: 68px !important;
+          }
+          .menu-label-text { display: none !important; }
+          .drawer-overlay { padding: 100px 40px 32px 40px !important; }
+          .drawer-grid { grid-template-columns: 1fr 1fr !important; gap: 36px !important; }
+          .drawer-footer { flex-direction: column !important; gap: 16px !important; align-items: flex-start !important; }
+          
+          .navbar-right-section { 
+            gap: 10px !important; 
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+          }
+          .language-selector-dropdown button {
+            padding: 6px 10px !important;
+            gap: 4px !important;
+          }
+          .language-selector-dropdown button svg {
+            display: none !important;
+          }
+          .navbar-right-section .btn-primary { 
+            padding: 8px 16px !important; 
+            font-size: 0.68rem !important; 
+            letter-spacing: 0.02em !important;
+            font-weight: 600 !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+          }
+          .brand-logo-wrap {
+            width: 36px !important;
+            height: 36px !important;
+          }
+          .brand-logo-img {
+            width: 36px !important;
+            height: 36px !important;
+          }
+          .logo-title {
+            font-size: 0.95rem !important;
+            letter-spacing: 0.05em !important;
+          }
+          .logo-subtitle {
+            display: none !important;
+          }
+          .brand-logo-container {
+            gap: 7px !important;
+          }
+        }
+        
+        @media (max-width: 767px) {
+          .nav-bar-container { 
+            padding: 0 12px !important; 
+          }
+          .drawer-overlay { padding: 90px 24px 32px 24px !important; }
+          .drawer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+          .navbar-right-section { 
+            gap: 6px !important; 
+          }
+          .language-selector-dropdown button {
+            padding: 6px 8px !important;
+          }
+          .navbar-right-section .btn-primary { 
+            padding: 7px 12px !important; 
+            font-size: 0.65rem !important; 
+          }
+        }
+      `}</style>
     </>
   );
 };

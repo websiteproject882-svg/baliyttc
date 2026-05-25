@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Globe } from "lucide-react";
+import { Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams } from "next/navigation";
 import { localeNames, locales, usePathname, useRouter, type Locale } from "@/i18n/routing";
@@ -25,20 +25,50 @@ export const LanguageSwitcher = ({ isLightMode }: { isLightMode: boolean }) => {
     router.push(pathname, { locale: langCode });
   };
 
+  const buttonBorder = isLightMode ? "1px solid rgba(28, 29, 31, 0.2)" : "1px solid rgba(255, 255, 255, 0.4)";
+  const buttonColor = isLightMode ? "#1C1D1F" : "#ffffff";
+
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className={`flex h-9 items-center gap-1.5 rounded-lg px-2.5 transition-all duration-200 ${
-          isLightMode ? "text-gray-700 hover:bg-gray-100" : "text-white/90 hover:bg-white/10"
-        }`}
+        style={{
+          background: "transparent",
+          border: buttonBorder,
+          color: buttonColor,
+          fontSize: "0.6875rem",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          padding: "8px 12px",
+          borderRadius: "4px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          transition: "all 0.2s ease",
+        }}
         aria-label="Select language"
         aria-expanded={isOpen}
       >
-        <Globe size={16} className={isLightMode ? "text-[#F04E23]" : "text-white"} />
-        <span className="text-xs font-bold uppercase tracking-wider">{currentLang.label}</span>
-        <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ flexShrink: 0 }}
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>{currentLang.code}</span>
+        <span style={{ fontSize: "0.5rem", opacity: 0.8 }}>▼</span>
       </button>
 
       <AnimatePresence>
