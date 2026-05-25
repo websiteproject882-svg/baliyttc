@@ -4,6 +4,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { invalidateCache, invalidateCacheByPrefix } from "../../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,9 @@ export async function PATCH(request: NextRequest) {
         approvedAt: data.status === "APPROVED" ? new Date() : null,
       },
     });
+
+    invalidateCacheByPrefix("public_testimonials_cache:");
+    invalidateCache("social_proof_stats_cache");
 
     await writeAuditLog({
       actorUserId: user.id,

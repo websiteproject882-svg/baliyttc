@@ -2,6 +2,7 @@ import { BATCHES, COURSES as STATIC_COURSES } from "@/data/site";
 import type { Locale } from "@/i18n/routing";
 import prisma from "@/lib/prisma";
 import { applyCourseTranslation } from "@/lib/localized-content";
+import { getCached, setCached } from "./runtime-cache";
 
 type CourseWithTranslations<T extends Record<string, unknown>> = T & {
   translations?: unknown;
@@ -70,6 +71,12 @@ export async function getPublicCourses(
   slug?: string,
   onError?: (error: unknown) => void,
 ): Promise<{ courses: PublicCourse[]; fallback?: boolean }> {
+  const cacheKey = `courses:${locale}:${slug || "all"}`;
+  const cached = getCached<{ courses: PublicCourse[]; fallback?: boolean }>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   try {
     const courses = await prisma.course.findMany({
       where: {
@@ -102,9 +109,11 @@ export async function getPublicCourses(
       };
     }
 
-    return {
+    const result = {
       courses: slug ? (courses.map((course) => applyCourseTranslation(course, locale)) as PublicCourse[]) : mergeStaticMissing(courses, locale),
     };
+    setCached(cacheKey, result, 300); // 5 minutes
+    return result;
   } catch (error) {
     onError?.(error);
     return {

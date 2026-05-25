@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { requireSameOrigin, requireSuperAdmin, writeAuditLog } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/rbac";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { invalidateCache } from "../../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -175,6 +176,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    invalidateCache("public_teachers_cache");
+
     await writeAuditLog({
       actorUserId: user.id,
       action: "staff.invited",
@@ -300,6 +303,8 @@ export async function PATCH(request: NextRequest) {
       request,
     });
 
+    invalidateCache("public_teachers_cache");
+
     return jsonWithRequestId({ success: true }, undefined, request);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -370,6 +375,8 @@ export async function PUT(request: NextRequest) {
       newValue: { status: newStatus },
       request,
     });
+
+    invalidateCache("public_teachers_cache");
 
     return jsonWithRequestId({
       success: true,

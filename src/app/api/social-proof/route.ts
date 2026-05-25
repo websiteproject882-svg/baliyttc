@@ -7,9 +7,18 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const { stats } = await getSocialProofStats();
-    return jsonWithRequestId({ stats }, undefined, request);
+    return jsonWithRequestId({ stats }, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   } catch (error) {
     logApiError("socialProof.public", error, request);
-    return jsonWithRequestId({ error: "Failed to fetch social proof" }, { status: 500 }, request);
+    return jsonWithRequestId({ error: "Failed to fetch social proof" }, {
+      status: 500,
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   }
 }

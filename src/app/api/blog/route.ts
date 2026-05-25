@@ -6,6 +6,7 @@ import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
 import { STATIC_BLOG_POSTS } from "@/data/blog";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { getCached, setCached } from "../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 const DEFAULT_LIMIT = 10;
@@ -43,6 +44,16 @@ export async function GET(request: NextRequest) {
     const limit = getPositiveInt(searchParams.get("limit"), DEFAULT_LIMIT, MAX_LIMIT);
     const page = getPositiveInt(searchParams.get("page"), 1);
     const locale = normalizeLocale(searchParams.get("locale"));
+
+    const cacheKey = `public_blog_cache:${locale}:${category || "all"}:${limit}:${page}`;
+    const cached = getCached<any>(cacheKey);
+    if (cached) {
+      return jsonWithRequestId(cached, {
+        headers: {
+          "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+        },
+      }, request);
+    }
 
     const where = publicBlogWhere(locale, category);
 
@@ -106,11 +117,19 @@ export async function GET(request: NextRequest) {
       .slice(0, limit);
     const mergedTotal = Math.max(total, posts.length + staticMissing.length);
 
-    return jsonWithRequestId({
+    const responseBody = {
       posts: mergedPosts,
       locale,
       pagination: { page, limit, total: mergedTotal, totalPages: Math.ceil(mergedTotal / limit) },
-    }, undefined, request);
+    };
+
+    setCached(cacheKey, responseBody, 300); // 5 minutes
+
+    return jsonWithRequestId(responseBody, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   } catch (error) {
     logApiError("blog.list", error, request);
     const { searchParams } = new URL(request.url);
@@ -133,6 +152,10 @@ export async function GET(request: NextRequest) {
         total: filteredPosts.length,
         totalPages: Math.ceil(filteredPosts.length / limit),
       },
-    }, undefined, request);
+    }, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   }
 }

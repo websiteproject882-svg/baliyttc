@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { getCached, setCached } from "../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 const DEFAULT_LIMIT = 6;
@@ -13,9 +14,18 @@ function getLimit(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const limit = getLimit(request);
+  const limit = getLimit(request);
+  const cacheKey = `public_testimonials_cache:${limit}`;
+  const cached = getCached<any>(cacheKey);
+  if (cached) {
+    return jsonWithRequestId(cached, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
+  }
 
+  try {
     const [testimonials, aggregates] = await Promise.all([
       prisma.testimonial.findMany({
         where: { status: "APPROVED" },
@@ -47,7 +57,7 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    return jsonWithRequestId({
+    const responseBody = {
       testimonials: testimonials.map((item) => ({
         id: item.id,
         name: item.student.user.displayName || "Bali YTTC Graduate",
@@ -61,9 +71,22 @@ export async function GET(request: NextRequest) {
         averageRating: Number((aggregates._avg.rating || 0).toFixed(1)),
         totalApproved: aggregates._count.id || 0,
       },
-    }, undefined, request);
+    };
+
+    setCached(cacheKey, responseBody, 300); // 5 minutes
+
+    return jsonWithRequestId(responseBody, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   } catch (error) {
     logApiError("testimonials.public", error, request);
-    return jsonWithRequestId({ error: "Failed to fetch testimonials" }, { status: 500 }, request);
+    return jsonWithRequestId({ error: "Failed to fetch testimonials" }, {
+      status: 500,
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   }
 }

@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { fallbackSocialProofStats, socialProofSchema, type SocialProofStats } from "@/lib/social-proof-shared";
+import { getCached, setCached } from "./runtime-cache";
 
 export { fallbackSocialProofStats, socialProofSchema, type SocialProofStats } from "@/lib/social-proof-shared";
 
@@ -59,14 +60,24 @@ function normalizeDisplayStats(stats: SocialProofStats): SocialProofStats {
 }
 
 export async function getSocialProofStats() {
+  const cacheKey = "social_proof_stats_cache";
+  const cached = getCached<any>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const [computedStats, overrideRow] = await Promise.all([
     getComputedSocialProofStats(),
     prisma.siteSetting.findUnique({ where: { key: SOCIAL_PROOF_SETTINGS_KEY } }),
   ]);
   const parsedOverrides = socialProofSchema.safeParse(overrideRow?.value);
   const displayStats = parsedOverrides.success ? parsedOverrides.data : fallbackSocialProofStats;
-  return {
+  
+  const result = {
     stats: normalizeDisplayStats(displayStats),
     computedStats,
   };
+
+  setCached(cacheKey, result, 120); // 2 minutes
+  return result;
 }

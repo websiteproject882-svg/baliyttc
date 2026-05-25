@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { getCached, setCached } from "../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +15,24 @@ function getLimit(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const limit = getLimit(request);
+  const cacheKey = `public_gallery_cache:${limit}`;
+  const cached = getCached<any>(cacheKey);
+  if (cached) {
+    return jsonWithRequestId(cached, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
+  }
+
   try {
     const images = await prisma.galleryImage.findMany({
       where: {
         OR: [{ status: "ACTIVE" }, { status: "APPROVED" }],
       },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-      take: getLimit(request),
+      take: limit,
       select: {
         id: true,
         url: true,
@@ -31,9 +43,21 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return jsonWithRequestId({ images }, undefined, request);
+    const responseBody = { images };
+    setCached(cacheKey, responseBody, 300); // 5 minutes
+
+    return jsonWithRequestId(responseBody, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   } catch (error) {
     logApiError("gallery.list", error, request);
-    return jsonWithRequestId({ error: "Failed to fetch gallery" }, { status: 500 }, request);
+    return jsonWithRequestId({ error: "Failed to fetch gallery" }, {
+      status: 500,
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   }
 }

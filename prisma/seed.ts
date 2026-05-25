@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({ path: '.env.local' });
+config();
 import { PrismaClient, UserRole, StaffRole, BatchStatus, RoomType, PaymentType, PostStatus } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -38,6 +40,32 @@ async function main() {
       status: 'ACTIVE',
     },
   });
+
+  const customAdminEmail = process.env.ADMIN_EMAIL;
+  if (customAdminEmail && customAdminEmail.trim() !== '' && customAdminEmail.toLowerCase() !== 'admin@baliyttc.com') {
+    const cleanEmail = customAdminEmail.trim().toLowerCase();
+    const customAdmin = await prisma.user.upsert({
+      where: { email: cleanEmail },
+      update: {},
+      create: {
+        email: cleanEmail,
+        displayName: 'Owner Admin',
+        uid: `admin-${cleanEmail.split('@')[0]}`,
+        role: UserRole.ADMIN,
+      },
+    });
+
+    await prisma.staff.upsert({
+      where: { userId: customAdmin.id },
+      update: {},
+      create: {
+        userId: customAdmin.id,
+        role: StaffRole.SUPER_ADMIN,
+        status: 'ACTIVE',
+      },
+    });
+    console.log(`✅ Custom admin user (${cleanEmail}) created in seed`);
+  }
 
   // Test student
   const studentUser = await prisma.user.upsert({

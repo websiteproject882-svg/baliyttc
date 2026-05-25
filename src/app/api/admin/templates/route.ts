@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { invalidateCacheByPrefix } from "../../../../lib/runtime-cache";
 
 // Email templates are stored in the database for admin editing
 // This API provides CRUD operations for templates
@@ -111,6 +112,8 @@ export async function PUT(request: NextRequest) {
         updatedAt: new Date(),
       },
     });
+
+    invalidateCacheByPrefix("public_blog_cache:");
 
     await writeAuditLog({
       actorUserId: user!.id,

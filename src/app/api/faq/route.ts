@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { defaultLocale } from "@/i18n/routing";
 import { normalizeLocale } from "@/lib/localized-content";
+import { getCached, setCached } from "../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,16 @@ function getLimit(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const locale = normalizeLocale(request.nextUrl.searchParams.get("locale"));
+  const limit = getLimit(request);
+  const cacheKey = `public_faq_cache:${locale}:${limit}`;
+  const cached = getCached<any>(cacheKey);
+  if (cached) {
+    return jsonWithRequestId(cached, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
+  }
 
   try {
     let effectiveLocale = locale;
@@ -26,7 +37,7 @@ export async function GET(request: NextRequest) {
         isActive: true,
       },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-      take: getLimit(request),
+      take: limit,
       select: {
         id: true,
         question: true,
@@ -43,7 +54,7 @@ export async function GET(request: NextRequest) {
           isActive: true,
         },
         orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-        take: getLimit(request),
+        take: limit,
         select: {
           id: true,
           question: true,
@@ -53,9 +64,21 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return jsonWithRequestId({ faqs, locale: effectiveLocale }, undefined, request);
+    const responseBody = { faqs, locale: effectiveLocale };
+    setCached(cacheKey, responseBody, 300); // 5 minutes
+
+    return jsonWithRequestId(responseBody, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   } catch (error) {
     logApiError("faq.list", error, request);
-    return jsonWithRequestId({ error: "Failed to fetch FAQs" }, { status: 500 }, request);
+    return jsonWithRequestId({ error: "Failed to fetch FAQs" }, {
+      status: 500,
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   }
 }

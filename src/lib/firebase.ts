@@ -39,8 +39,17 @@ if (typeof window !== "undefined" && isFirebaseConfigured()) {
   auth = getAuth(app);
 }
 
-const canUseLocalAuthFallback = () =>
-  process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
+const isTestEmail = (emailStr?: string) => {
+  if (!emailStr) return false;
+  return ["student@test.com", "teacher@test.com", "admin@baliyttc.com", "owner@baliyttc.com"].includes(emailStr.toLowerCase().trim());
+};
+
+const canUseLocalAuthFallback = (email?: string) => {
+  if (process.env.NODE_ENV === "production") return false;
+  if (!isFirebaseConfigured()) return true;
+  if (email && isTestEmail(email)) return true;
+  return false;
+};
 
 export interface AuthenticatedAppUser {
   uid: string;
@@ -60,7 +69,7 @@ export interface LoginResult {
 // Auth functions
 export async function loginWithEmail(email: string, password: string) {
   // No Firebase configured: use the explicit test-login route to create a server session.
-  if (canUseLocalAuthFallback()) {
+  if (canUseLocalAuthFallback(email)) {
     const response = await fetch("/api/auth/test-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

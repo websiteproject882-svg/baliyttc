@@ -31,7 +31,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const showTestCredentials = process.env.NODE_ENV !== "production" && !isFirebaseConfigured();
+  const showTestCredentials = process.env.NODE_ENV !== "production";
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

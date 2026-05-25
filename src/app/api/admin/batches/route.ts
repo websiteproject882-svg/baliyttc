@@ -4,6 +4,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { invalidateCacheByPrefix } from "../../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -119,6 +120,8 @@ export async function POST(request: NextRequest) {
       include: { course: true, accommodation: true },
     });
 
+    invalidateCacheByPrefix("courses:");
+
     await writeAuditLog({
       actorUserId: user.id,
       action: "batch.created",
@@ -188,6 +191,8 @@ export async function PATCH(request: NextRequest) {
       include: { course: true, accommodation: true },
     });
 
+    invalidateCacheByPrefix("courses:");
+
     await writeAuditLog({
       actorUserId: user.id,
       action: "batch.updated",
@@ -236,6 +241,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.batch.delete({ where: { id } });
+
+    invalidateCacheByPrefix("courses:");
 
     await writeAuditLog({
       actorUserId: user.id,

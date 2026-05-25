@@ -3,6 +3,7 @@ import { StaffRole, StaffStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { TEACHERS as STATIC_TEACHERS } from "@/data/site";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { getCached, setCached } from "../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -14,6 +15,16 @@ const staticBySlug = new Map(STATIC_TEACHERS.map((teacher) => [slugify(teacher.n
 
 export async function GET(request: NextRequest) {
   try {
+    const cacheKey = "public_teachers_cache";
+    const cached = getCached<any>(cacheKey);
+    if (cached) {
+      return jsonWithRequestId(cached, {
+        headers: {
+          "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+        },
+      }, request);
+    }
+
     const [teachers, staffTeachers] = await Promise.all([
       prisma.teacher.findMany({
         where: { isActive: true },
@@ -97,9 +108,16 @@ export async function GET(request: NextRequest) {
       ];
     });
 
-    return jsonWithRequestId({
+    const responseBody = {
       teachers: [...mappedTeachers, ...staffBackedTeachers],
-    }, undefined, request);
+    };
+    setCached(cacheKey, responseBody, 300); // 5 minutes
+
+    return jsonWithRequestId(responseBody, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   } catch (error) {
     logApiError("teachers.public", error, request);
     return jsonWithRequestId({
@@ -115,6 +133,10 @@ export async function GET(request: NextRequest) {
         isActive: true,
       })),
       fallback: true,
-    }, undefined, request);
+    }, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   }
 }

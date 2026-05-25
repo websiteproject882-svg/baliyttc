@@ -4,6 +4,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
+import { invalidateCacheByPrefix } from "../../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -118,6 +119,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    invalidateCacheByPrefix("public_blog_cache:");
+
     await writeAuditLog({
       actorUserId: user.id,
       action: "blog.created",
@@ -196,6 +199,8 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
+    invalidateCacheByPrefix("public_blog_cache:");
+
     await writeAuditLog({
       actorUserId: user.id,
       action: "blog.updated",
@@ -246,6 +251,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.blogPost.delete({ where: { id } });
+
+    invalidateCacheByPrefix("public_blog_cache:");
 
     await writeAuditLog({
       actorUserId: user.id,

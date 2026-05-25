@@ -29,7 +29,11 @@ export async function GET(request: NextRequest) {
       courses: result.courses,
       locale,
       ...(result.fallback ? { fallback: true } : {}),
-    }, undefined, request);
+    }, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    }, request);
   } catch (error) {
     logApiError("courses.public", error, request, { slug, locale });
     return jsonWithRequestId({

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { getCached, setCached, invalidateCache } from "./runtime-cache";
 
 export const SITE_SETTINGS_KEY = "site_settings";
 export const PAYMENT_PROVIDERS = ["paypal", "razorpay", "bank_transfer"] as const;
@@ -196,12 +197,20 @@ function deepMergeSettings(value: unknown): SiteSettings {
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
+  const cacheKey = "site_settings_cache";
+  const cached = getCached<SiteSettings>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   try {
     const record = await prisma.siteSetting.findUnique({
       where: { key: SITE_SETTINGS_KEY },
     });
 
-    return deepMergeSettings(record?.value);
+    const settings = deepMergeSettings(record?.value);
+    setCached(cacheKey, settings, 300); // 5 minutes
+    return settings;
   } catch (error) {
     console.error("Failed to load site settings", error);
     return defaultSiteSettings;
@@ -216,6 +225,8 @@ export async function saveSiteSettings(input: SiteSettings): Promise<SiteSetting
     update: { value: settings },
     create: { key: SITE_SETTINGS_KEY, value: settings },
   });
+
+  invalidateCache("site_settings_cache");
 
   return settings;
 }

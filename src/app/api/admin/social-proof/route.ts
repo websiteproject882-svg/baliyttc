@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { jsonWithRequestId, logApiError } from "@/lib/security";
 import { SOCIAL_PROOF_SETTINGS_KEY, getSocialProofStats, socialProofSchema } from "@/lib/social-proof";
+import { invalidateCache } from "../../../../lib/runtime-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,8 @@ export async function PATCH(request: NextRequest) {
       create: { key: SOCIAL_PROOF_SETTINGS_KEY, value: stats },
       update: { value: stats },
     });
+
+    invalidateCache("social_proof_stats_cache");
 
     await writeAuditLog({
       actorUserId: user!.id,
