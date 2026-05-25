@@ -20,6 +20,10 @@ function getProjectId() {
   return cleanEnv(process.env.FIREBASE_PROJECT_ID) || cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
 }
 
+function getClientProjectId() {
+  return cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) || cleanEnv(process.env.FIREBASE_PROJECT_ID);
+}
+
 function getPrivateKey() {
   const privateKey = cleanEnv(process.env.FIREBASE_PRIVATE_KEY)?.replace(/\\n/g, '\n');
   if (
@@ -39,7 +43,7 @@ function getFirebaseAdminApp() {
   }
 
   const privateKey = getPrivateKey();
-  const projectId = getProjectId();
+  const projectId = getClientProjectId();
   const clientEmail = cleanEnv(process.env.FIREBASE_CLIENT_EMAIL);
   const isConfigured =
     projectId &&
