@@ -125,8 +125,27 @@ function assert(condition, message) {
   }
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url, init, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await fetch(url, init);
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) {
+        await sleep(500 * attempt);
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function fetchText(path, init) {
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetchWithRetry(`${baseUrl}${path}`, {
     redirect: "manual",
     ...init,
   });
@@ -182,7 +201,7 @@ async function checkPrivatePage(page) {
 }
 
 async function checkProtectedPage(page) {
-  const response = await fetch(`${baseUrl}${page.path}`, { redirect: "manual" });
+  const response = await fetchWithRetry(`${baseUrl}${page.path}`, { redirect: "manual" });
   assert([302, 307, 308].includes(response.status), `${page.path} should redirect, got ${response.status}`);
   assertSecurityHeaders(response, page.path);
   const location = response.headers.get("location") || "";
@@ -191,7 +210,7 @@ async function checkProtectedPage(page) {
 }
 
 async function checkProtectedApi(path) {
-  const response = await fetch(`${baseUrl}${path}`, { redirect: "manual" });
+  const response = await fetchWithRetry(`${baseUrl}${path}`, { redirect: "manual" });
   assert(response.status === 401, `${path} should require auth, got ${response.status}`);
   assertSecurityHeaders(response, path);
   const body = await response.json();
@@ -200,7 +219,7 @@ async function checkProtectedApi(path) {
 }
 
 async function checkSameOriginApi() {
-  const response = await fetch(`${baseUrl}/api/auth/login`, {
+  const response = await fetchWithRetry(`${baseUrl}/api/auth/login`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -214,7 +233,7 @@ async function checkSameOriginApi() {
 }
 
 async function checkPublicJsonApi(path, validate, options = {}) {
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetchWithRetry(`${baseUrl}${path}`, {
     headers: {
       "x-request-id": `smoke-${path.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`,
     },
