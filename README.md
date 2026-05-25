@@ -117,15 +117,19 @@ Disable test login before final client handoff unless it is explicitly needed fo
 ## Useful Commands
 
 ```bash
+npm run qa:full
 npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run smoke:prod
 npm run db:migrate:deploy
 npm run db:seed
 ```
 
-CI runs lint, typecheck, tests, and build on `main`/`develop` pushes and pull requests. The CI build uses non-secret demo env values only; real runtime secrets must be set in Vercel, Railway, or the VPS `.env.production`.
+`qa:full` is the strongest local check: typecheck, lint, unit tests, Prisma schema validation, production build, and live production smoke.
+
+CI runs lint, typecheck, tests, and build on `main`/`develop` pushes and pull requests. Manual Vercel deployments also smoke-test the deployed URL before the workflow finishes. The CI build uses non-secret demo env values only; real runtime secrets must be set in Vercel, Railway, or the VPS `.env.production`.
 
 ## Admin And Operations
 
