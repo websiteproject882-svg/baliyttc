@@ -1,17 +1,18 @@
 "use client";
 
-import { Reveal } from "@/components/shared/Reveal";
 import { IMG } from "@/data/site";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
 import { useRef } from "react";
 import { useHomeCopy } from "@/lib/use-home-copy";
+import { Link } from "@/i18n/routing";
 
 const whyImages = [IMG.graduation, IMG.classMain, IMG.certified, IMG.course100, IMG.templePurification, IMG.pranayama];
 
 export const Manifesto = () => {
   const copy = useHomeCopy();
-  const whyCards = copy.manifesto.cards.map((card, index) => ({ ...card, image: whyImages[index] || IMG.classMain }));
+  const whyCards = copy.manifesto.cards.map((card, index) => ({
+    ...card,
+    image: whyImages[index] || IMG.classMain,
+  }));
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const scrollSlider = (direction: "prev" | "next") => {
@@ -19,79 +20,276 @@ export const Manifesto = () => {
     if (!node) return;
 
     node.scrollBy({
-      left: direction === "next" ? 310 : -310,
+      left: direction === "next" ? 382 : -382, // matches card width + gap
       behavior: "smooth",
     });
   };
 
   return (
-    <section id="why-us" className="relative overflow-hidden border-y border-stone-200 bg-white py-8 md:py-10">
-      <div className="container-edit">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="label-caps text-sage">{copy.manifesto.eyebrow}</p>
-            <div className="mx-auto my-5 h-px w-16 bg-brand" />
-            <h2 className="display-lg text-charcoal">
-              {copy.manifesto.title} <em className="font-serif italic text-brand">{copy.manifesto.accent}</em>
-            </h2>
-            <p className="body-lg mx-auto mt-5 max-w-xl">{copy.manifesto.description}</p>
-          </div>
-        </Reveal>
+    <section
+      className="section"
+      id="why-us"
+      style={{
+        background: "var(--color-surface, #F3EDE6)",
+        borderTop: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
+        borderBottom: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
+        padding: "100px 0",
+      }}
+    >
+      <div className="container-wide">
+        {/* Section Header */}
+        <div style={{ textAlign: "center", marginBottom: "64px" }} className="section-header centered">
+          <p className="label-caps" style={{ color: "hsl(var(--ink-muted))" }}>
+            {copy.manifesto.eyebrow}
+          </p>
+          <div
+            className="divider"
+            style={{
+              width: "60px",
+              height: "1px",
+              background: "rgba(44, 74, 46, 0.15)",
+              margin: "16px auto 24px",
+            }}
+          ></div>
+          <h2 className="display-lg" style={{ color: "hsl(var(--ink))", marginBottom: "16px" }}>
+            {copy.manifesto.title} <em style={{ fontStyle: "italic", fontFamily: "var(--font-serif)" }}>{copy.manifesto.accent}</em>
+          </h2>
+          <p
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontSize: "1rem",
+              color: "hsl(var(--ink-muted))",
+              maxWidth: "600px",
+              margin: "0 auto",
+              lineHeight: 1.6,
+            }}
+          >
+            {copy.manifesto.description}
+          </p>
+        </div>
 
-        <div className="relative mt-8 md:mt-10">
+        {/* Card Slider */}
+        <div style={{ position: "relative" }}>
+          {/* Scroll Left Button */}
           <button
             type="button"
             onClick={() => scrollSlider("prev")}
-            className="absolute left-0 top-1/2 z-20 hidden h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-charcoal shadow-[0_10px_28px_rgba(35,35,30,0.14)] transition hover:border-sage hover:text-sage md:inline-flex"
-            aria-label={copy.manifesto.previous}
+            style={{
+              position: "absolute",
+              left: "-22px",
+              top: "230px",
+              transform: "translateY(-50%)",
+              zIndex: 10,
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              border: "1px solid rgba(44, 74, 46, 0.1)",
+              background: "#FAF8F5",
+              color: "#1C1D1F",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.1rem",
+              transition: "all 0.25s ease",
+              boxShadow: "0 4px 12px rgba(20,26,21,0.08)",
+            }}
+            className="slider-side-arrow left-arrow"
+            aria-label="Scroll left"
           >
-            <ArrowLeft className="h-4 w-4" />
+            ⟨
           </button>
 
-          <div
-            ref={sliderRef}
-            className="-mx-4 flex snap-x snap-proximity gap-5 overflow-x-auto overscroll-y-auto scroll-smooth px-4 pb-5 [scrollbar-width:none] [touch-action:pan-x_pan-y] md:gap-6 md:px-1 [&::-webkit-scrollbar]:hidden"
-          >
-            {whyCards.map((card, index) => (
-              <motion.article
-                key={card.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-                className="group relative flex h-[382px] w-[268px] shrink-0 snap-center flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_18px_50px_rgba(35,35,30,0.13)] md:h-[356px] md:w-[280px]"
-              >
-                <div className="relative h-[176px] shrink-0 overflow-hidden md:h-[168px]">
-                  <img
-                    src={card.image}
-                    alt={card.title}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10" />
-                  <span className="label-caps absolute left-4 top-4 rounded-[7px] bg-sage px-3 py-1.5 text-white shadow-lg">
-                    {card.eyebrow}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col p-4 md:p-5">
-                  <h3 className="display-sm text-charcoal">{card.title}</h3>
-                  <p className="mt-3 text-xs leading-6 text-ink-soft">{card.desc}</p>
-                </div>
-              </motion.article>
-            ))}
-          </div>
-
+          {/* Scroll Right Button */}
           <button
             type="button"
             onClick={() => scrollSlider("next")}
-            className="absolute right-0 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-charcoal shadow-[0_10px_28px_rgba(35,35,30,0.14)] transition hover:border-sage hover:text-sage md:inline-flex"
-            aria-label={copy.manifesto.next}
+            style={{
+              position: "absolute",
+              right: "-22px",
+              top: "230px",
+              transform: "translateY(-50%)",
+              zIndex: 10,
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              border: "1px solid rgba(44, 74, 46, 0.1)",
+              background: "#FAF8F5",
+              color: "#1C1D1F",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.1rem",
+              transition: "all 0.25s ease",
+              boxShadow: "0 4px 12px rgba(20,26,21,0.08)",
+            }}
+            className="slider-side-arrow right-arrow"
+            aria-label="Scroll right"
           >
-            <ArrowRight className="h-4 w-4" />
+            ⟩
           </button>
+
+          {/* Slider list */}
+          <div
+            ref={sliderRef}
+            id="why-us-slider"
+            className="scroll-slider"
+            style={{
+              display: "flex",
+              gap: "32px",
+              overflowX: "auto",
+              paddingBottom: "32px",
+              scrollBehavior: "smooth",
+            }}
+          >
+            {whyCards.map((card) => (
+              <div
+                key={card.title}
+                style={{
+                  width: "350px",
+                  flexShrink: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  background: "transparent",
+                  border: "none",
+                  boxShadow: "none",
+                  transition: "transform 0.3s ease",
+                }}
+                className="why-card"
+              >
+                <div
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    height: "460px",
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                  }}
+                  className="why-img-container"
+                >
+                  <img
+                    alt={card.title}
+                    src={card.image}
+                    style={{
+                      position: "absolute",
+                      height: "100%",
+                      width: "100%",
+                      left: 0,
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      objectFit: "cover",
+                      color: "transparent",
+                      transition: "transform 0.5s ease",
+                    }}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div style={{ padding: "16px 4px 8px 4px" }}>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: "0.6875rem",
+                      fontWeight: 600,
+                      color: "hsl(var(--brand))",
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      margin: "0 0 6px 0",
+                    }}
+                  >
+                    {card.eyebrow}
+                  </p>
+                  <h4
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontSize: "1.35rem",
+                      color: "hsl(var(--ink))",
+                      margin: "0 0 8px 0",
+                      fontWeight: 400,
+                      lineHeight: 1.25,
+                    }}
+                  >
+                    {card.title}
+                  </h4>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: "0.8125rem",
+                      color: "hsl(var(--ink-muted))",
+                      lineHeight: 1.55,
+                      margin: 0,
+                    }}
+                  >
+                    {card.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer Link */}
+        <div style={{ textAlign: "center", marginTop: "48px" }}>
+          <Link
+            className="btn-outline"
+            style={{
+              display: "inline-block",
+              border: "2px solid hsl(var(--brand))",
+              color: "hsl(var(--brand))",
+              background: "transparent",
+              borderRadius: "4px",
+              padding: "10px 24px",
+              fontSize: "0.8125rem",
+              textTransform: "uppercase",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              textDecoration: "none",
+            }}
+            href="/about"
+          >
+            Explore Our Story →
+          </Link>
         </div>
       </div>
+
+      <style>{`
+        .why-card:hover {
+          transform: translateY(-3px);
+        }
+        .why-card:hover img {
+          transform: scale(1.04);
+        }
+        .slider-side-arrow:hover {
+          background: hsl(var(--brand)) !important;
+          color: #fff !important;
+          border-color: hsl(var(--brand)) !important;
+          transform: translateY(-50%) scale(1.05) !important;
+        }
+        
+        .scroll-slider {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        .scroll-slider::-webkit-scrollbar {
+          display: none; /* Chrome, Safari and Opera */
+        }
+
+        @media (max-width: 767px) {
+          .slider-side-arrow {
+            width: 36px !important;
+            height: 36px !important;
+            font-size: 0.95rem !important;
+          }
+          .left-arrow {
+            left: 8px !important;
+          }
+          .right-arrow {
+            right: 8px !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };

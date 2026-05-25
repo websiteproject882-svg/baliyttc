@@ -1,156 +1,135 @@
 "use client";
 
-import { Star } from "lucide-react";
-import { IMG } from "@/data/site";
-import { Link } from "@/i18n/routing";
 import { useHomeCopy } from "@/lib/use-home-copy";
-import { useSocialProof } from "@/lib/use-social-proof";
-import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
-
-type AuthorityCard = {
-  title: string;
-  subtitle: string;
-  image?: string;
-  icon?: string;
-  tone?: string;
-  href?: string;
-  internalHref?: string;
-};
-
-const authorityCards: AuthorityCard[] = [
-  {
-    title: "Yoga Alliance",
-    subtitle: "RYS 200 Registry",
-    image: IMG.rys200,
-  },
-  {
-    title: "Yoga Alliance",
-    subtitle: "RYS 300 Registry",
-    image: IMG.yogaAlliance,
-  },
-  {
-    title: "Trustpilot",
-    subtitle: "4.9 / 5 - Excellent",
-    icon: "star",
-    tone: "text-emerald-500",
-  },
-  {
-    title: "TripAdvisor",
-    subtitle: "Travellers' Choice",
-    image: IMG.tripadvisor,
-  },
-  {
-    title: "Google Reviews",
-    subtitle: "4.9 - 600+ Reviews",
-    icon: "G",
-    tone: "text-[#4285F4]",
-  },
-];
 
 export const TrustStrip = () => {
   const copy = useHomeCopy();
-  const { ratingLabel, reviewLabel } = useSocialProof();
-  const siteSettings = usePublicSiteSettings();
-  const cards = authorityCards.map((card) => {
-    if (card.title === "Trustpilot") return { ...card, subtitle: `${ratingLabel} - Excellent` };
-    if (card.title === "Google Reviews") {
-      return { ...card, subtitle: reviewLabel, href: siteSettings.reviews.googleReviewUrl };
-    }
-    if (card.title === "TripAdvisor") {
-      return { ...card, href: siteSettings.reviews.tripadvisorReviewUrl };
-    }
-    if (card.title === "Yoga Alliance") {
-      return { ...card, internalHref: "/yoga-alliance" };
-    }
-    return card;
-  });
-  const marqueeCards = [...cards, ...cards];
+
+  const stats = [
+    { value: "Yoga Alliance", label: "RYS 200 & 300" },
+    { value: "2,500+", label: "Graduates" },
+    { value: "4.9 / 5", label: "Average Rating" },
+    { value: "Since 2016", label: "10 Years Teaching" },
+    { value: "70+", label: "Nationalities" },
+    { value: "98%", label: "Would Recommend" },
+  ];
+
+  // Duplicate for seamless infinite marquee on mobile
+  const marqueeStats = [...stats, ...stats];
 
   return (
-    <section id="trust" className="overflow-hidden border-y border-stone-200 bg-white py-5 md:py-6">
-      <div className="container-edit">
-        <div className="mb-4 text-center">
-          <p className="label-caps text-ink-muted">
-            {copy.trust.recognised}
-          </p>
-        </div>
-
-        <div className="-mx-4 overflow-hidden px-4">
-          <div className="flex w-max gap-4 animate-marquee hover:[animation-play-state:paused] md:gap-5">
-            {marqueeCards.map((card, index) => {
-              const cardClass =
-                "flex min-h-[98px] w-[190px] shrink-0 flex-col items-center justify-center rounded-[10px] border border-stone-200 bg-[#fcfaf7] px-4 py-3 text-center shadow-[0_10px_24px_rgba(35,35,30,0.04)] transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_16px_34px_rgba(35,35,30,0.09)] md:min-h-[108px] md:w-[220px]";
-              const content = (
-                <>
-                  <div className="mb-2 flex h-9 w-10 items-center justify-center">
-                    {card.image ? (
-                      <img
-                        src={card.image}
-                        alt={card.title}
-                        className="max-h-9 max-w-[86px] object-contain"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : card.icon === "G" ? (
-                      <span className="number-value text-[#4285F4]">G</span>
-                    ) : (
-                      <span className={`flex h-9 w-9 items-center justify-center rounded-full ${card.tone || "text-sage"}`}>
-                        <Star className="h-8 w-8 fill-current" />
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="display-sm text-charcoal">{card.title}</h3>
-                  <p className="mt-1 text-xs leading-5 text-ink-soft md:text-sm">{card.subtitle}</p>
-                </>
-              );
-
-              if (card.href) {
-                return (
-                  <a
-                    key={`${card.title}-${card.subtitle}-${index}`}
-                    href={card.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cardClass}
-                    aria-label={`Open ${card.title}`}
-                  >
-                    {content}
-                  </a>
-                );
-              }
-
-              if (card.internalHref) {
-                return (
-                  <Link
-                    key={`${card.title}-${card.subtitle}-${index}`}
-                    href={card.internalHref}
-                    className={cardClass}
-                    aria-label={`Open ${card.title}`}
-                  >
-                    {content}
-                  </Link>
-                );
-              }
-
-              return (
-                <div key={`${card.title}-${card.subtitle}-${index}`} className={cardClass}>
-                  {content}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mt-4 text-center">
-          <Link
-            href="/yoga-alliance"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-sage transition-colors hover:text-brand"
+    <section
+      style={{
+        borderBottom: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
+        borderTop: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
+        background: "var(--color-surface, #F3EDE6)",
+        padding: 0,
+        overflow: "hidden",
+      }}
+    >
+      {/* DESKTOP VIEW: divided flex bar */}
+      <div
+        className="container hidden md:flex"
+        style={{
+          justifyContent: "space-between",
+          alignItems: "center",
+          height: "72px",
+          margin: "0 auto",
+          width: "100%",
+          maxWidth: "1280px",
+          padding: "0 40px",
+        }}
+      >
+        {stats.map((stat, index) => (
+          <div
+            key={index}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "2px",
+              borderRight: index === stats.length - 1 ? "none" : "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
+              flex: 1,
+              padding: "0 16px",
+            }}
           >
-            {copy.trust.certificationMeaning}
-            <span aria-hidden>&rarr;</span>
-          </Link>
+            <span
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontSize: "1.125rem",
+                fontWeight: 500,
+                color: "hsl(var(--brand))",
+                lineHeight: 1,
+              }}
+            >
+              {stat.value}
+            </span>
+            <span className="label-caps" style={{ fontSize: "0.65rem", letterSpacing: "0.08em" }}>
+              {stat.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* MOBILE/TABLET VIEW: infinite marquee scroll */}
+      <div
+        className="flex md:hidden"
+        style={{
+          overflow: "hidden",
+          height: "60px",
+          position: "relative",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: 0,
+            animation: "marquee-stats 20s linear infinite",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {marqueeStats.map((stat, index) => (
+            <div
+              key={index}
+              style={{
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "2px",
+                minWidth: "140px",
+                padding: "0 16px",
+                borderRight: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
+                height: "60px",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: "1rem",
+                  fontWeight: 500,
+                  color: "hsl(var(--brand))",
+                  lineHeight: 1,
+                }}
+              >
+                {stat.value}
+              </span>
+              <span className="label-caps" style={{ fontSize: "0.6rem", letterSpacing: "0.08em" }}>
+                {stat.label}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes marquee-stats {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </section>
   );
 };
