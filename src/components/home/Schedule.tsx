@@ -7,15 +7,95 @@ import { ApplyModal } from "@/components/shared/ApplyModal";
 import { motion } from "framer-motion";
 import { CalendarDays, Loader2, ShieldCheck } from "lucide-react";
 import { useHomeCopy } from "@/lib/use-home-copy";
+import { useState, useEffect } from "react";
 
 export const Schedule = () => {
   const copy = useHomeCopy();
-  const batches = FALLBACK_BATCHES.map((batch, index) => ({
-    ...batch,
-    course: copy.schedule.batchCourses[index] || batch.course,
-    status: copy.schedule.batchStatuses[index] || batch.status,
-  }));
-  const loading = false;
+  const [batches, setBatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Hook for locale
+  const locale = "en"; // Next-intl default or dynamic if supported
+
+  useEffect(() => {
+    let active = true;
+
+    async function fetchBatches() {
+      try {
+        const response = await fetch(`/api/courses?locale=${encodeURIComponent(locale)}`);
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+        if (!active) return;
+
+        if (Array.isArray(data?.courses)) {
+          const list: any[] = [];
+          data.courses.forEach((course: any) => {
+            if (Array.isArray(course.batches)) {
+              course.batches.forEach((batch: any) => {
+                const startDate = new Date(batch.startDate);
+                const endDate = new Date(batch.endDate);
+
+                const startStr = startDate.toLocaleDateString(locale, { month: "short", day: "numeric" });
+                const endStr = endDate.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
+
+                const seatsLeft = Math.max(0, batch.capacity - batch.enrolled);
+                const isFull = batch.status === "FULL" || seatsLeft === 0;
+
+                const statusLabel = isFull
+                  ? "Full"
+                  : seatsLeft <= 4
+                  ? `Only ${seatsLeft} seats left`
+                  : seatsLeft <= 6
+                  ? `${seatsLeft} seats left`
+                  : "Open";
+
+                const isEarlyBirdActive =
+                  batch.priceEarlyBird &&
+                  batch.earlyBirdDeadline &&
+                  new Date() < new Date(batch.earlyBirdDeadline);
+
+                const priceValue = isEarlyBirdActive ? batch.priceEarlyBird : batch.priceRegular;
+
+                list.push({
+                  course: course.name,
+                  start: startStr,
+                  end: endStr,
+                  price: `EUR ${priceValue}`,
+                  status: statusLabel,
+                  urgent: seatsLeft <= 4 && !isFull,
+                });
+              });
+            }
+          });
+
+          if (list.length > 0) {
+            setBatches(list.slice(0, 9)); // Show up to 9 active batches
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load dynamic schedule:", err);
+      }
+
+      // Fallback
+      if (active) {
+        const mapped = FALLBACK_BATCHES.map((batch, index) => ({
+          ...batch,
+          course: copy.schedule.batchCourses[index] || batch.course,
+          status: copy.schedule.batchStatuses[index] || batch.status,
+        }));
+        setBatches(mapped);
+        setLoading(false);
+      }
+    }
+
+    void fetchBatches();
+
+    return () => {
+      active = false;
+    };
+  }, [copy.schedule.batchCourses, copy.schedule.batchStatuses]);
 
   return (
     <section id="schedule" className="border-t border-gray-100 bg-[#FAFAFA] py-12 md:py-16">

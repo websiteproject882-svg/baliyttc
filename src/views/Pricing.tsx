@@ -1,5 +1,6 @@
 "use client";
 import { Link } from "@/i18n/routing";
+import { useState, useEffect } from "react";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { ApplyModal } from "@/components/shared/ApplyModal";
@@ -225,6 +226,76 @@ const pricingFaqs = [
 
 const Pricing = () => {
   const siteSettings = usePublicSiteSettings();
+  const [courses, setCourses] = useState(coursePricing);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPricing() {
+      try {
+        const response = await fetch("/api/courses?locale=en");
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!active) return;
+
+        if (Array.isArray(data.courses) && data.courses.length > 0) {
+          const updated = coursePricing.map((staticCourse) => {
+            const apiCourse = data.courses.find((c: any) => c.slug === staticCourse.slug);
+            if (!apiCourse) return staticCourse;
+
+            const mappedBatches = (apiCourse.batches || []).map((batch: any) => {
+              const startDate = new Date(batch.startDate);
+              const endDate = new Date(batch.endDate);
+              const locale = "en";
+
+              const startStr = startDate.toLocaleDateString(locale, { month: "short", day: "numeric" });
+              const endStr = endDate.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
+              const dateRange = `${startStr} - ${endStr}`;
+
+              const seatsLeft = Math.max(0, batch.capacity - batch.enrolled);
+              const isFull = batch.status === "FULL" || seatsLeft === 0;
+
+              const isEarlyBirdActive =
+                batch.priceEarlyBird &&
+                batch.earlyBirdDeadline &&
+                new Date() < new Date(batch.earlyBirdDeadline);
+
+              const priceValue = isEarlyBirdActive ? batch.priceEarlyBird : batch.priceRegular;
+              const deadlineStr = batch.earlyBirdDeadline
+                ? new Date(batch.earlyBirdDeadline).toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" })
+                : "";
+
+              return {
+                date: dateRange,
+                price: priceValue,
+                seats: seatsLeft,
+                earlyBird: isEarlyBirdActive,
+                earlyBirdDeadline: deadlineStr,
+                urgent: seatsLeft <= 4 && !isFull,
+              };
+            });
+
+            return {
+              ...staticCourse,
+              priceFrom: apiCourse.priceFrom || staticCourse.priceFrom,
+              regularPrice: apiCourse.priceFull || staticCourse.regularPrice,
+              batches: mappedBatches.length > 0 ? mappedBatches : staticCourse.batches,
+            };
+          });
+
+          setCourses(updated);
+        }
+      } catch (err) {
+        console.error("Failed to load dynamic pricing:", err);
+      }
+    }
+
+    void loadPricing();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <>
@@ -295,7 +366,7 @@ const Pricing = () => {
             sub="All prices in EUR. USD pricing available at checkout. Early bird discounts automatically applied where applicable."
           />
           <div className="mt-14 space-y-16">
-            {coursePricing.map((course, index) => (
+            {courses.map((course, index) => (
               <Reveal key={course.slug}>
                 <div className={`grid lg:grid-cols-12 gap-8 items-start ${index % 2 === 1 ? "lg:flex-row-reverse" : ""}`}>
                   {/* Left - Course Info */}

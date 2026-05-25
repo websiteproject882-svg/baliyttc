@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { requirePermission, requireSameOrigin, writeAuditLog } from "@/lib/authz";
 import { sendEmail } from "@/lib/resend";
 import { applyDeprecationHeaders, getClientIp, jsonWithRequestId, LEGACY_API_SUNSET, logApiError, logLegacyRouteAccess, rateLimit } from "@/lib/security";
-import { buildPublicUrl } from "@/lib/public-url";
+import { buildPublicUrl } from "../../../lib/public-url";
 
 export const dynamic = "force-dynamic";
 
