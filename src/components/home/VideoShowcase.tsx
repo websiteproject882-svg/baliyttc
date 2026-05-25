@@ -104,10 +104,58 @@ export const VideoShowcase = () => {
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="mx-auto mb-8 max-w-5xl overflow-hidden rounded-2xl bg-[#f4eee6] shadow-[0_14px_34px_-16px_rgba(0,0,0,0.18)] ring-1 ring-gray-900/5 md:mb-10"
+            className="group relative mx-auto mb-10 max-w-5xl overflow-hidden rounded-2xl border border-stone-200/80 bg-[#FAF9F6] shadow-[0_20px_50px_rgba(0,0,0,0.12)] md:mb-14"
           >
-            <div className="relative aspect-[3/2] overflow-hidden">
-              <img src={CAMPUS_IMAGE} alt={copy.video.campusAlt} className="h-full w-full object-contain" />
+            <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[3/2] md:aspect-[16/10]">
+              <video
+                className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-[1.02]"
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls={false}
+                poster={CAMPUS_IMAGE}
+              >
+                <source src="https://pay.houseofom.com/hom.mp4" type="video/mp4" />
+                <img src={CAMPUS_IMAGE} alt={copy.video.campusAlt} className="h-full w-full object-cover" />
+              </video>
+              
+              {/* Overlay Canvas Frame Border */}
+              <div className="absolute inset-0 pointer-events-none border border-white/20 rounded-2xl" />
+
+              {/* Shadow Overlay Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 pointer-events-none" />
+
+              {/* Floating Majestic Canvas Info Card */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                viewport={{ once: true }}
+                className="absolute bottom-5 left-5 right-5 z-20 rounded-xl border border-stone-200/40 bg-white/92 p-5 backdrop-blur-md transition-all duration-300 md:bottom-8 md:left-8 md:right-auto md:max-w-md md:p-6"
+                style={{
+                  boxShadow: "1px -8px 25px 2px rgba(21, 14, 112, 0.28), 0 12px 30px rgba(0, 0, 0, 0.08)"
+                }}
+              >
+                <div className="flex flex-col gap-2.5 text-left">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#F04E23]">
+                    {copy.video.eyebrow || "Bali Sanctuary"}
+                  </span>
+                  <h4 className="font-serif text-xl font-semibold leading-tight text-gray-900 md:text-2xl">
+                    {copy.video.campusAlt || "Sanctuary of Transformation"}
+                  </h4>
+                  <div className="h-px w-12 bg-stone-200" />
+                  <p className="text-xs leading-relaxed text-gray-600 md:text-sm">
+                    {copy.video.subtitle}
+                  </p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                      Yoga Alliance Certified Campus
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
         </Reveal>
