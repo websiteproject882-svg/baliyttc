@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
 import { ArrowRight, Quote, Star, Video } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
+import { getPageCopy } from "@/lib/page-i18n";
 
 const heroImage =
   "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1080/h:1080/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/200-hour-Yoga-Teacher-Training-in-bali-1.jpg";
@@ -126,6 +128,8 @@ const videoStories = [
 ];
 
 export default function TestimonialsPage({ initialTestimonials = [] }: { initialTestimonials?: PublicTestimonial[] }) {
+  const locale = useLocale();
+  const copy = getPageCopy(locale, "pageHero");
   const publicReviews =
     initialTestimonials.length > 0
       ? initialTestimonials.map((item) => ({
@@ -147,17 +151,17 @@ export default function TestimonialsPage({ initialTestimonials = [] }: { initial
         </div>
         <div className="container-wide relative">
           <Reveal>
-            <p className="label-caps mb-5 text-brand-light">Student Testimonials</p>
+            <p className="label-caps mb-5 text-brand-light">{copy.testimonialsEyebrow}</p>
             <h1 className="display-xl max-w-4xl">
-              Real stories from Bali YTTC graduates
+              {copy.testimonialsTitle}
             </h1>
             <p className="body-lg mt-6 max-w-2xl text-white/80">
-              Reviews from students who completed 100-hour and 200-hour yoga teacher training in Ubud, Bali.
+              {copy.testimonialsIntro}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <ApplyModal trigger={<Button className="btn-primary h-12 px-8">Start Your Journey</Button>} />
+              <ApplyModal trigger={<Button className="btn-primary h-12 px-8">{copy.testimonialsPrimary}</Button>} />
               <Link href="/videos" className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10">
-                Watch Video Reviews <ArrowRight className="h-4 w-4" />
+                {copy.testimonialsSecondary} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </Reveal>

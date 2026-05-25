@@ -1,11 +1,13 @@
 "use client";
 import { Link } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Button } from "@/components/ui/button";
 import { IMG } from "@/data/site";
 import { usePublicSiteSettings } from "@/lib/use-public-site-settings";
+import { getPageCopy } from "@/lib/page-i18n";
 import { Check, Clock, Plane, FileText, Shield, HelpCircle, ChevronRight, Globe, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const visaTypes = [
@@ -153,6 +155,8 @@ const faqs = [
 ];
 
 const VisaInfo = () => {
+  const locale = useLocale();
+  const copy = getPageCopy(locale, "pageHero");
   const siteSettings = usePublicSiteSettings();
 
   return (
@@ -165,31 +169,31 @@ const VisaInfo = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-warm-dark via-warm-dark/80 to-warm-dark/30" />
         <div className="relative container-edit">
           <Reveal>
-            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">← Back to Home</Link>
+            <Link href="/" className="text-cream/60 hover:text-cream text-xs tracking-widest uppercase mb-6 inline-block">← {copy.visaBack}</Link>
           </Reveal>
           <Reveal delay={0.05}>
-            <p className="eyebrow text-gold-light mb-5">Bali Travel Guide</p>
+            <p className="eyebrow text-gold-light mb-5">{copy.visaEyebrow}</p>
           </Reveal>
           <Reveal delay={0.1}>
             <h1 className="display-xl text-cream">
-              Visa & Travel <em className="text-terra-light">Guide</em>
+              {copy.visaTitle} <em className="text-terra-light">{copy.visaAccent}</em>
             </h1>
           </Reveal>
           <Reveal delay={0.15}>
             <p className="mt-6 text-cream/75 max-w-2xl text-lg leading-relaxed">
-              Everything you need to know about entering Bali for your yoga training. We've helped thousands of students from Europe, America, and beyond — here's our complete guide.
+              {copy.visaIntro}
             </p>
           </Reveal>
           <Reveal delay={0.2}>
             <div className="mt-8 flex flex-wrap gap-4">
               <a href="#visa-types">
                 <Button className="bg-terra hover:bg-terra-deep text-cream h-12 px-8">
-                  View Visa Options
+                  {copy.visaPrimary}
                 </Button>
               </a>
               <a href={`https://wa.me/${siteSettings.whatsappNumber}`} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" className="h-12 border-cream/30 bg-transparent px-8 text-cream hover:bg-cream/10 hover:text-cream">
-                  Ask About Your Visa
+                  {copy.visaSecondary}
                 </Button>
               </a>
             </div>

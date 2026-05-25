@@ -3,41 +3,35 @@ import Link from "next/link";
 import { Award, BookOpen, CheckCircle2, Users } from "lucide-react";
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
 import { instructors } from "@/data/instructors";
-
-const facultyStats = [
-  { label: "Combined teaching experience", value: "55+ years" },
-  { label: "Core training styles", value: "Hatha, Ashtanga, Vinyasa" },
-  { label: "Student support model", value: "Small-batch mentorship" },
-];
-
-const teachingStandards = [
-  "Daily practice guided by senior teachers, not rotating assistants",
-  "Alignment, anatomy and adjustment work taught with safety-first methods",
-  "Philosophy classes connected to real teaching situations and student life",
-  "Feedback after practice teaching so students graduate with classroom confidence",
-];
+import { getPageCopy } from "@/lib/page-i18n";
 
 export default function InstructorsPage({ params }: { params: { locale: string } }) {
   const locale = params.locale;
+  const copy = getPageCopy(locale, "instructors");
+  const facultyStats = [
+    { label: copy.stats[0], value: "55+ years" },
+    { label: copy.stats[1], value: "Hatha, Ashtanga, Vinyasa" },
+    { label: copy.stats[2], value: "Small-batch mentorship" },
+  ];
 
   return (
     <NextLayoutWrapper>
       <section className="bg-cream pt-32 pb-16 md:pt-40 md:pb-20">
         <div className="container-edit grid gap-10 lg:grid-cols-[1fr_380px] lg:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-leaf">Meet your teachers</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-leaf">{copy.eyebrow}</p>
             <h1 className="mt-5 max-w-4xl font-serif text-4xl font-bold leading-tight text-warm-dark sm:text-5xl md:text-7xl">
-              Learn from guides who live the practice
+              {copy.title}
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-ink-soft md:text-lg">
-              The Bali YTTC faculty brings classical yoga lineage, modern anatomy, Balinese warmth and clear mentorship into one small-batch training environment.
+              {copy.intro}
             </p>
           </div>
 
           <div className="rounded-lg border border-sand bg-white p-5 shadow-sm">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-terra">Faculty promise</p>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-terra">{copy.promiseTitle}</p>
             <p className="mt-3 text-sm leading-7 text-ink-soft">
-              Students are taught by experienced teachers who can explain the why behind practice, not only demonstrate the shape of a posture.
+              {copy.promiseText}
             </p>
           </div>
         </div>
@@ -84,7 +78,7 @@ export default function InstructorsPage({ params }: { params: { locale: string }
                     ))}
                   </div>
                   <Link href={`/${locale}/instructors/${teacher.slug}`} className="mt-5 inline-flex rounded-full border border-terra px-4 py-2 text-sm font-bold text-terra transition hover:bg-terra hover:text-white">
-                    Read full profile
+                    {copy.readProfile}
                   </Link>
                 </div>
               </div>
@@ -96,15 +90,15 @@ export default function InstructorsPage({ params }: { params: { locale: string }
       <section className="bg-white py-20">
         <div className="container-edit grid gap-8 lg:grid-cols-[420px_1fr] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-leaf">How you are supported</p>
-            <h2 className="mt-4 text-3xl font-bold text-warm-dark md:text-4xl">Clear teaching, honest feedback and safe progression</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-leaf">{copy.supportEyebrow}</p>
+            <h2 className="mt-4 text-3xl font-bold text-warm-dark md:text-4xl">{copy.supportTitle}</h2>
             <p className="mt-4 leading-7 text-ink-soft">
-              Every teacher brings a different strength, but the training standard is consistent: practical, grounded and easy to apply when you begin teaching real students.
+              {copy.supportText}
             </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {teachingStandards.map((standard) => (
+            {copy.standards.map((standard) => (
               <div key={standard} className="rounded-lg border border-sand bg-cream p-5">
                 <CheckCircle2 className="h-5 w-5 text-leaf" />
                 <p className="mt-3 text-sm leading-7 text-ink-soft">{standard}</p>
@@ -118,18 +112,18 @@ export default function InstructorsPage({ params }: { params: { locale: string }
         <div className="container-edit grid gap-5 md:grid-cols-3">
           <div className="rounded-lg border border-sand bg-white p-6">
             <Award className="h-6 w-6 text-terra" />
-            <h3 className="mt-4 font-bold text-warm-dark">Certified experience</h3>
-            <p className="mt-2 text-sm leading-7 text-ink-soft">Yoga Alliance level teaching with senior credentials across RYT, E-RYT and university-level yogic science study.</p>
+            <h3 className="mt-4 font-bold text-warm-dark">{copy.cards[0].title}</h3>
+            <p className="mt-2 text-sm leading-7 text-ink-soft">{copy.cards[0].text}</p>
           </div>
           <div className="rounded-lg border border-sand bg-white p-6">
             <BookOpen className="h-6 w-6 text-terra" />
-            <h3 className="mt-4 font-bold text-warm-dark">Theory made useful</h3>
-            <p className="mt-2 text-sm leading-7 text-ink-soft">Anatomy, philosophy and methodology are taught as practical tools for class planning, cueing and student care.</p>
+            <h3 className="mt-4 font-bold text-warm-dark">{copy.cards[1].title}</h3>
+            <p className="mt-2 text-sm leading-7 text-ink-soft">{copy.cards[1].text}</p>
           </div>
           <div className="rounded-lg border border-sand bg-white p-6">
             <Users className="h-6 w-6 text-terra" />
-            <h3 className="mt-4 font-bold text-warm-dark">Personal mentorship</h3>
-            <p className="mt-2 text-sm leading-7 text-ink-soft">Small cohorts allow teachers to notice your practice, help your confidence and answer questions directly.</p>
+            <h3 className="mt-4 font-bold text-warm-dark">{copy.cards[2].title}</h3>
+            <p className="mt-2 text-sm leading-7 text-ink-soft">{copy.cards[2].text}</p>
           </div>
         </div>
       </section>
