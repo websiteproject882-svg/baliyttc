@@ -127,9 +127,13 @@ npm run db:migrate:deploy
 npm run db:seed
 ```
 
-`qa:full` is the strongest local check: typecheck, lint, unit tests, Prisma schema validation, production build, and live production smoke.
+`qa:full` is the strongest local check: typecheck, lint, unit tests, Prisma schema validation, production build, and live production smoke. To smoke-test a specific deployment, run:
 
-CI runs lint, typecheck, tests, and build on `main`/`develop` pushes and pull requests. Manual Vercel deployments also smoke-test the deployed URL before the workflow finishes. The CI build uses non-secret demo env values only; real runtime secrets must be set in Vercel, Railway, or the VPS `.env.production`.
+```bash
+SMOKE_BASE_URL=https://your-deployment.vercel.app npm run smoke:prod
+```
+
+CI runs lint, typecheck, tests, and build on `main`/`develop` pushes and pull requests. Manual Vercel deployments also smoke-test the deployed URL before the workflow finishes. A scheduled production smoke workflow checks the live site daily. The CI build uses non-secret demo env values only; real runtime secrets must be set in Vercel, Railway, or the VPS `.env.production`.
 
 ## Admin And Operations
 

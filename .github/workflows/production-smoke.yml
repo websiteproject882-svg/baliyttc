@@ -1,0 +1,42 @@
+name: Production Smoke
+
+env:
+  CI: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NEXT_TELEMETRY_DISABLED: 1
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Production or preview URL to smoke test"
+        required: false
+        default: "https://baliyttc-vivek07-s-projects.vercel.app"
+  schedule:
+    - cron: "30 2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Live site smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+
+      - name: Run production smoke
+        run: node scripts/production-smoke.mjs
+        env:
+          SMOKE_BASE_URL: ${{ github.event.inputs.base_url || 'https://baliyttc-vivek07-s-projects.vercel.app' }}
