@@ -27,74 +27,34 @@ export const Manifesto = () => {
 
   return (
     <section
-      className="section"
+      className="relative overflow-hidden border-b border-stone-200/50 bg-[#FAF9F6] py-16 md:py-24"
       id="why-us"
-      style={{
-        background: "var(--color-surface, #F3EDE6)",
-        borderTop: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-        borderBottom: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-        padding: "100px 0",
-      }}
     >
       <div className="container-wide">
         {/* Section Header */}
-        <div style={{ textAlign: "center", marginBottom: "64px" }} className="section-header centered">
-          <p className="label-caps" style={{ color: "hsl(var(--ink-muted))" }}>
+        <div className="mx-auto mb-10 max-w-2xl text-center md:mb-16">
+          <p className="label-caps text-gray-500">
             {copy.manifesto.eyebrow}
           </p>
-          <div
-            className="divider"
-            style={{
-              width: "60px",
-              height: "1px",
-              background: "rgba(44, 74, 46, 0.15)",
-              margin: "16px auto 24px",
-            }}
-          ></div>
-          <h2 className="display-lg" style={{ color: "hsl(var(--ink))", marginBottom: "16px" }}>
-            {copy.manifesto.title} <em style={{ fontStyle: "italic", fontFamily: "var(--font-serif)" }}>{copy.manifesto.accent}</em>
+          <div className="mx-auto my-4 h-px w-14 bg-stone-300" />
+          <h2 className="display-lg text-gray-900 mb-4">
+            {copy.manifesto.title}{" "}
+            <em className="font-serif italic text-brand">
+              {copy.manifesto.accent}
+            </em>
           </h2>
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "1rem",
-              color: "hsl(var(--ink-muted))",
-              maxWidth: "600px",
-              margin: "0 auto",
-              lineHeight: 1.6,
-            }}
-          >
+          <p className="font-sans text-sm md:text-base leading-relaxed text-gray-600">
             {copy.manifesto.description}
           </p>
         </div>
 
         {/* Card Slider */}
-        <div style={{ position: "relative" }}>
+        <div className="relative">
           {/* Scroll Left Button */}
           <button
             type="button"
             onClick={() => scrollSlider("prev")}
-            style={{
-              position: "absolute",
-              left: "-22px",
-              top: "230px",
-              transform: "translateY(-50%)",
-              zIndex: 10,
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              border: "1px solid rgba(44, 74, 46, 0.1)",
-              background: "#FAF8F5",
-              color: "#1C1D1F",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.1rem",
-              transition: "all 0.25s ease",
-              boxShadow: "0 4px 12px rgba(20,26,21,0.08)",
-            }}
-            className="slider-side-arrow left-arrow"
+            className="slider-side-arrow left-arrow absolute left-2 md:-left-4 top-[230px] z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-gray-900 shadow-md transition-all duration-300 hover:bg-brand hover:text-white hover:border-brand hover:scale-105"
             aria-label="Scroll left"
           >
             ⟨
@@ -104,27 +64,7 @@ export const Manifesto = () => {
           <button
             type="button"
             onClick={() => scrollSlider("next")}
-            style={{
-              position: "absolute",
-              right: "-22px",
-              top: "230px",
-              transform: "translateY(-50%)",
-              zIndex: 10,
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              border: "1px solid rgba(44, 74, 46, 0.1)",
-              background: "#FAF8F5",
-              color: "#1C1D1F",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.1rem",
-              transition: "all 0.25s ease",
-              boxShadow: "0 4px 12px rgba(20,26,21,0.08)",
-            }}
-            className="slider-side-arrow right-arrow"
+            className="slider-side-arrow right-arrow absolute right-2 md:-right-4 top-[230px] z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white text-gray-900 shadow-md transition-all duration-300 hover:bg-brand hover:text-white hover:border-brand hover:scale-105"
             aria-label="Scroll right"
           >
             ⟩
@@ -134,94 +74,36 @@ export const Manifesto = () => {
           <div
             ref={sliderRef}
             id="why-us-slider"
-            className="scroll-slider"
+            className="scroll-slider flex gap-8 overflow-x-auto pb-8 scroll-smooth"
             style={{
-              display: "flex",
-              gap: "32px",
-              overflowX: "auto",
-              paddingBottom: "32px",
-              scrollBehavior: "smooth",
+              msOverflowStyle: "none",
+              scrollbarWidth: "none",
             }}
           >
             {whyCards.map((card) => (
               <div
                 key={card.title}
-                style={{
-                  width: "350px",
-                  flexShrink: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  background: "transparent",
-                  border: "none",
-                  boxShadow: "none",
-                  transition: "transform 0.3s ease",
-                }}
-                className="why-card"
+                className="why-card group flex w-[300px] sm:w-[350px] shrink-0 flex-col bg-transparent transition-transform duration-300"
               >
-                <div
-                  style={{
-                    position: "relative",
-                    width: "100%",
-                    height: "460px",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                  }}
-                  className="why-img-container"
-                >
+                <div className="why-img-container relative w-full h-[380px] sm:h-[460px] rounded-2xl overflow-hidden border border-stone-200/60 shadow-[0_12px_28px_rgba(0,0,0,0.04)]">
                   <img
                     alt={card.title}
                     src={card.image}
-                    style={{
-                      position: "absolute",
-                      height: "100%",
-                      width: "100%",
-                      left: 0,
-                      top: 0,
-                      right: 0,
-                      bottom: 0,
-                      objectFit: "cover",
-                      color: "transparent",
-                      transition: "transform 0.5s ease",
-                    }}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
                   />
+                  {/* Subtle Shading Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                 </div>
-                <div style={{ padding: "16px 4px 8px 4px" }}>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "0.6875rem",
-                      fontWeight: 600,
-                      color: "hsl(var(--brand))",
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      margin: "0 0 6px 0",
-                    }}
-                  >
+                <div className="py-4 px-2">
+                  <p className="label-caps text-[9px] font-bold tracking-widest text-brand uppercase mb-1.5">
                     {card.eyebrow}
                   </p>
-                  <h4
-                    style={{
-                      fontFamily: "var(--font-serif)",
-                      fontSize: "1.35rem",
-                      color: "hsl(var(--ink))",
-                      margin: "0 0 8px 0",
-                      fontWeight: 400,
-                      lineHeight: 1.25,
-                    }}
-                  >
+                  <h4 className="font-serif text-lg font-medium text-gray-900 leading-snug mb-2 group-hover:text-brand transition-colors duration-300">
                     {card.title}
                   </h4>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "0.8125rem",
-                      color: "hsl(var(--ink-muted))",
-                      lineHeight: 1.55,
-                      margin: 0,
-                    }}
-                  >
+                  <p className="font-sans text-[13px] leading-relaxed text-gray-500">
                     {card.desc}
                   </p>
                 </div>
@@ -231,22 +113,9 @@ export const Manifesto = () => {
         </div>
 
         {/* Footer Link */}
-        <div style={{ textAlign: "center", marginTop: "48px" }}>
+        <div className="mt-12 text-center">
           <Link
-            className="btn-outline"
-            style={{
-              display: "inline-block",
-              border: "2px solid hsl(var(--brand))",
-              color: "hsl(var(--brand))",
-              background: "transparent",
-              borderRadius: "4px",
-              padding: "10px 24px",
-              fontSize: "0.8125rem",
-              textTransform: "uppercase",
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              textDecoration: "none",
-            }}
+            className="btn-outline inline-flex items-center gap-2 rounded-full border-2 border-brand bg-transparent px-8 py-3 text-sm font-semibold text-brand transition-all duration-300 hover:bg-brand hover:text-white"
             href="/about"
           >
             Explore Our Story →

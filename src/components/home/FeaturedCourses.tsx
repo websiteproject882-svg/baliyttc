@@ -148,69 +148,32 @@ const CourseThumb = ({ course }: { course: DisplayCourse }) => {
 const MobileCourseCard = ({ course, labels }: { course: DisplayCourse; labels: CourseLabels }) => (
   <Link
     href={course.href}
-    style={{
-      display: "block",
-      borderRadius: "12px",
-      overflow: "hidden",
-      background: "var(--color-surface, #FAF8F5)",
-      border: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-      textDecoration: "none",
-      transition: "box-shadow 0.25s ease, transform 0.25s ease",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-      height: "100%",
-      width: "calc(100vw - 48px)",
-      maxWidth: "350px",
-      flexShrink: 0,
-    }}
-    className="course-card-link"
+    className="course-card-link group block shrink-0 w-[calc(100vw-48px)] max-w-[350px] overflow-hidden rounded-2xl bg-white border border-stone-200/60 shadow-[0_12px_36px_rgba(0,0,0,0.03)] transition-all duration-300 hover:shadow-lg"
   >
     <div>
-      <div style={{ position: "relative", height: "200px", minHeight: "200px", background: "#e8e3dc" }}>
+      <div className="relative h-[200px] min-h-[200px] bg-stone-100 overflow-hidden">
         <CourseThumb course={course} />
-        <span
-          style={{
-            position: "absolute",
-            top: "12px",
-            left: "12px",
-            background: "rgba(44,74,46,0.92)",
-            color: "#fff",
-            fontFamily: "var(--font-sans)",
-            fontSize: "0.65rem",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            padding: "4px 10px",
-            borderRadius: "3px",
-          }}
-        >
+        <span className={`absolute top-3 left-3 z-10 rounded-full px-3 py-1 font-sans text-[9px] font-bold uppercase tracking-wider text-white shadow-md ${course.featured ? "bg-brand/90" : "bg-sage/90"}`}>
           {getMobileBadge(course, labels)}
         </span>
       </div>
-      <div style={{ padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "12px" }}>
+      <div className="p-6 flex flex-col justify-between gap-3">
         <div>
-          <p className="label-caps" style={{ fontSize: "0.65rem", color: "hsl(var(--brand))", marginBottom: "4px" }}>
+          <p className="label-caps text-[9px] font-bold text-brand uppercase mb-1">
             {course.days}
           </p>
-          <h3
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "1.375rem",
-              fontWeight: 400,
-              color: "hsl(var(--ink))",
-              marginBottom: "6px",
-            }}
-          >
+          <h3 className="font-serif text-[1.25rem] font-medium text-gray-900 leading-snug mb-1">
             {getCompactTitle(course.title)}
           </h3>
-          <p style={{ fontFamily: "var(--font-sans)", fontSize: "0.8rem", color: "hsl(var(--ink-muted))", lineHeight: 1.5 }}>
+          <p className="font-sans text-[12px] leading-relaxed text-gray-500">
             {course.duration} · {course.summary}
           </p>
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", borderTop: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))", paddingTop: "12px" }}>
-          <span style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", fontWeight: 500, color: "hsl(var(--brand))" }}>
+        <div className="flex justify-between items-center mt-3 pt-3 border-t border-stone-100">
+          <span className="font-serif text-xl font-semibold text-brand">
             EUR {course.priceFrom.toLocaleString("en-US")}
           </span>
-          <span style={{ fontFamily: "var(--font-sans)", fontSize: "0.75rem", color: "hsl(var(--brand))", fontWeight: 500, letterSpacing: "0.04em" }}>
+          <span className="font-sans text-xs font-bold text-brand flex items-center gap-1">
             {labels.details} →
           </span>
         </div>
@@ -249,67 +212,32 @@ const CourseCard = ({
     >
       <Link
         href={course.href}
-        style={{
-          display: "block",
-          borderRadius: "12px",
-          overflow: "hidden",
-          background: "var(--color-surface, #FAF8F5)",
-          border: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-          textDecoration: "none",
-          transition: "box-shadow 0.25s ease, transform 0.25s ease",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-          height: "100%",
-        }}
-        className="course-card-link"
+        className="course-card-link block h-full overflow-hidden rounded-2xl bg-white border border-stone-200/60 shadow-[0_12px_36px_rgba(0,0,0,0.03)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:border-stone-300"
       >
         <div>
-          <div style={{ position: "relative", height: "200px", minHeight: "200px", background: "#e8e3dc" }}>
+          <div className="relative h-[200px] min-h-[200px] bg-stone-100 overflow-hidden">
             <CourseThumb course={course} />
-            <span
-              style={{
-                position: "absolute",
-                top: "12px",
-                left: "12px",
-                background: course.featured ? "hsl(var(--brand))" : "rgba(44,74,46,0.92)",
-                color: "#fff",
-                fontFamily: "var(--font-sans)",
-                fontSize: "0.65rem",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                padding: "4px 10px",
-                borderRadius: "3px",
-                zIndex: 10,
-              }}
-            >
+            <span className={`absolute top-4 left-4 z-10 rounded-full px-3.5 py-1.5 font-sans text-[10px] font-bold uppercase tracking-wider text-white shadow-md ${course.featured ? "bg-brand/90" : "bg-sage/90"}`}>
               {getMobileBadge(course, labels)}
             </span>
           </div>
-          <div style={{ padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "12px" }}>
+          <div className="p-6 flex flex-col justify-between h-[calc(100%-200px)] gap-4">
             <div>
-              <p className="label-caps" style={{ fontSize: "0.65rem", color: "hsl(var(--brand))", marginBottom: "4px" }}>
+              <p className="label-caps text-[10px] font-bold text-brand uppercase mb-1.5">
                 {course.days}
               </p>
-              <h3
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "1.375rem",
-                  fontWeight: 400,
-                  color: "hsl(var(--ink))",
-                  marginBottom: "6px",
-                }}
-              >
+              <h3 className="font-serif text-[1.375rem] font-medium text-gray-900 leading-tight mb-2 group-hover:text-brand transition-colors duration-300">
                 {getCompactTitle(course.title)}
               </h3>
-              <p style={{ fontFamily: "var(--font-sans)", fontSize: "0.8rem", color: "hsl(var(--ink-muted))", lineHeight: 1.5 }} className="line-clamp-2">
+              <p className="font-sans text-[13px] leading-relaxed text-gray-600 line-clamp-2">
                 {course.duration} · {course.summary}
               </p>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", borderTop: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))", paddingTop: "12px" }}>
-              <span style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", fontWeight: 500, color: "hsl(var(--brand))" }}>
+            <div className="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
+              <span className="font-serif text-2xl font-semibold text-brand">
                 EUR {course.priceFrom.toLocaleString("en-US")}
               </span>
-              <span style={{ fontFamily: "var(--font-sans)", fontSize: "0.75rem", color: "hsl(var(--brand))", fontWeight: 500, letterSpacing: "0.04em" }} className="details-arrow-text">
+              <span className="font-sans text-xs font-bold text-brand flex items-center gap-1 group-hover:translate-x-1 transition-transform duration-300">
                 {labels.details} →
               </span>
             </div>

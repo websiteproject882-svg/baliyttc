@@ -84,7 +84,7 @@ export const VideoShowcase = () => {
   };
 
   return (
-    <section id="campus-video" className="relative overflow-hidden border-b border-gray-100 bg-[#FAFAFA] py-10 md:py-12">
+    <section id="campus-video" className="relative overflow-hidden border-b border-stone-200/50 bg-[#FAF9F6] py-16 md:py-20">
       <div className="container-wide relative z-10">
         <Reveal>
           <div className="mx-auto mb-7 max-w-3xl text-center md:mb-8">
@@ -116,7 +116,7 @@ export const VideoShowcase = () => {
                 controls={false}
                 poster={CAMPUS_IMAGE}
               >
-                <source src="https://pay.houseofom.com/hom.mp4" type="video/mp4" />
+                <source src="/videos/hero-yoga-1080.mp4" type="video/mp4" />
                 <img src={CAMPUS_IMAGE} alt={copy.video.campusAlt} className="h-full w-full object-cover" />
               </video>
               

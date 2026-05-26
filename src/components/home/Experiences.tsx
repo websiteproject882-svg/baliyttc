@@ -23,7 +23,7 @@ export const Experiences = () => {
   const marqueeExperiences = [...experiences, ...experiences];
 
   return (
-    <section id="experiences" className="overflow-hidden bg-gradient-to-b from-warm-dark/5 to-sand py-10 md:py-14">
+    <section id="experiences" className="overflow-hidden bg-white border-b border-stone-200/50 py-16 md:py-20">
       <div className="container-edit">
         <Reveal>
           <div className="max-w-3xl">

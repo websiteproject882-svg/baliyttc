@@ -127,6 +127,35 @@ export const Hero = () => {
         </div>
       </motion.div>
 
+      {/* Floating Glass Trust Badging Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.0, duration: 0.8 }}
+        className="absolute bottom-8 inset-x-6 z-20 mx-auto hidden max-w-5xl rounded-full border border-white/10 bg-white/5 px-8 py-3.5 backdrop-blur-md md:flex items-center justify-between gap-6"
+      >
+        <div className="flex items-center gap-2">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-amber-400" />
+          <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/90">
+            Yoga Alliance Accredited YTT
+          </span>
+        </div>
+        <div className="h-4 w-px bg-white/15" />
+        <div className="flex items-center gap-2">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-amber-400" />
+          <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/90">
+            5/5 Star Student Reviews
+          </span>
+        </div>
+        <div className="h-4 w-px bg-white/15" />
+        <div className="flex items-center gap-2">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-amber-400" />
+          <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-white/90">
+            Authentic Vedic Heritage
+          </span>
+        </div>
+      </motion.div>
+
       {/* Scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
