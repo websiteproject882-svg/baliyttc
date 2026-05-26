@@ -18,53 +18,22 @@ export const TrustStrip = () => {
   const marqueeStats = [...stats, ...stats];
 
   return (
-    <section
-      style={{
-        borderBottom: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-        borderTop: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-        background: "var(--color-surface, #F3EDE6)",
-        padding: 0,
-        overflow: "hidden",
-      }}
-    >
+    <section className="relative overflow-hidden border-y border-stone-200/50 bg-[#FAF9F6] p-0">
       {/* DESKTOP VIEW: divided flex bar */}
-      <div
-        className="container hidden md:flex"
-        style={{
-          justifyContent: "space-between",
-          alignItems: "center",
-          height: "72px",
-          margin: "0 auto",
-          width: "100%",
-          maxWidth: "1280px",
-          padding: "0 40px",
-        }}
-      >
+      <div className="container-wide hidden md:flex items-center justify-between h-20 px-8 mx-auto w-full">
         {stats.map((stat, index) => (
           <div
             key={index}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "2px",
-              borderRight: index === stats.length - 1 ? "none" : "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-              flex: 1,
-              padding: "0 16px",
-            }}
+            className={`flex flex-col items-center justify-center flex-1 px-4 gap-1.5 h-full ${
+              index === stats.length - 1 ? "" : "border-r border-stone-200/60"
+            }`}
           >
-            <span
-              style={{
-                fontFamily: "var(--font-serif)",
-                fontSize: "1.125rem",
-                fontWeight: 500,
-                color: "hsl(var(--brand))",
-                lineHeight: 1,
-              }}
-            >
-              {stat.value}
-            </span>
-            <span className="label-caps" style={{ fontSize: "0.65rem", letterSpacing: "0.08em" }}>
+            <div className="flex items-center gap-1.5">
+              <span className="font-serif text-lg md:text-xl font-medium text-brand leading-none">
+                {stat.value}
+              </span>
+            </div>
+            <span className="label-caps text-[9px] tracking-[0.16em] text-gray-500">
               {stat.label}
             </span>
           </div>
@@ -72,50 +41,22 @@ export const TrustStrip = () => {
       </div>
 
       {/* MOBILE/TABLET VIEW: infinite marquee scroll */}
-      <div
-        className="flex md:hidden"
-        style={{
-          overflow: "hidden",
-          height: "60px",
-          position: "relative",
-          alignItems: "center",
-        }}
-      >
+      <div className="flex md:hidden items-center overflow-hidden h-[68px] relative">
         <div
+          className="flex whitespace-nowrap scroll-smooth"
           style={{
-            display: "flex",
-            gap: 0,
-            animation: "marquee-stats 20s linear infinite",
-            whiteSpace: "nowrap",
+            animation: "marquee-stats 22s linear infinite",
           }}
         >
           {marqueeStats.map((stat, index) => (
             <div
               key={index}
-              style={{
-                display: "inline-flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "2px",
-                minWidth: "140px",
-                padding: "0 16px",
-                borderRight: "1px solid var(--color-border, rgba(44, 74, 46, 0.1))",
-                height: "60px",
-              }}
+              className="inline-flex flex-col items-center justify-center min-width-[140px] px-6 gap-1 h-[68px] border-r border-stone-200/60"
             >
-              <span
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                  color: "hsl(var(--brand))",
-                  lineHeight: 1,
-                }}
-              >
+              <span className="font-serif text-[1.1rem] font-medium text-brand leading-none">
                 {stat.value}
               </span>
-              <span className="label-caps" style={{ fontSize: "0.6rem", letterSpacing: "0.08em" }}>
+              <span className="label-caps text-[8px] tracking-[0.12em] text-gray-500">
                 {stat.label}
               </span>
             </div>
@@ -133,3 +74,4 @@ export const TrustStrip = () => {
     </section>
   );
 };
+
