@@ -278,7 +278,6 @@ export const LocalBusinessSchema = ({ settings }: { settings?: SiteSettings }) =
         image: data.logoUrl,
         logo: data.logoUrl,
         priceRange: "EUR 499-1899",
-        servesCuisine: "Vegetarian",
         address: {
           "@type": "PostalAddress",
           streetAddress: data.address,
@@ -290,7 +289,8 @@ export const LocalBusinessSchema = ({ settings }: { settings?: SiteSettings }) =
         aggregateRating: {
           "@type": "AggregateRating",
           ratingValue: "4.9",
-          reviewCount: "2500",
+          ratingCount: "2500",
+          reviewCount: "150",
           bestRating: "5",
         },
         openingHoursSpecification: [

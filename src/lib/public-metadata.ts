@@ -3,7 +3,9 @@ import { getPublicBaseUrl } from "@/lib/public-url";
 import { locales } from "@/i18n/routing";
 
 const baseUrl = getPublicBaseUrl();
-const defaultImage = `${baseUrl}/images/brand/logo-512.png`;
+const defaultImage = `${baseUrl}/images/og-default.jpg`;
+const defaultImageWidth = 1200;
+const defaultImageHeight = 630;
 
 export type PublicMetadataKey =
   | "home"
@@ -177,11 +179,17 @@ export function createPublicMetadata(key: PublicMetadataKey, locale: string, pat
       images: [
         {
           url: defaultImage,
-          width: 512,
-          height: 512,
-          alt: "Bali YTTC",
+          width: defaultImageWidth,
+          height: defaultImageHeight,
+          alt: "Bali YTTC — Yoga Teacher Training in Ubud, Bali",
         },
       ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description: item.description,
+      images: [defaultImage],
     },
   };
 }
