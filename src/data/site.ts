@@ -21,8 +21,7 @@ export const IMG = {
     "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1600/q:eco/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/Yoga-Teacher-Training-class-in-bali.jpg",
   ceremony200:
     "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:900/q:mauto/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/200-HOUR-YTT-CEREMONY-IN-BALI.jpg",
-  certified:
-    "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:900/q:mauto/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/Be-a-certified-Yoga-Teacher-Bali-YTTC.jpg",
+  certified: "/images/yoga-philosophy-class.jpg",
   classMain:
     "https://ml4wp2nfx5ts.i.optimole.com/cb:JBht.f40/w:1400/q:mauto/g:sm/f:best/https://baliyttc.com/wp-content/uploads/2025/08/Yoga-Teacher-Training-class-in-bali.jpg",
   course100:

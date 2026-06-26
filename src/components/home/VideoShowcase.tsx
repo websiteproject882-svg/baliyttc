@@ -48,17 +48,28 @@ export const VideoShowcase = () => {
     const video = mainVideoRef.current;
     if (!video) return;
 
+    // Explicitly set muted and playsInline properties programmatically to guarantee autoplay on all browsers
+    video.defaultMuted = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("webkit-playsinline", "true");
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            video.play().catch((err) => console.log("Autoplay blocked:", err));
+            video.play().catch((err) => {
+              console.log("Autoplay blocked, retrying play:", err);
+              video.muted = true;
+              video.play().catch((e) => console.log("Muted autoplay also blocked:", e));
+            });
           } else {
             video.pause();
           }
         });
       },
-      { threshold: 0.25 }
+      { threshold: 0.15 } // Trigger autoplay earlier as soon as 15% is visible
     );
 
     observer.observe(video);
@@ -153,7 +164,7 @@ export const VideoShowcase = () => {
                 playsInline
                 controls={false}
               >
-                <source src="/videos/hero-yoga-1080.mp4" type="video/mp4" />
+                <source src="/videos/hero-yoga.mp4" type="video/mp4" />
               </video>
               
               {/* Overlay Canvas Frame Border */}
