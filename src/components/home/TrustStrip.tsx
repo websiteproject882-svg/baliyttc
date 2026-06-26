@@ -9,7 +9,7 @@ export const TrustStrip = () => {
     { value: "Yoga Alliance", label: "RYS 200 & 300" },
     { value: "2,500+", label: "Graduates" },
     { value: "4.9 / 5", label: "Average Rating" },
-    { value: "Since 2016", label: "10 Years Teaching" },
+    { value: "Since 2018", label: "8+ Years Teaching" },
     { value: "70+", label: "Nationalities" },
     { value: "98%", label: "Would Recommend" },
   ];

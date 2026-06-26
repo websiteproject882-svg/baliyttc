@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ApplyModal } from "@/components/shared/ApplyModal";
 import { Reveal } from "@/components/shared/Reveal";
 import { IMG } from "@/data/site";
@@ -7,14 +8,60 @@ import { Link } from "@/i18n/routing";
 import { useHomeCopy } from "@/lib/use-home-copy";
 import { ArrowUpRight, CalendarDays, ShieldCheck, WalletCards } from "lucide-react";
 
-const ctaHighlights = [
-  { icon: CalendarDays, label: "June 2026", value: "4 seats left" },
+const ctaHighlightsBase = [
+  { icon: CalendarDays, label: "Upcoming", value: "Open soon" },
   { icon: WalletCards, label: "Booking", value: "Installments" },
   { icon: ShieldCheck, label: "Certified", value: "RYS school" },
 ];
 
 export const FinalCTA = () => {
   const copy = useHomeCopy();
+  const [highlightDate, setHighlightDate] = useState("July 2026");
+  const [highlightSeats, setHighlightSeats] = useState("4 seats left");
+
+  useEffect(() => {
+    let active = true;
+    async function fetchUpcoming() {
+      try {
+        const response = await fetch("/api/courses?locale=en");
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        if (!active) return;
+        
+        let nextBatch: any = null;
+        if (Array.isArray(data?.courses)) {
+          for (const course of data.courses) {
+            if (Array.isArray(course.batches)) {
+              for (const batch of course.batches) {
+                const batchDate = new Date(batch.startDate);
+                if (batchDate >= new Date() && batch.status === "OPEN") {
+                  if (!nextBatch || batchDate < new Date(nextBatch.startDate)) {
+                    nextBatch = batch;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        if (nextBatch) {
+          const date = new Date(nextBatch.startDate);
+          const dateLabel = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+          const seatsLeft = Math.max(0, nextBatch.capacity - nextBatch.enrolled);
+          const seatsLabel = seatsLeft <= 4 ? `Only ${seatsLeft} seats left` : `${seatsLeft} seats left`;
+          setHighlightDate(dateLabel);
+          setHighlightSeats(seatsLabel);
+        }
+      } catch {
+        // Safe fallback
+        setHighlightDate("July 2026");
+        setHighlightSeats("4 seats left");
+      }
+    }
+    void fetchUpcoming();
+    return () => { active = false; };
+  }, []);
+
   return (
     <section id="final-cta" className="bg-[#F7F4EF] px-4 py-10 md:py-16 scroll-mt-28">
       <div className="container-wide">
@@ -31,13 +78,15 @@ export const FinalCTA = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-warm-dark/65 via-transparent to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 grid grid-cols-3 gap-2 sm:bottom-6 sm:left-6 sm:right-6">
-                  {ctaHighlights.map((item) => {
+                  {ctaHighlightsBase.map((item) => {
                     const Icon = item.icon;
+                    const displayLabel = item.icon === CalendarDays ? highlightDate : item.label;
+                    const displayValue = item.icon === CalendarDays ? highlightSeats : item.value;
                     return (
                       <div key={item.label} className="rounded-[8px] border border-white/20 bg-white/88 p-3 text-warm-dark shadow-sm backdrop-blur">
                         <Icon className="h-4 w-4 text-terra" />
-                        <p className="mt-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-warm-mid">{item.label}</p>
-                        <p className="mt-1 text-sm font-semibold leading-tight">{item.value}</p>
+                        <p className="mt-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-warm-mid">{displayLabel}</p>
+                        <p className="mt-1 text-sm font-semibold leading-tight">{displayValue}</p>
                       </div>
                     );
                   })}
