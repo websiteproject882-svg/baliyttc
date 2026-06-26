@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Play } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/shared/Reveal";
 import { useHomeCopy } from "@/lib/use-home-copy";
 
@@ -41,6 +41,42 @@ export const VideoShowcase = () => {
   const journalRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+
+  const mainVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = mainVideoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch((err) => console.log("Autoplay blocked:", err));
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(video);
+
+    return () => {
+      observer.unobserve(video);
+    };
+  }, []);
+
+  const handleMainVideoClick = () => {
+    const video = mainVideoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch((err) => console.log("Manual play blocked:", err));
+    } else {
+      video.pause();
+    }
+  };
 
   const scrollJournal = (direction: "prev" | "next") => {
     journalRef.current?.scrollBy({ left: direction === "next" ? 340 : -340, behavior: "smooth" });
@@ -106,18 +142,18 @@ export const VideoShowcase = () => {
             whileInView={{ opacity: 1, y: 0 }}
             className="group relative mx-auto mb-10 max-w-5xl overflow-hidden rounded-2xl border border-stone-200/80 bg-[#FAF9F6] shadow-[0_20px_50px_rgba(0,0,0,0.12)] md:mb-14"
           >
-            <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[3/2] md:aspect-[16/10]">
+            <div className="relative aspect-[3/4] w-full overflow-hidden md:aspect-[16/10]">
               <video
-                className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-[1.02]"
+                ref={mainVideoRef}
+                onClick={handleMainVideoClick}
+                className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-[1.02] cursor-pointer rotate-90 md:rotate-0 scale-[1.35] md:scale-100"
                 autoPlay
                 muted
                 loop
                 playsInline
                 controls={false}
-                poster={CAMPUS_IMAGE}
               >
                 <source src="/videos/hero-yoga-1080.mp4" type="video/mp4" />
-                <img src={CAMPUS_IMAGE} alt={copy.video.campusAlt} className="h-full w-full object-cover" />
               </video>
               
               {/* Overlay Canvas Frame Border */}
