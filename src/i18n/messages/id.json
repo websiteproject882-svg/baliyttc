@@ -650,5 +650,27 @@
         "description": "Student journey, ceremony moments, and the transformation around teacher training in Bali."
       }
     ]
+  },
+  "Metadata": {
+    "home": {
+      "title": "Pelatihan Guru Yoga di Bali | Bali YTTC",
+      "description": "Ikuti pelatihan guru yoga bersertifikat Yoga Alliance di Ubud, Bali. Kelas kecil, guru ahli, menginap di villa, makan, dan tanggal 2026.",
+      "keywords": ["pelatihan guru yoga bali", "Bali YTTC", "sekolah yoga Ubud"]
+    },
+    "courses": {
+      "title": "Kursus Pelatihan Guru Yoga di Bali | Bali YTTC",
+      "description": "Bandingkan pelatihan guru yoga 50 jam, 100 jam, 200 jam, dan 300 jam di Ubud, Bali. Durasi, harga, tanggal, dan sertifikasi Yoga Alliance.",
+      "keywords": ["kursus yoga bali", "pelatihan yoga 200 jam bali", "YTT bali"]
+    },
+    "about": {
+      "title": "Tentang Bali YTTC - Sekolah Yoga di Ubud | Bali YTTC",
+      "description": "Kenali Bali YTTC, sekolah yoga Ubud yang didirikan tahun 2018 dengan 2.500+ lulusan dan pelatihan tersertifikasi Yoga Alliance.",
+      "keywords": ["tentang bali yttc", "sekolah yoga bali", "pelatihan yoga di bali"]
+    },
+    "contact": {
+      "title": "Kontak Pelatihan Guru Yoga Bali | Bali YTTC",
+      "description": "Hubungi Bali YTTC di Ubud, Bali untuk info tanggal pelatihan 2026, biaya kursus, akomodasi, visa, dan pendaftaran.",
+      "keywords": ["kontak bali yttc", "sekolah yoga ubud kontak"]
+    }
   }
 }

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import fs from "fs";
+import path from "path";
 import { getPublicBaseUrl } from "@/lib/public-url";
 import { locales } from "@/i18n/routing";
 
@@ -152,8 +154,30 @@ const publicMetadata: Record<PublicMetadataKey, { title: string; description: st
   },
 };
 
+function getLocalizedMetadata(key: PublicMetadataKey, locale: string) {
+  const fallback = publicMetadata[key];
+  try {
+    const filePath = path.join(process.cwd(), "src/i18n/messages", `${locale}.json`);
+    if (fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, "utf8");
+      const messages = JSON.parse(fileContent);
+      if (messages?.Metadata?.[key]) {
+        const item = messages.Metadata[key];
+        return {
+          title: item.title || fallback.title,
+          description: item.description || fallback.description,
+          keywords: Array.isArray(item.keywords) ? item.keywords : fallback.keywords,
+        };
+      }
+    }
+  } catch (e) {
+    // Fail silently in production, keeping original fallback.
+  }
+  return fallback;
+}
+
 export function createPublicMetadata(key: PublicMetadataKey, locale: string, path = ""): Metadata {
-  const item = publicMetadata[key];
+  const item = getLocalizedMetadata(key, locale);
   const normalizedPath = path === "/" ? "" : path;
   const url = `${baseUrl}/${locale}${normalizedPath}`;
 

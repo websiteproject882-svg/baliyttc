@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PostStatus } from "@prisma/client";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
@@ -90,7 +91,29 @@ export async function generateMetadata({ params }: BlogPostPageParams): Promise<
   const description = post.metaDescription || post.excerpt;
   const url = `${baseUrl}/${params.locale}/blog/${post.slug}`;
 
-  const languages = locales.reduce((acc, loc) => {
+  const now = new Date();
+  let activeLocales: string[] = ["en"];
+
+  try {
+    const siblings = await prisma.blogPost.findMany({
+      where: {
+        slug: params.slug,
+        OR: [
+          { status: PostStatus.PUBLISHED, OR: [{ publishedAt: null }, { publishedAt: { lte: now } }] },
+          { status: PostStatus.SCHEDULED, scheduledAt: { lte: now } },
+        ],
+      },
+      select: { locale: true },
+    });
+    if (siblings.length > 0) {
+      activeLocales = siblings.map((s) => s.locale);
+    }
+  } catch {
+    // Keep build resilient if DB is off
+    activeLocales = ["en"];
+  }
+
+  const languages = activeLocales.reduce((acc, loc) => {
     acc[loc] = `${baseUrl}/${loc}/blog/${post.slug}`;
     return acc;
   }, {} as Record<string, string>);
@@ -173,11 +196,14 @@ export default async function BlogPostPage({ params }: BlogPostPageParams) {
             {post.excerpt ? <p className="body-lg mt-5 text-gray-600">{post.excerpt}</p> : null}
           </div>
 
-          <div className="mb-10 overflow-hidden rounded-2xl bg-gray-100">
-            <img
+          <div className="mb-10 overflow-hidden rounded-2xl bg-gray-100 relative aspect-[16/9]">
+            <Image
               src={post.featuredImage || IMG.classMain}
               alt={post.title}
-              className="aspect-[16/9] w-full object-cover"
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 1024px"
+              className="object-cover"
             />
           </div>
 

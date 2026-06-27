@@ -707,5 +707,27 @@
         "description": "Student journey, ceremony moments, and the transformation around teacher training in Bali."
       }
     ]
+  },
+  "Metadata": {
+    "home": {
+      "title": "Formación de Profesores de Yoga en Bali | Bali YTTC",
+      "description": "Únase a la formación de profesores de yoga certificada por Yoga Alliance en Ubud, Bali. Grupos pequeños, profesores expertos y estancia en villa.",
+      "keywords": ["formacion de profesores de yoga bali", "Bali YTTC", "escuela de yoga Ubud"]
+    },
+    "courses": {
+      "title": "Cursos de Formación de Profesores de Yoga en Bali | Bali YTTC",
+      "description": "Compare cursos de formación de yoga de 50h, 100h, 200h y 300h en Ubud, Bali. Duraciones, precios y fechas certificadas por Yoga Alliance.",
+      "keywords": ["cursos de yoga en bali", "formacion de yoga 200 horas bali", "yoga YTT bali"]
+    },
+    "about": {
+      "title": "Sobre Bali YTTC - Escuela de Yoga en Ubud | Bali YTTC",
+      "description": "Conozca Bali YTTC, una escuela de yoga en Ubud fundada en 2018 con más de 2500 graduados y formación certificada por Yoga Alliance.",
+      "keywords": ["sobre bali yttc", "escuela de yoga bali", "formacion de yoga en bali"]
+    },
+    "contact": {
+      "title": "Contacto - Bali Yoga Teacher Training | Bali YTTC",
+      "description": "Póngase en contacto con Bali YTTC en Ubud, Bali para fechas, precios, alojamiento y dudas sobre la visa de yoga de 2026.",
+      "keywords": ["contacto bali yttc", "escuela de yoga ubud contacto"]
+    }
   }
 }

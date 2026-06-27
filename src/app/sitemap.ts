@@ -36,7 +36,7 @@ function localizedUrl(locale: string, path: string) {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let courseSlugs: string[] = ['50hr', '100hr', '200hr', '300hr'];
-  let blogSlugs: string[] = STATIC_BLOG_POSTS.map((post) => post.slug);
+  let dbPosts: { slug: string; locale: string }[] = [];
   const now = new Date();
 
   try {
@@ -52,14 +52,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             { status: PostStatus.SCHEDULED, scheduledAt: { lte: now } },
           ],
         },
-        select: { slug: true },
+        select: { slug: true, locale: true },
       }),
     ]);
 
     if (courses.length > 0) {
       courseSlugs = Array.from(new Set(courses.map((course) => course.slug)));
     }
-    blogSlugs = Array.from(new Set([...posts.map((post) => post.slug), ...blogSlugs]));
+    dbPosts = posts;
   } catch {
     // Keep sitemap generation resilient during first deploys before the DB is ready.
   }
@@ -93,15 +93,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       });
     }
+  }
 
-    for (const slug of blogSlugs) {
-      entries.push({
-        url: localizedUrl(locale, `/blog/${slug}`),
-        lastModified: now,
-        changeFrequency: 'monthly',
-        priority: 0.6,
-      });
-    }
+  // Populate static blog posts (English only)
+  for (const post of STATIC_BLOG_POSTS) {
+    entries.push({
+      url: localizedUrl('en', `/blog/${post.slug}`),
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    });
+  }
+
+  // Populate dynamic database blog posts strictly in their correct locales
+  for (const post of dbPosts) {
+    entries.push({
+      url: localizedUrl(post.locale, `/blog/${post.slug}`),
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    });
   }
 
   return entries;

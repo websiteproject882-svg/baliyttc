@@ -1,4 +1,5 @@
 import { NextLayoutWrapper } from "@/components/layout/NextLayoutWrapper";
+import Image from "next/image";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { ApplyModal } from "@/components/shared/ApplyModal";
@@ -45,10 +46,12 @@ export default async function CoursesPage({ params }: { params: { locale: string
                 <Reveal key={course.id} delay={i * 0.1}>
                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col">
                     <div className="aspect-[16/10] overflow-hidden relative">
-                      <img
+                      <Image
                         src={course.image || COURSE_IMAGE_FALLBACK}
                         alt={course.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
                       />
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-white/90 text-warm-dark shadow-sm">

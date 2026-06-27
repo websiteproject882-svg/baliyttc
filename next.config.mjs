@@ -139,6 +139,7 @@ const nextConfig = {
   },
   // Exclude seed file from build
   webpack: (config) => {
+    config.cache = false;
     config.externals = config.externals || [];
     return config;
   },

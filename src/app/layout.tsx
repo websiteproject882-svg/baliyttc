@@ -1,9 +1,24 @@
 import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { assertRuntimeEnv } from "@/lib/env-validation";
 import { getSiteSettings } from "@/lib/site-settings";
 import { LocalBusinessSchema, OrganizationSchema } from "@/components/shared/SchemaMarkup";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -33,7 +48,7 @@ export default async function RootLayout({
   const siteSettings = await getSiteSettings();
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>

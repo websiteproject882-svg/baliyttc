@@ -25,7 +25,10 @@ describe("sitemap and robots metadata", () => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_BASE_URL = "https://baliyttc.test";
     mocks.courseFindMany.mockResolvedValue([{ slug: "200hr" }, { slug: "200hr" }, { slug: "300hr" }]);
-    mocks.blogPostFindMany.mockResolvedValue([{ slug: "first-post" }, { slug: "first-post" }]);
+    mocks.blogPostFindMany.mockResolvedValue([
+      { slug: "first-post", locale: "en" },
+      { slug: "first-post", locale: "id" },
+    ]);
   });
 
   it("includes all public marketing routes for every enabled locale", async () => {
@@ -58,7 +61,7 @@ describe("sitemap and robots metadata", () => {
             { status: "SCHEDULED", scheduledAt: { lte: expect.any(Date) } },
           ],
         },
-        select: { slug: true },
+        select: { slug: true, locale: true },
       }),
     );
   });
