@@ -18,6 +18,7 @@ export default {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       colors: {
+        white: "#FFFDF7",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

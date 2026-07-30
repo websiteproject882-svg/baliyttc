@@ -51,7 +51,7 @@ export const NextLayoutWrapper = ({ children }: { children: React.ReactNode }) =
   }, []);
 
   return (
-    <div className="bg-cream min-h-screen flex flex-col">
+    <div className="bg-transparent min-h-screen flex flex-col">
       <AnimatePresence>
         {showBanner && (
           <motion.div

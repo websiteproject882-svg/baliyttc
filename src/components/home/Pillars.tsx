@@ -50,8 +50,8 @@ export const Pillars = () => {
                       : "border-stone-200 bg-white hover:-translate-y-0.5 hover:border-stone-300"
                   }`}
                 >
-                  <span className={`number-value text-lg ${isActive ? "text-brand" : "text-stone-400"}`}>
-                    {String(index + 1).padStart(2, "0")}
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8742A] text-sm font-bold text-white">
+                    {index + 1}
                   </span>
                   <span className={`flex-1 font-serif text-lg ${isActive ? "font-semibold text-charcoal" : "font-normal text-charcoal"}`}>
                     {pillar.title}
@@ -114,8 +114,8 @@ export const Pillars = () => {
                     }`}
                     aria-expanded={isActive}
                   >
-                    <span className={`number-value text-lg ${isActive ? "text-brand" : "text-stone-400"}`}>
-                      {String(index + 1).padStart(2, "0")}
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8742A] text-sm font-bold text-white">
+                      {index + 1}
                     </span>
                     <span className={`flex-1 font-serif text-lg leading-tight ${isActive ? "text-charcoal" : "text-ink-soft"}`}>
                       {title}

@@ -14,18 +14,18 @@
     /* ── PREMIUM VIBRANT COLORS ──────────────────── */
 
     /* Primary - Warm Terracotta (vibrant, inviting) */
-    --brand:        18 82% 55%;      /* #F04E23 vibrant orange-red - original */
-    --brand-dark:   16 75% 45%;       /* #E03B15 deep orange */
-    --brand-light:  20 90% 62%;       /* #F75A2C light orange */
-    --brand-muted:  18 50% 78%;       /* #F5C4B0 muted peach */
+    --brand:        23 81% 54%;      /* #E8742A warm saffron orange */
+    --brand-dark:   23 81% 46%;       
+    --brand-light:  23 81% 62%;       
+    --brand-muted:  31 100% 95%;       /* #FFF4E8 warm cream */
 
     /* Backgrounds - Clean, bright */
-    --cream:        36 33% 96%;       /* #FAF8F5 warm cream */
-    --cream-dark:   34 28% 92%;       /* #F3EDE6 darker cream */
-    --sand:         32 25% 90%;       /* #EAE4DC sand */
-    --sand-deep:    30 22% 84%;       /* #D9CFC2 dune */
-    --off-white:    0 0% 99%;         /* #FCFCFC pure white */
-    --white:        0 0% 100%;        /* #FFFFFF white */
+    --cream:        45 100% 98%;       /* #FFFDF7 warm rice-paper white */
+    --cream-dark:   31 100% 95%;       /* #FFF4E8 section alt bg */
+    --sand:         31 100% 95%;       /* #FFF4E8 section alt bg */
+    --sand-deep:    35 68% 82%;       /* #F0D5B0 linen tone */
+    --off-white:    45 100% 98%;         /* #FFFDF7 */
+    --white:        45 100% 98%;        /* #FFFDF7 */
 
     /* Sage Green - Fresh, calming (more vibrant) */
     --sage:         120 18% 40%;      /* #5A7340 fresh sage */
@@ -34,50 +34,50 @@
     --sage-mist:    115 30% 88%;      /* #D8E6C4 mist green */
 
     /* Text colors - Clear, readable */
-    --ink:          220 12% 12%;       /* #1C1D1F deep charcoal */
-    --ink-soft:     220 8% 22%;       /* #333438 soft ink */
-    --ink-muted:    220 6% 45%;       /* #6C6E75 muted */
-    --ink-faint:    220 4% 65%;       /* #A1A3A8 faint */
+    --ink:          30 56% 7%;       /* #1C1208 deep warm brown */
+    --ink-soft:     30 56% 12%;       /* soft deep brown */
+    --ink-muted:    30 30% 30%;       
+    --ink-faint:    30 20% 50%;       
 
     /* Dark sections */
-    --charcoal:     220 12% 10%;      /* #181A1C deep */
-    --charcoal-mid: 220 8% 16%;       /* #242528 */
-    --charcoal-light: 220 6% 24%;     /* #37383D */
+    --charcoal:     30 56% 7%;      /* #1C1208 deep warm brown */
+    --charcoal-mid: 30 56% 12%;       
+    --charcoal-light: 30 56% 18%;     
 
     /* Accents - Warm Gold */
-    --gold:         42 75% 50%;        /* #C9A84C warm gold */
-    --gold-light:   44 65% 65%;        /* #DFC77E pale gold */
-    --gold-muted:   40 50% 78%;      /* #F0E5C0 cream gold */
+    --gold:         32 89% 62%;        /* #F4A44A secondary golden */
+    --gold-light:   32 89% 70%;        
+    --gold-muted:   32 89% 80%;      
 
     /* Legacy aliases */
-    --terra:        18 82% 55%;
-    --terra-deep:   16 75% 45%;
-    --terra-light:  20 90% 62%;
-    --warm-dark:    220 12% 10%;
-    --warm-mid:     220 6% 24%;
-    --warm-light:   220 4% 55%;
+    --terra:        23 81% 54%;
+    --terra-deep:   23 81% 46%;
+    --terra-light:  23 81% 62%;
+    --warm-dark:    30 56% 7%;
+    --warm-mid:     30 56% 12%;
+    --warm-light:   30 56% 18%;
 
     /* shadcn semantic tokens */
-    --background:   36 33% 96%;
-    --foreground:   220 12% 12%;
-    --card:         0 0% 100%;
-    --card-foreground: 220 12% 12%;
-    --popover:      0 0% 100%;
-    --popover-foreground: 220 12% 12%;
-    --primary:      18 82% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary:    120 22% 78%;
-    --secondary-foreground: 220 12% 18%;
-    --muted:        36 25% 92%;
-    --muted-foreground: 220 6% 45%;
-    --accent:       120 18% 40%;
-    --accent-foreground: 0 0% 100%;
+    --background:   45 100% 98%;
+    --foreground:   30 56% 7%;
+    --card:         45 100% 98%;
+    --card-foreground: 30 56% 7%;
+    --popover:      45 100% 98%;
+    --popover-foreground: 30 56% 7%;
+    --primary:      23 81% 54%;
+    --primary-foreground: 45 100% 98%;
+    --secondary:    32 89% 62%;
+    --secondary-foreground: 30 56% 7%;
+    --muted:        31 100% 95%;
+    --muted-foreground: 30 30% 30%;
+    --accent:       23 81% 54%;
+    --accent-foreground: 45 100% 98%;
     --destructive:  0 60% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border:       36 18% 88%;
-    --input:        36 18% 88%;
-    --ring:         18 82% 55%;
-    --radius:       1rem;
+    --destructive-foreground: 45 100% 98%;
+    --border:       35 68% 82%;
+    --input:        35 68% 82%;
+    --ring:         23 81% 54%;
+    --radius:       12px;
 
     /* Premium shadows */
     --shadow-xs: 0 1px 3px rgba(0,0,0,0.06);
@@ -99,8 +99,13 @@
   html { scroll-behavior: smooth; }
   body {
     @apply antialiased;
-    background-color: hsl(var(--cream));
-    color: #1A1A1A;
+    background-color: #FFFDF7;
+    background-image: url('/images/spiritual-pattern.svg');
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: #1C1208;
     font-family: var(--font-sans);
     font-feature-settings: 'ss01', 'ss02';
     line-height: 1.6;
@@ -279,7 +284,7 @@
 
   /* Premium buttons */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5;
+    @apply inline-flex items-center justify-center gap-2 rounded-[12px] px-7 py-3.5;
     font-family: var(--font-sans);
     font-size: 0.8125rem;
     font-weight: 500;
@@ -293,11 +298,11 @@
   .btn-primary:hover {
     background-color: hsl(var(--brand-dark));
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(240, 78, 35, 0.35);
+    box-shadow: 0 12px 40px rgba(232, 116, 42, 0.25);
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5;
+    @apply inline-flex items-center justify-center gap-2 rounded-[12px] px-7 py-3.5;
     font-family: var(--font-sans);
     font-size: 0.8125rem;
     font-weight: 500;
@@ -314,7 +319,7 @@
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5;
+    @apply inline-flex items-center justify-center gap-2 rounded-[12px] px-7 py-3.5;
     font-family: var(--font-sans);
     font-size: 0.8125rem;
     font-weight: 500;
@@ -328,6 +333,17 @@
   .btn-outline:hover {
     background-color: hsl(var(--brand));
     color: white;
+  }
+
+  /* Global Link Hover & Italic accents */
+  a:hover {
+    color: #E8742A;
+  }
+
+  main em,
+  main .italic {
+    font-style: italic;
+    color: hsl(var(--brand)) !important;
   }
 
   .price-value,
@@ -373,11 +389,11 @@
   .border-brand  { border-color: hsl(var(--brand)); }
 
   /* Background utilities */
-  .bg-cream      { background-color: hsl(var(--cream)); }
-  .bg-cream-dark { background-color: hsl(var(--cream-dark)); }
-  .bg-sand       { background-color: hsl(var(--sand)); }
+  .bg-cream      { background-color: hsla(var(--cream) / 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .bg-cream-dark { background-color: hsla(var(--cream-dark) / 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .bg-sand       { background-color: hsla(var(--sand) / 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .bg-sand-deep  { background-color: hsl(var(--sand-deep)); }
-  .bg-off-white  { background-color: hsl(var(--off-white)); }
+  .bg-off-white  { background-color: hsla(var(--off-white) / 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .bg-charcoal   { background-color: hsl(var(--charcoal)); }
 
   /* Sage palette */
@@ -490,5 +506,31 @@
 
   .transition-premium {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── Glassmorphism Section Overrides & Glass Overlay ── */
+  section.bg-\[\#FFF4E8\],
+  section.bg-\[\#FFFDF7\],
+  section.bg-\[\#FAF9F6\],
+  section.bg-\[\#F7F4EF\],
+  div.bg-\[\#FFF4E8\],
+  div.bg-\[\#FFFDF7\],
+  div.bg-\[\#FAF9F6\],
+  div.bg-\[\#F7F4EF\] {
+    background-color: rgba(255, 253, 247, 0.88) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+  section.bg-\[\#FFF4E8\],
+  div.bg-\[\#FFF4E8\] {
+    background-color: rgba(255, 244, 232, 0.88) !important;
+  }
+  section.bg-\[\#F7F4EF\],
+  div.bg-\[\#F7F4EF\] {
+    background-color: rgba(247, 244, 239, 0.88) !important;
+  }
+  section.bg-\[\#FAF9F6\],
+  div.bg-\[\#FAF9F6\] {
+    background-color: rgba(250, 249, 246, 0.88) !important;
   }
 }

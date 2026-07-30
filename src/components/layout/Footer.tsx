@@ -83,10 +83,10 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="bg-[#1a1a1a] pt-20 pb-8 text-gray-300">
+    <footer className="bg-[#1C1208] pt-20 pb-8 text-[#F0D5B0]">
       <div className="container-wide">
         {/* Top Grid */}
-        <div className="grid gap-12 lg:grid-cols-12 pb-14 border-b border-gray-800">
+        <div className="grid gap-12 lg:grid-cols-12 pb-14 border-b border-[#F0D5B0]/20">
           {/* Brand col */}
           <div className="lg:col-span-4">
             <div className="mb-5 flex items-center gap-3">
@@ -97,23 +97,23 @@ export const Footer = () => {
                 siteName={siteSettings.general.schoolName}
               />
               <div>
-                <p className="font-serif text-xl font-bold text-white">{siteSettings.general.schoolName}</p>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500">
+                <p className="font-serif text-xl font-bold text-[#FFFDF7]">{siteSettings.general.schoolName}</p>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-[#F0D5B0]/60">
                   {siteSettings.general.tagline || tFooter("tagline")}
                 </p>
               </div>
             </div>
-            <p className="text-gray-400 mb-6">{tFooter("description")}</p>
+            <p className="text-[#F0D5B0]/80 mb-6">{tFooter("description")}</p>
 
             {/* Social Links */}
             <div className="flex gap-3">
-              <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors">
+              <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#1C1208]/80 border border-[#F0D5B0]/30 text-[#F0D5B0] hover:bg-[#E8742A] hover:text-[#FFFDF7] hover:border-[#E8742A] flex items-center justify-center transition-all duration-300">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href={socials.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors">
+              <a href={socials.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#1C1208]/80 border border-[#F0D5B0]/30 text-[#F0D5B0] hover:bg-[#E8742A] hover:text-[#FFFDF7] hover:border-[#E8742A] flex items-center justify-center transition-all duration-300">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href={socials.youtube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors">
+              <a href={socials.youtube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#1C1208]/80 border border-[#F0D5B0]/30 text-[#F0D5B0] hover:bg-[#E8742A] hover:text-[#FFFDF7] hover:border-[#E8742A] flex items-center justify-center transition-all duration-300">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
@@ -123,11 +123,11 @@ export const Footer = () => {
           <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-8">
             {footerLinks.map((column) => (
               <div key={column.titleKey}>
-                <h4 className="font-bold text-white uppercase text-sm tracking-wider mb-4">{t(column.titleKey)}</h4>
+                <h4 className="font-bold text-[#FFFDF7] uppercase text-sm tracking-wider mb-4">{t(column.titleKey)}</h4>
                 <ul className="space-y-3">
                   {column.links.map((link) => (
                     <li key={link.labelKey}>
-                      <Link href={link.to} className="text-gray-400 hover:text-white transition-colors text-sm">
+                      <Link href={link.to} className="text-[#F0D5B0]/80 hover:text-[#E8742A] transition-colors text-sm">
                         {t(link.labelKey)}
                       </Link>
                     </li>
@@ -138,15 +138,15 @@ export const Footer = () => {
 
             {/* Contact Column */}
             <div>
-              <h4 className="font-bold text-white uppercase text-sm tracking-wider mb-4">{tFooter("contact")}</h4>
+              <h4 className="font-bold text-[#FFFDF7] uppercase text-sm tracking-wider mb-4">{tFooter("contact")}</h4>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 mt-0.5 text-brand shrink-0" />
+                  <MapPin className="h-4 w-4 mt-0.5 text-[#E8742A] shrink-0" />
                   <span>{siteSettings.general.address}</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-brand shrink-0" />
-                  <a href={`mailto:${siteSettings.general.email}`} className="hover:text-white transition-colors">
+                  <Mail className="h-4 w-4 text-[#E8742A] shrink-0" />
+                  <a href={`mailto:${siteSettings.general.email}`} className="hover:text-[#E8742A] transition-colors">
                     {siteSettings.general.email}
                   </a>
                 </li>
@@ -156,19 +156,19 @@ export const Footer = () => {
         </div>
 
         {/* Newsletter */}
-        <div className="py-10 border-b border-gray-800">
+        <div className="py-10 border-b border-[#F0D5B0]/20">
           <div className="max-w-md">
-            <h4 className="font-bold text-white mb-2">{tFooter("newsletter")}</h4>
-            <p className="text-gray-400 text-sm mb-4">{tFooter("newsletterDesc")}</p>
+            <h4 className="font-bold text-[#FFFDF7] mb-2">{tFooter("newsletter")}</h4>
+            <p className="text-[#F0D5B0]/80 text-sm mb-4">{tFooter("newsletterDesc")}</p>
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <Input
                 type="email"
                 placeholder={tFooter("emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                className="bg-[#1C1208] border-[#F0D5B0]/30 text-[#FFFDF7] placeholder:text-[#F0D5B0]/50"
               />
-              <Button type="submit" disabled={isSubscribing} className="bg-brand hover:bg-brand-dark text-white rounded-full disabled:opacity-70">
+              <Button type="submit" disabled={isSubscribing} className="bg-[#E8742A] hover:bg-[#F4A44A] text-white rounded-[12px] disabled:opacity-70">
                 {isSubscribing ? "Saving..." : tFooter("subscribe")}
               </Button>
             </form>
@@ -177,12 +177,12 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-500 text-sm">
+          <p className="text-[#F0D5B0]/60 text-sm">
             &copy; {new Date().getFullYear()} {siteSettings.general.schoolName}. {tFooter("rights")}
           </p>
           <div className="flex gap-6 text-sm">
-            <Link href="/terms" className="text-gray-500 hover:text-white transition-colors">{tFooter("terms")}</Link>
-            <Link href="/terms" className="text-gray-500 hover:text-white transition-colors">{tFooter("privacy")}</Link>
+            <Link href="/terms" className="text-[#F0D5B0]/60 hover:text-[#E8742A] transition-colors">{tFooter("terms")}</Link>
+            <Link href="/terms" className="text-[#F0D5B0]/60 hover:text-[#E8742A] transition-colors">{tFooter("privacy")}</Link>
           </div>
         </div>
       </div>
